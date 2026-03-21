@@ -507,6 +507,21 @@ td:first-child { color:var(--t1); font-weight:500; }
           <input type="number" id="dash-precio" oninput="buscarDash()" placeholder="Ej: 150000"
             style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
         </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Asesor</div>
+          <select id="dash-asesor" onchange="buscarDash()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+            <option value="">Todos</option>
+            <option>Alexis Valdivia</option><option>Carmen Barrios</option>
+            <option>Cecilia Cayani</option><option>Cinthia Calizaya</option>
+            <option>Claudio Condori</option><option>David Rodriguez</option>
+            <option>Evelyn Rivera</option><option>Fiorella Heresi</option>
+            <option>Joel Cuadros</option><option>Juan Fernando Fuentes</option>
+            <option>Lucy Arapa</option><option>Marilyn Benavente</option>
+            <option>Milagros Rodriguez</option><option>Paola Herrera</option>
+            <option>Veronica Chacón</option><option>Ylka Stojkic</option>
+            <option>Zulema Gutierrez</option>
+          </select>
+        </div>
       </div>
 
       <!-- Resultados -->
@@ -1762,7 +1777,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
       </div>
 
       <!-- BUSCADOR -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
         <div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Tipo</div>
           <select id="filtro-tipo" onchange="filtrarProps()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
@@ -1785,6 +1800,21 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
         <div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Precio máx. USD</div>
           <input type="number" id="filtro-precio" oninput="filtrarProps()" placeholder="Ej: 150000" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Asesor</div>
+          <select id="filtro-asesor" onchange="filtrarProps()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+            <option value="">Todos</option>
+            <option>Alexis Valdivia</option><option>Carmen Barrios</option>
+            <option>Cecilia Cayani</option><option>Cinthia Calizaya</option>
+            <option>Claudio Condori</option><option>David Rodriguez</option>
+            <option>Evelyn Rivera</option><option>Fiorella Heresi</option>
+            <option>Joel Cuadros</option><option>Juan Fernando Fuentes</option>
+            <option>Lucy Arapa</option><option>Marilyn Benavente</option>
+            <option>Milagros Rodriguez</option><option>Paola Herrera</option>
+            <option>Veronica Chacón</option><option>Ylka Stojkic</option>
+            <option>Zulema Gutierrez</option>
+          </select>
         </div>
         <button onclick="limpiarFiltros()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--s3);color:var(--t2);font-size:12px;cursor:pointer;white-space:nowrap;">
           ✕ Limpiar
@@ -2187,7 +2217,8 @@ async function cargarDesdeSupabase() {
       const rows = await sbFetch(table);
       if (Array.isArray(rows)) {
         const mapped = rows.map(r => fromSbRow(key, r));
-        dbSave(key, mapped); // siempre reemplazar caché local (aunque esté vacío)
+        // Siempre reemplazar caché local completamente — evita duplicados
+        localStorage.setItem(DB_KEYS[key], JSON.stringify(mapped));
         total += mapped.length;
       } else {
         error = true;
@@ -2375,7 +2406,6 @@ function exportarPDF() {
       ${tableRows?`<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">${tableRows}</table>`:''}
       <div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#CE011F;font-weight:700;margin-bottom:8px;border-bottom:1px solid #CE011F;padding-bottom:4px;">Ficha Técnica</div>
       ${fichaLines}
-      ${checkRows?`<div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#CE011F;font-weight:700;margin:16px 0 8px;border-bottom:1px solid #CE011F;padding-bottom:4px;">Documentos de Captación</div>${checkRows}`:''}
     </div>
 
     ${photosHTML ? `<div style="padding:0 28px 20px;background:#fff;">
@@ -2537,18 +2567,20 @@ function filtrarProps() {
   const op     = document.getElementById('filtro-operacion').value.toLowerCase();
   const zona   = document.getElementById('filtro-zona').value.toLowerCase().trim();
   const precio = parseFloat(document.getElementById('filtro-precio').value) || Infinity;
+  const asesor = (document.getElementById('filtro-asesor')?.value||'').toLowerCase();
   const all    = dbGet('props');
 
   const filtrados = all.filter(r => {
-    const matchTipo   = !tipo  || (r.tipo||'').toLowerCase().includes(tipo);
-    const matchOp     = !op    || (r.operacion||'').toLowerCase().includes(op);
-    const matchZona   = !zona  || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
+    const matchTipo   = !tipo   || (r.tipo||'').toLowerCase().includes(tipo);
+    const matchOp     = !op     || (r.operacion||'').toLowerCase().includes(op);
+    const matchZona   = !zona   || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
     const matchPrecio = !r.precio || parseFloat(r.precio) <= precio;
-    return matchTipo && matchOp && matchZona && matchPrecio;
+    const matchAsesor = !asesor  || (r.asesor||'').toLowerCase().includes(asesor);
+    return matchTipo && matchOp && matchZona && matchPrecio && matchAsesor;
   });
 
   const badge = document.getElementById('filtro-resultado');
-  if (tipo || op || zona || document.getElementById('filtro-precio').value) {
+  if (tipo || op || zona || document.getElementById('filtro-precio').value || asesor) {
     badge.style.display = 'block';
     badge.textContent   = `🔍 ${filtrados.length} de ${all.length} propiedades encontradas`;
   } else {
@@ -2563,6 +2595,7 @@ function limpiarFiltros() {
   document.getElementById('filtro-operacion').value = '';
   document.getElementById('filtro-zona').value      = '';
   document.getElementById('filtro-precio').value    = '';
+  const fa = document.getElementById('filtro-asesor'); if(fa) fa.value = '';
   document.getElementById('filtro-resultado').style.display = 'none';
   renderProps();
 }
@@ -2584,8 +2617,9 @@ function renderPropsData(data) {
     <td><span class="tag ${r.estado==='Vendida'?'tag-green':r.estado==='En proceso'?'tag-gold':'tag-red'}">${r.estado||'Activa'}</span></td>
     <td style="display:flex;gap:4px;">
       <button style="background:#CE011F;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;" title="Ver y exportar ficha" onclick="abrirPropiedadParaExportar(${r.id})">📄</button>
+      ${(isAdmin || !currentUser || (currentUser && (r.asesor_tel === currentUser.email.split('@')[0] || r.asesor === (currentUser.nombre||'').charAt(0).toUpperCase()+(currentUser.nombre||'').slice(1)))) ? `
       <button style="background:#444;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;" title="Editar" onclick="cargarPropParaEditar(${r.id})">✏️</button>
-      <button class="btn-delete" onclick="dbDelete('props',${r.id})">✕</button>
+      <button class="btn-delete" onclick="dbDelete('props',${r.id})">✕</button>` : ''}
     </td>
   </tr>`).join('');
 }
@@ -2669,28 +2703,81 @@ function cargarPropParaEditar(id) {
   if (!r) return;
   _editPropId = id;
 
-  // Llenar el formulario con los datos del registro
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
-  set('cap-tipo', r.tipo);
+  set('cap-tipo',        r.tipo);
+  set('cap-operacion',   r.operacion);
   set('cap-propietario', r.propietario);
-  set('cap-ubicacion', r.ubicacion);
-  set('cap-direccion', r.direccion);
-  set('cap-area', r.area);
-  set('cap-area-const', r.areaConst);
-  set('cap-precio', r.precio);
+  set('cap-ubicacion',   r.ubicacion);
+  set('cap-direccion',   r.direccion);
+  set('cap-area',        r.area);
+  set('cap-area-const',  r.areaConst);
+  set('cap-precio',      r.precio);
   set('cap-orientacion', r.orientacion);
-  set('cap-antiguedad', r.antiguedad);
+  set('cap-antiguedad',  r.antiguedad);
 
-  // Ir al módulo 1
+  // Parsear y cargar características (dorms, baños, cocheras, extras)
+  if (r.caract && r.caract !== '—') {
+    const partes = r.caract.split(',').map(s => s.trim());
+    let extras = [];
+    partes.forEach(p => {
+      const dorm = p.match(/^(\d+)\s*dorm/i);
+      const bano = p.match(/^(\d+)\s*ba[ñn]/i);
+      const coch = p.match(/^(\d+)\s*cochera/i);
+      const sinCoch = p.match(/^sin cochera/i);
+      if (dorm) set('cap-dorms', dorm[1]);
+      else if (bano) set('cap-banos', bano[1]);
+      else if (coch) set('cap-cocheras', coch[1]);
+      else if (sinCoch) set('cap-cocheras', '0');
+      else extras.push(p);
+    });
+    set('cap-caract', extras.join(', '));
+  }
+
+  // Cargar asesor
+  const selAsesor = document.getElementById('cap-asesor-select');
+  if (selAsesor && r.asesor_tel) {
+    for (let i = 0; i < selAsesor.options.length; i++) {
+      if (selAsesor.options[i].value === r.asesor_tel) {
+        selAsesor.selectedIndex = i;
+        seleccionarAsesorMod1(selAsesor);
+        break;
+      }
+    }
+  }
+
+  // Cargar ficha en textarea
+  const fichaEl = document.getElementById('out-ficha');
+  if (fichaEl && r.ficha) {
+    fichaEl.value = r.ficha;
+    fichaEl.style.background = 'rgba(0,180,80,.06)';
+    document.getElementById('ficha-ready-badge').style.display = 'flex';
+  }
+
+  // Cargar fotos
+  if (typeof photos !== 'undefined') {
+    photos.fill(null);
+    let fotos = r.fotos || [];
+    if (!fotos.length) {
+      try { fotos = JSON.parse(localStorage.getItem('ei_fotos_' + id) || '[]'); } catch(e) {}
+    }
+    fotos.forEach((f, i) => { if (i < photos.length) photos[i] = f; });
+    buildPhotoGrid();
+  }
+
   showPage('captacion', document.querySelector('[onclick*="captacion"]'));
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 
-  // Cambiar botón a modo edición
   const btnG = document.getElementById('btn-guardar-prop');
   if (btnG) btnG.textContent = '💾 Actualizar Propiedad';
 
   const badge = document.getElementById('prop-guardada-badge');
-  if (badge) { badge.style.display = 'flex'; badge.textContent = '✏️ Modo edición — modifica y guarda'; }
+  if (badge) {
+    badge.style.display = 'flex';
+    badge.textContent = '✏️ Modo edición — modifica y guarda';
+    badge.style.background = 'rgba(255,180,0,.12)';
+    badge.style.borderColor = 'rgba(255,180,0,.3)';
+    badge.style.color = '#b8860b';
+  }
 }
 
 // Leads
@@ -2956,7 +3043,7 @@ function showPage(id, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   if (el) el.classList.add('active');
-  const titles = { dashboard:'Dashboard', captacion:'Captación de Propiedades', clientes:'Clientes & Leads', equipo:'Gestión del Equipo', redes:'Redes Sociales', proyecto:'Proyecto IA', 'hoja-ruta':'Hoja de Ruta', 'base-datos':'Base de Datos' };
+  const titles = { dashboard:'Dashboard', captacion:'Captación de Propiedades', clientes:'Clientes & Leads', equipo:'Gestión del Equipo', redes:'Redes Sociales', proyecto:'Proyecto IA', 'hoja-ruta':'Hoja de Ruta', 'base-datos':'Base de Datos', requerimientos:'Requerimientos' };
   document.getElementById('topbar-title').textContent = titles[id] || id;
   window.scrollTo(0, 0);
 }
@@ -3246,6 +3333,7 @@ function exportarWord() {
   </table>
 
 </div>
+</div><!-- fin main-app -->
 </body>
 </html>`;
 
@@ -3864,19 +3952,21 @@ function buscarDash() {
   const op     = document.getElementById('dash-op').value.toLowerCase();
   const zona   = document.getElementById('dash-zona').value.toLowerCase().trim();
   const precio = parseFloat(document.getElementById('dash-precio').value) || Infinity;
+  const asesor = document.getElementById('dash-asesor').value.toLowerCase();
   const all    = dbGet('props');
 
   const res = all.filter(r => {
-    const mTipo  = !tipo  || (r.tipo||'').toLowerCase().includes(tipo);
-    const mOp    = !op    || (r.operacion||'').toLowerCase().includes(op);
-    const mZona  = !zona  || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
-    const mPrecio= !r.precio || parseFloat(r.precio) <= precio;
-    return mTipo && mOp && mZona && mPrecio;
+    const mTipo   = !tipo   || (r.tipo||'').toLowerCase().includes(tipo);
+    const mOp     = !op     || (r.operacion||'').toLowerCase().includes(op);
+    const mZona   = !zona   || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
+    const mPrecio = !r.precio || parseFloat(r.precio) <= precio;
+    const mAsesor = !asesor  || (r.asesor||'').toLowerCase().includes(asesor);
+    return mTipo && mOp && mZona && mPrecio && mAsesor;
   });
 
   const label = document.getElementById('dash-resultado-label');
   const cont  = document.getElementById('dash-resultados');
-  const hasFiltro = tipo || op || zona || document.getElementById('dash-precio').value;
+  const hasFiltro = tipo || op || zona || document.getElementById('dash-precio').value || asesor;
 
   if (!all.length) {
     label.style.display = 'none';
@@ -4048,19 +4138,29 @@ function abrirPropiedadParaExportar(id) {
   const r = dbGet('props').find(p => p.id === id);
   if (!r) { alert('Propiedad no encontrada.'); return; }
 
-  // Fotos — las fotos se guardan en localStorage por ID
-  const fotosKey = 'ei_fotos_' + id;
-  const fotosGuardadas = JSON.parse(localStorage.getItem(fotosKey) || '[]');
+  // Fotos — primero URLs de Supabase Storage, luego localStorage como respaldo
+  let fotosGuardadas = [];
+  // 1. Intentar URLs de Storage (visibles desde cualquier dispositivo)
+  if (r.fotos_urls && r.fotos_urls.length) {
+    fotosGuardadas = r.fotos_urls;
+  } else if (r.fotos && r.fotos.length) {
+    fotosGuardadas = r.fotos;
+  } else {
+    // 2. Respaldo: localStorage del dispositivo actual
+    try { fotosGuardadas = JSON.parse(localStorage.getItem('ei_fotos_' + id) || '[]'); } catch(e) {}
+  }
 
   // Construir HTML de fotos
   let fotosHTML = '';
   if (fotosGuardadas.length) {
     const grid = fotosGuardadas.map(src =>
       `<div style="aspect-ratio:4/3;overflow:hidden;border-radius:6px;">
-        <img src="${src}" style="width:100%;height:100%;object-fit:cover;">
+        <img src="${src}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.display='none'">
       </div>`
     ).join('');
     fotosHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px;">${grid}</div>`;
+  } else {
+    fotosHTML = '<div style="color:#999;font-size:12px;margin-bottom:12px;padding:10px;background:#f8f8f8;border-radius:6px;text-align:center;">📷 Las fotos se cargan desde el dispositivo donde se guardó la propiedad</div>';
   }
 
   // Construir ficha HTML
@@ -4231,6 +4331,139 @@ async function guardarUrlsFotosEnSupabase(propId, urls) {
   const urlsFotos = JSON.stringify(urls);
   await sbFetch(`ei_props?id=eq.${propId}`, 'PATCH', { fotos_urls: urlsFotos });
 }
+
+
+// ══════════════════════════════════════════
+// AUTENTICACIÓN — Supabase Auth
+// ══════════════════════════════════════════
+let currentUser = null;
+let isAdmin = false;
+
+// Admins que pueden ver todo y editar todo
+const ADMINS = ['zulema@ei.com', 'david@ei.com', 'cecilia@ei.com', 'marilyn@ei.com'];
+
+async function iniciarSesion() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const btn      = document.getElementById('btn-login');
+  const errDiv   = document.getElementById('login-error');
+
+  if (!email || !password) {
+    mostrarErrorLogin('Ingresa tu correo y contraseña');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  errDiv.style.display = 'none';
+
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      mostrarErrorLogin('Correo o contraseña incorrectos');
+      btn.disabled = false;
+      btn.textContent = 'Ingresar al Sistema';
+      return;
+    }
+
+    // Login exitoso
+    currentUser = {
+      id:    data.user.id,
+      email: data.user.email,
+      token: data.access_token,
+      nombre: data.user.email.split('@')[0]
+    };
+
+    isAdmin = ADMINS.includes(currentUser.email);
+
+    // Guardar sesión en localStorage
+    localStorage.setItem('ei_session', JSON.stringify(currentUser));
+
+    // Mostrar sistema
+    activarSistema();
+
+  } catch(e) {
+    mostrarErrorLogin('Error de conexión. Verifica tu internet.');
+    btn.disabled = false;
+    btn.textContent = 'Ingresar al Sistema';
+  }
+}
+
+function mostrarErrorLogin(msg) {
+  const errDiv = document.getElementById('login-error');
+  errDiv.textContent = msg;
+  errDiv.style.display = 'block';
+}
+
+function activarSistema() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+
+  // Mostrar nombre del usuario en sidebar
+  const teamName = document.querySelector('.team-name');
+  if (teamName && currentUser) {
+    teamName.textContent = currentUser.nombre.charAt(0).toUpperCase() + currentUser.nombre.slice(1);
+  }
+
+  // Agregar botón de cerrar sesión
+  const sidebarFooter = document.querySelector('.sidebar-footer');
+  if (sidebarFooter && !document.getElementById('btn-logout')) {
+    const logoutBtn = document.createElement('button');
+    logoutBtn.id = 'btn-logout';
+    logoutBtn.onclick = cerrarSesion;
+    logoutBtn.style.cssText = 'width:100%;background:rgba(206,1,31,.1);color:#CE011F;border:1px solid rgba(206,1,31,.2);border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;';
+    logoutBtn.textContent = '⬅️ Cerrar Sesión';
+    sidebarFooter.appendChild(logoutBtn);
+  }
+
+  // Cargar datos
+  setTimeout(cargarDesdeSupabase, 500);
+}
+
+function cerrarSesion() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  currentUser = null;
+  isAdmin = false;
+  localStorage.removeItem('ei_session');
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Ingresar al Sistema';
+}
+
+function verificarSesionGuardada() {
+  try {
+    const saved = localStorage.getItem('ei_session');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      isAdmin = ADMINS.includes(currentUser.email);
+      activarSistema();
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// Al cargar la página verificar si hay sesión guardada
+window.addEventListener('load', () => {
+  if (!verificarSesionGuardada()) {
+    // Mostrar login
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
 
 </script>
 </body>
