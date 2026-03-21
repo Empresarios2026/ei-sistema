@@ -387,7 +387,7 @@ td:first-child { color:var(--t1); font-weight:500; }
 </div>
 
 <!-- ════════ SISTEMA PRINCIPAL ════════ -->
-<div id="main-app" style="display:none;width:100%;min-height:100vh;flex:1;">
+<div id="main-app" style="display:none;width:100%;min-height:100vh;flex:1;flex-direction:row;">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -4447,7 +4447,7 @@ function mostrarErrorLogin(msg) {
 
 function activarSistema() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('main-app').style.display = 'flex';
 
   // Forzar que el dashboard sea visible
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
