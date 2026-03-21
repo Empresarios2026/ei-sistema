@@ -643,9 +643,26 @@ td:first-child { color:var(--t1); font-weight:500; }
           <input type="text" id="cap-propietario" placeholder="Ej: Juan Pérez / María García">
         </div>
         <div class="field">
-          <label>Ubicación (distrito, zona referencial)</label>
-          <input type="text" id="cap-ubicacion" placeholder="Ej: Cayma, cerca a Real Plaza">
+          <label>Departamento</label>
+          <select id="cap-departamento" onchange="onChangeDep()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+            <option value="">Seleccionar departamento...</option>
+          </select>
         </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Provincia</label>
+            <select id="cap-provincia" onchange="onChangeProv()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+              <option value="">Seleccionar provincia...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Distrito</label>
+            <select id="cap-distrito" onchange="onChangeDistrito()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+              <option value="">Seleccionar distrito...</option>
+            </select>
+          </div>
+        </div>
+        <input type="hidden" id="cap-ubicacion">
         <div class="field">
           <label>Dirección exacta</label>
           <input type="text" id="cap-direccion" placeholder="Ej: Av. Ejército 123, Cayma">
@@ -2728,7 +2745,35 @@ function cargarPropParaEditar(id) {
   set('cap-tipo',        r.tipo);
   set('cap-operacion',   r.operacion);
   set('cap-propietario', r.propietario);
-  set('cap-ubicacion',   r.ubicacion);
+  // Cargar ubicación en selectores en cascada
+  if (r.ubicacion) {
+    const partes = r.ubicacion.split(',').map(s => s.trim());
+    // Intentar detectar dep/prov/dist del string guardado
+    if (partes.length >= 1) {
+      // Buscar departamento
+      for (const dep of Object.keys(PERU_GEO)) {
+        if (r.ubicacion.includes(dep)) {
+          document.getElementById('cap-departamento').value = dep;
+          onChangeDep();
+          for (const prov of Object.keys(PERU_GEO[dep]||{})) {
+            if (r.ubicacion.includes(prov)) {
+              document.getElementById('cap-provincia').value = prov;
+              onChangeProv();
+              for (const dist of (PERU_GEO[dep][prov]||[])) {
+                if (r.ubicacion.includes(dist)) {
+                  document.getElementById('cap-distrito').value = dist;
+                  onChangeDistrito();
+                  break;
+                }
+              }
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
   set('cap-direccion',   r.direccion);
   set('cap-area',        r.area);
   set('cap-area-const',  r.areaConst);
@@ -4513,6 +4558,226 @@ async function verificarSesionGuardada() {
 window.addEventListener('load', () => {
   localStorage.removeItem('ei_session'); // no recordar sesión
   document.getElementById('login-screen').style.display = 'flex';
+});
+
+
+// ══════════════════════════════════════════
+// DATOS GEOGRÁFICOS PERÚ — Departamento → Provincia → Distrito
+// ══════════════════════════════════════════
+const PERU_GEO = {
+  "Amazonas": {
+    "Chachapoyas": ["Chachapoyas","Asunción","Balsas","Cheto","Chiliquín","Chuquibamba","Granada","Huancas","La Jalca","Leimebamba","Levanto","Magdalena","Mariscal Castilla","Molinopampa","Montevideo","Olleros","Quinjalca","San Francisco de Daguas","San Isidro de Maino","Soloco","Sonche"],
+    "Bagua": ["Bagua","Carmen de la Frontera","Copallin","El Parco","Imaza","La Peca"],
+    "Bongará": ["Jumbilla","Chisquilla","Churuja","Corosha","Cuispes","Florida","Jazán","Recta","San Carlos","Shipasbamba","Valera","Yambrasbamba"],
+    "Condorcanqui": ["Nieva","El Cenepa","Río Santiago"],
+    "Luya": ["Lamud","Camporredondo","Cocabamba","Colcamar","Conila","Inguilpata","Longuita","Lonya Chico","Luya","Luya Viejo","María","Ocalli","Ocumal","Pisuquia","Providencia","San Cristóbal","San Francisco del Yeso","San Jerónimo","San Juan de Lopecancha","Santa Catalina","Santo Tomás","Tingo","Trita"],
+    "Rodríguez de Mendoza": ["San Nicolás","Chirimoto","Cochamal","Huambo","Limabamba","Longar","Mariscal Benavides","Milpuc","Omia","Santa Rosa","Totora","Vista Alegre"],
+    "Utcubamba": ["Bagua Grande","Cajaruro","Cumba","El Milagro","Jamalca","Lonya Grande","Yamón"]
+  },
+  "Áncash": {
+    "Huaraz": ["Huaraz","Cochabamba","Colcabamba","Huanchay","Independencia","Jangas","La Libertad","Olleros","Pampas","Paro","Pira","Taricá"],
+    "Recuay": ["Recuay","Catac","Cotaparaco","Huayllapampa","Llacllin","Marca","Pampas Chico","Pampas Grande","Pátap","Tapacocha","Ticapampa"],
+    "Santa": ["Chimbote","Cáceres del Perú","Coishco","Macate","Moro","Nepeña","Samanco","Santa","Nuevo Chimbote"]
+  },
+  "Apurímac": {
+    "Abancay": ["Abancay","Chacoche","Circa","Curahuasi","Huanipaca","Lambrama","Pichirhua","San Pedro de Cachora","Tamburco"],
+    "Andahuaylas": ["Andahuaylas","Andarapa","Chiara","Huancarama","Huancaray","Huayana","Kishuara","Pacobamba","Pacucha","Pampachiri","Pomacocha","San Antonio de Cachi","San Jerónimo","San Miguel de Chaccrampa","Santa María de Chicmo","Talavera","Tumay Huaraca","Turpo","Kaquiabamba"],
+    "Aymaraes": ["Chalhuanca","Capaya","Caraybamba","Chapimarca","Colcabamba","Cotaruse","Huayllo","Justo Apu Sahuaraura","Lucre","Pocohuanca","San Juan de Chaquibamba","Sañayca","Soraya","Tapairihua","Tintay","Toraya","Yanaca"],
+    "Cotabambas": ["Tambobamba","Cotabambas","Coyllurqui","Haquira","Mara","Challhuahuacho"]
+  },
+  "Arequipa": {
+    "Arequipa": ["Alto Selva Alegre","Cayma","Cerro Colorado","Characato","Chiguata","Jacobo Hunter","José Luis Bustamante y Rivero","La Joya","Mariano Melgar","Miraflores","Mollebaya","Paucarpata","Pocsi","Polobaya","Quequeña","Sabandia","Sachaca","San Juan de Siguas","San Juan de Tarucani","Santa Isabel de Siguas","Santa Rita de Siguas","Socabaya","Tiabaya","Uchumayo","Vitor","Yanahuara","Yarabamba","Yura","Arequipa"],
+    "Camaná": ["Camaná","José María Quimper","Mariano Nicolás Valcárcel","Mariscal Cáceres","Nicolás de Piérola","Ocoña","Quilca","Samuel Pastor"],
+    "Caravelí": ["Caravelí","Acarí","Atico","Atiquipa","Bella Unión","Cahuacho","Chala","Chaparra","Huanuhuanu","Jaqui","Lomas","Quicacha","Yauca"],
+    "Castilla": ["Aplao","Andagua","Ayo","Chachas","Chilcaymarca","Choco","Huancarqui","Machaguay","Orcopampa","Pampacolca","Tipán","Uñón","Uraca","Viraco"],
+    "Caylloma": ["Chivay","Achoma","Cabanaconde","Callalli","Caylloma","Coporaque","Huambo","Huanca","Ichupampa","Lari","Lluta","Maca","Madrigal","San Antonio de Chuca","Sibayo","Tapay","Tisco","Tuti","Yanque","Majes"],
+    "Condesuyos": ["Chuquibamba","Andaray","Cayarani","Chichas","Iray","Río Grande","Salamanca","Yanaquihua"],
+    "Islay": ["Mollendo","Cocachacra","Dean Valdivia","Islay","Mejía","Punta de Bombón"],
+    "La Unión": ["Cotahuasi","Alca","Charcana","Huaynacotas","Pampamarca","Puyca","Quechualla","Sayla","Tauria","Tomepampa","Toro"]
+  },
+  "Ayacucho": {
+    "Huamanga": ["Ayacucho","Acocro","Acos Vinchos","Carmen Alto","Chiara","Ocros","Pacaycasa","Quinua","San José de Ticllas","San Juan Bautista","Santiago de Pischa","Socos","Tambillo","Vinchos","Jesús Nazareno","Andrés Avelino Cáceres Dorregaray"],
+    "Cangallo": ["Cangallo","Chuschi","Los Morochucos","María Parado de Bellido","Paras","Totos"],
+    "Lucanas": ["Puquio","Aucará","Cabana","Carmen Salcedo","Chaviña","Chipao","Huac-Huas","Laramate","Leoncio Prado","Llauta","Lucanas","Ocaña","Otoca","Saisa","San Cristóbal","San Juan","San Pedro","San Pedro de Palco","Sancos","Santa Ana de Huaycahuacho","Santa Lucía"]
+  },
+  "Cajamarca": {
+    "Cajamarca": ["Cajamarca","Asunción","Chetilla","Cospan","Encañada","Jesús","Llacanora","Los Baños del Inca","Magdalena","Namora","San Juan"],
+    "Jaén": ["Jaén","Bellavista","Chontali","Colasay","Huabal","Las Pirias","Pomahuaca","Pucará","Sallique","San Felipe","San José del Alto","Santa Rosa"],
+    "San Ignacio": ["San Ignacio","Chirinos","Huarango","La Coipa","Namballe","San José de Lourdes","Tabaconas"]
+  },
+  "Cusco": {
+    "Cusco": ["Cusco","Ccorca","Poroy","San Jerónimo","San Sebastián","Santiago","Saylla","Wanchaq"],
+    "Espinar": ["Espinar","Condoroma","Coporaque","Ocoruro","Pallpata","Pichigua","Suyckutambo","Alto Pichigua"],
+    "La Convención": ["Santa Ana","Echarate","Huayopata","Maranura","Ocobamba","Quellouno","Kimbiri","Santa Teresa","Vilcabamba","Pichari","Inkawasi","Villa Virgen","Villa Kintiarina","Megantoni"],
+    "Urubamba": ["Urubamba","Chinchero","Huayllabamba","Machupicchu","Maras","Ollantaytambo","Yucay"],
+    "Calca": ["Calca","Coya","Lamay","Lares","Pisac","San Salvador","Taray","Yanatile"]
+  },
+  "Huancavelica": {
+    "Huancavelica": ["Huancavelica","Acobambilla","Acoria","Conayca","Cuenca","Huachocolpa","Huayllahuara","Izcuchaca","Laria","Manta","Mariscal Cáceres","Moya","Nuevo Occoro","Palca","Pilchaca","Vilca","Yauli","Ascensión","Huando"]
+  },
+  "Huánuco": {
+    "Huánuco": ["Huánuco","Amarilis","Chinchao","Churubamba","Margos","Quisqui","San Francisco de Cayran","San Pedro de Chaulán","Santa María del Valle","Yarumayo","Pillco Marca"],
+    "Leoncio Prado": ["Rupa-Rupa","Daniel Alomía Robles","Hermilio Valdizán","José Crespo y Castillo","Luyando","Mariano Dámaso Beraún"]
+  },
+  "Ica": {
+    "Ica": ["Ica","La Tinguiña","Los Aquijes","Ocucaje","Pachacutec","Parcona","Pueblo Nuevo","Salas","San José de Los Molinos","San Juan Bautista","Santiago","Subtanjalla","Tate","Yauca del Rosario"],
+    "Nasca": ["Nasca","Changuillo","El Ingenio","Marcona","Vista Alegre"],
+    "Pisco": ["Pisco","Huancano","Humay","Independencia","Paracas","San Andrés","San Clemente","Túpac Amaru Inca"]
+  },
+  "Junín": {
+    "Huancayo": ["Huancayo","Carhuacallanga","Chacapampa","Chicche","Chilca","Chongos Alto","Chupuro","Colca","Cullhuas","El Tambo","Huacrapuquio","Hualhuas","Huancan","Huasicancha","Huayucachi","Ingenio","Pariahuanca","Pilcomayo","Pucará","Quichuay","Quilcas","San Agustín","San Jerónimo de Tunan","Saño","Sapallanga","Sicaya","Santo Domingo de Acobamba","Viques"],
+    "Satipo": ["Satipo","Coviriali","Llaylla","Mazamari","Pampa Hermosa","Pangoa","Río Negro","Río Tambo","Vizcatán del Ene"]
+  },
+  "La Libertad": {
+    "Trujillo": ["Trujillo","El Porvenir","Florencia de Mora","Huanchaco","La Esperanza","Laredo","Moche","Poroto","Salaverry","Simbal","Victor Larco Herrera"],
+    "Ascope": ["Ascope","Chicama","Chocope","Guadalupe","Maghacudo","Paiján","Razuri","Santiago de Cao"],
+    "Chepén": ["Chepén","Pacanga","Pueblo Nuevo"]
+  },
+  "Lambayeque": {
+    "Chiclayo": ["Chiclayo","Chongoyape","Eten","Eten Puerto","José Leonardo Ortiz","La Victoria","Lagunas","Monsefú","Nueva Arica","Oyotún","Picsi","Pimentel","Reque","Santa Rosa","Saña","Cayaltí","Pátapo","Pomalca","Pucalá","Tumán"],
+    "Ferreñafe": ["Ferreñafe","Cañaris","Incahuasi","Manuel Antonio Mesones Muro","Pitipo","Pueblo Nuevo"],
+    "Lambayeque": ["Lambayeque","Chóchope","Illimo","Jayanca","Mochumi","Mórrope","Motupe","Olmos","Pacora","Salas","San José","Túcume"]
+  },
+  "Lima": {
+    "Lima": ["Miraflores","San Isidro","San Borja","Surco","La Molina","San Miguel","Magdalena del Mar","Jesús María","Lince","Barranco","Chorrillos","Surquillo","San Luis","Ate","Santa Anita","El Agustino","La Victoria","Lima","Breña","Rímac","San Martín de Porres","Los Olivos","Comas","Independencia","Carabayllo","Puente Piedra","San Juan de Lurigancho","San Juan de Miraflores","Villa María del Triunfo","Villa El Salvador","Lurigancho","Chaclacayo","Cieneguilla","Pachacámac","Lurín","Punta Hermosa","Punta Negra","San Bartolo","Santa María del Mar","Pucusana","Chilca"],
+    "Callao": ["Callao","Bellavista","Carmen de La Legua Reynoso","La Perla","La Punta","Ventanilla","Mi Perú"],
+    "Huaura": ["Huacho","Ambar","Caleta de Carquín","Checras","Hualmay","Huaura","Leoncio Prado","Paccho","Santa Leonor","Santa María","Sayan","Vegueta"],
+    "Barranca": ["Barranca","Paramonga","Pativilca","Supe","Supe Puerto"],
+    "Cañete": ["San Vicente de Cañete","Asia","Calango","Cerro Azul","Chilca","Coayllo","Imperial","Lunahuaná","Mala","Nuevo Imperial","Pacaran","Quilmaná","San Antonio","San Luis","Santa Cruz de Flores","Zuñiga"]
+  },
+  "Loreto": {
+    "Maynas": ["Iquitos","Alto Nanay","Fernando Lores","Indiana","Las Amazonas","Mazan","Napo","Punchana","Torres Causana","Belén","San Juan Bautista"],
+    "Requena": ["Requena","Alto Tapiche","Capelo","Emilio San Martín","Maquia","Puinahua","Saquena","Soplin","Tapiche","Yaquerana"]
+  },
+  "Madre de Dios": {
+    "Tambopata": ["Tambopata","Inambari","Las Piedras","Laberinto"],
+    "Manu": ["Manu","Fitzcarrald","Madre de Dios","Huepetuhe"],
+    "Tahuamanu": ["Iñapari","Iberia","Tahuamanu"]
+  },
+  "Moquegua": {
+    "Mariscal Nieto": ["Moquegua","Carumas","Cuchumbaya","Samegua","San Cristóbal","Torata"],
+    "General Sánchez Cerro": ["Omate","Chojata","Coalaque","Ichuña","La Capilla","Lloque","Matalaque","Puquina","Quinistaquillas","Ubinas","Yunga"],
+    "Ilo": ["Ilo","El Algarrobal","Pacocha"]
+  },
+  "Pasco": {
+    "Pasco": ["Chaupimarca","Huachon","Huariaca","Huayllay","Ninacaca","Pallanchacra","Paucartambo","San Francisco de Asís de Yarusyacán","Simón Bolívar","Ticlacayan","Tinyahuarco","Vicco","Yanacancha"],
+    "Daniel Alcides Carrión": ["Yanahuanca","Chacayán","Goyllarisquizga","Paucar","San Pedro de Pillao","Santa Ana de Tusi","Tapuc","Vilcabamba"],
+    "Oxapampa": ["Oxapampa","Chontabamba","Huancabamba","Palcazu","Pozuzo","Puerto Bermúdez","Villa Rica","Constitución"]
+  },
+  "Piura": {
+    "Piura": ["Piura","Castilla","Catacaos","Cura Mori","El Tallán","La Arena","La Unión","Las Lomas","Tambo Grande","Veintiseis de Octubre"],
+    "Sullana": ["Sullana","Bellavista","Ignacio Escudero","Lancones","Marcavelica","Miguel Checa","Querecotillo","Salitral"],
+    "Tumbes": ["Tumbes","Corrales","La Cruz","Pampas de Hospital","San Jacinto","San Juan de La Virgen"],
+    "Talara": ["Pariñas","El Alto","La Brea","Lobitos","Los Órganos","Mancora"],
+    "Paita": ["Paita","Amotape","Arenal","Colan","La Huaca","Tamarindo","Vichayal"]
+  },
+  "Puno": {
+    "Puno": ["Puno","Acora","Amantani","Atuncolla","Capachica","Chucuito","Coata","Huata","Mañazo","Paucarcolla","Pichacani","Platería","San Antonio","Tiquillaca","Vilque"],
+    "El Collao": ["Ilave","Capazo","Pilcuyo","Santa Rosa","Conduriri"],
+    "San Román": ["Juliaca","Cabana","Cabanillas","Caracoto","San Miguel"],
+    "Melgar": ["Ayaviri","Antauta","Cupi","Llalli","Macari","Nuñoa","Orurillo","Santa Rosa","Umachiri"]
+  },
+  "San Martín": {
+    "San Martín": ["Tarapoto","Alberto Leveau","Cacatachi","Chazuta","Chipurana","El Porvenir","Huimbayoc","Juan Guerra","La Banda de Shilcayo","Morales","Papaplaya","San Antonio","Sauce","Shapaja"],
+    "Moyobamba": ["Moyobamba","Calzada","Habana","Jepelacio","Soritor","Yantalo"],
+    "Tocache": ["Tocache","Nuevo Progreso","Pólvora","Shunte","Uchiza"]
+  },
+  "Tacna": {
+    "Tacna": ["Tacna","Alto de la Alianza","Calana","Ciudad Nueva","Inclán","Pachia","Palca","Pocollay","Sama","Coronel Gregorio Albarracín Lanchipa"],
+    "Candarave": ["Candarave","Cairani","Camilaca","Curibaya","Huanuara","Quilahuani"],
+    "Jorge Basadre": ["Locumba","Ilabaya","Ite"],
+    "Tarata": ["Tarata","Estique","Estique-Pampa","Sitajara","Susapaya","Tarucachi","Ticaco"]
+  },
+  "Tumbes": {
+    "Tumbes": ["Tumbes","Corrales","La Cruz","Pampas de Hospital","San Jacinto","San Juan de La Virgen"],
+    "Contralmirante Villar": ["Zorritos","Casitas","Canoas de Punta Sal"],
+    "Zarumilla": ["Zarumilla","Aguas Verdes","Matapalo","Papayal"]
+  },
+  "Ucayali": {
+    "Coronel Portillo": ["Callería","Campoverde","Iparia","Masisea","Yarinacocha","Nueva Requena","Manantay"],
+    "Atalaya": ["Raymondi","Sepahua","Tahuania","Yurúa"],
+    "Padre Abad": ["Padre Abad","Irazola","Curimaná","Neshuya","Alexander Von Humboldt"],
+    "Purús": ["Purús"]
+  }
+};
+
+function inicializarSelectoresUbicacion() {
+  const selDep = document.getElementById('cap-departamento');
+  if (!selDep) return;
+  // Poblar departamentos
+  Object.keys(PERU_GEO).sort().forEach(dep => {
+    const opt = document.createElement('option');
+    opt.value = dep;
+    opt.textContent = dep;
+    selDep.appendChild(opt);
+  });
+  // Seleccionar Arequipa por defecto
+  selDep.value = 'Arequipa';
+  onChangeDep();
+}
+
+function onChangeDep() {
+  const dep = document.getElementById('cap-departamento').value;
+  const selProv = document.getElementById('cap-provincia');
+  const selDist = document.getElementById('cap-distrito');
+  selProv.innerHTML = '<option value="">Seleccionar provincia...</option>';
+  selDist.innerHTML = '<option value="">Seleccionar distrito...</option>';
+  if (dep && PERU_GEO[dep]) {
+    Object.keys(PERU_GEO[dep]).sort().forEach(prov => {
+      const opt = document.createElement('option');
+      opt.value = prov;
+      opt.textContent = prov;
+      selProv.appendChild(opt);
+    });
+    // Si es Arequipa seleccionar Arequipa por defecto
+    if (dep === 'Arequipa') { selProv.value = 'Arequipa'; onChangeProv(); }
+  }
+  actualizarUbicacion();
+}
+
+function onChangeProv() {
+  const dep = document.getElementById('cap-departamento').value;
+  const prov = document.getElementById('cap-provincia').value;
+  const selDist = document.getElementById('cap-distrito');
+  selDist.innerHTML = '<option value="">Seleccionar distrito...</option>';
+  if (dep && prov && PERU_GEO[dep] && PERU_GEO[dep][prov]) {
+    PERU_GEO[dep][prov].sort().forEach(dist => {
+      const opt = document.createElement('option');
+      opt.value = dist;
+      opt.textContent = dist;
+      selDist.appendChild(opt);
+    });
+  }
+  actualizarUbicacion();
+}
+
+function onChangeDistrito() {
+  actualizarUbicacion();
+}
+
+function actualizarUbicacion() {
+  const dep  = document.getElementById('cap-departamento').value || '';
+  const prov = document.getElementById('cap-provincia').value || '';
+  const dist = document.getElementById('cap-distrito').value || '';
+  // Construir string de ubicación: "Cayma, Arequipa" o "Cusco, Cusco, Cusco"
+  const partes = [dist, prov !== dep ? prov : '', dep].filter(Boolean);
+  // Simplificar si provincia = distrito o dep = prov
+  let ubicStr = '';
+  if (dist && prov && dep) {
+    if (dist === prov) ubicStr = `${dist}, ${dep}`;
+    else if (prov === dep) ubicStr = `${dist}, ${dep}`;
+    else ubicStr = `${dist}, ${prov}, ${dep}`;
+  } else if (prov && dep) {
+    ubicStr = `${prov}, ${dep}`;
+  } else if (dep) {
+    ubicStr = dep;
+  }
+  document.getElementById('cap-ubicacion').value = ubicStr;
+}
+
+// Inicializar al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(inicializarSelectoresUbicacion, 300);
 });
 
 </script>
