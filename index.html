@@ -4514,24 +4514,10 @@ async function verificarSesionGuardada() {
   return false;
 }
 
-// Al cargar la página verificar si hay sesión guardada
-window.addEventListener('load', async () => {
-  // Ocultar login mientras verificamos — evita parpadeo
-  const loginScreen = document.getElementById('login-screen');
-  loginScreen.style.display = 'none';
-
-  const saved = localStorage.getItem('ei_session');
-  if (!saved) {
-    // No hay sesión — mostrar login de inmediato
-    loginScreen.style.display = 'flex';
-    return;
-  }
-
-  // Hay sesión guardada — verificar con Supabase
-  const ok = await verificarSesionGuardada();
-  if (!ok) {
-    loginScreen.style.display = 'flex';
-  }
+// Siempre mostrar login al abrir la página
+window.addEventListener('load', () => {
+  localStorage.removeItem('ei_session'); // no recordar sesión
+  document.getElementById('login-screen').style.display = 'flex';
 });
 
 </script>
