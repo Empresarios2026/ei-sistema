@@ -387,7 +387,7 @@ td:first-child { color:var(--t1); font-weight:500; }
 </div>
 
 <!-- ════════ SISTEMA PRINCIPAL ════════ -->
-<div id="main-app" style="display:none;width:100%;min-height:100vh;">
+<div id="main-app" style="display:none;width:100%;min-height:100vh;flex-direction:row;">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -4447,7 +4447,7 @@ function mostrarErrorLogin(msg) {
 
 function activarSistema() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('main-app').style.display = 'flex';
 
   // Forzar que el dashboard sea visible
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -4491,23 +4491,38 @@ function cerrarSesion() {
   document.getElementById('btn-login').textContent = 'Ingresar al Sistema';
 }
 
-function verificarSesionGuardada() {
+async function verificarSesionGuardada() {
   try {
     const saved = localStorage.getItem('ei_session');
     if (saved) {
-      currentUser = JSON.parse(saved);
-      isAdmin = ADMINS.includes(currentUser.email);
-      activarSistema();
-      return true;
+      const sesion = JSON.parse(saved);
+      // Verificar que el token sigue válido con Supabase
+      const res = await fetch(`${SB_URL}/auth/v1/user`, {
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + sesion.token
+        }
+      });
+      if (res.ok) {
+        currentUser = sesion;
+        isAdmin = ADMINS.includes(currentUser.email);
+        activarSistema();
+        return true;
+      } else {
+        // Token expirado — limpiar sesión
+        localStorage.removeItem('ei_session');
+      }
     }
-  } catch(e) {}
+  } catch(e) {
+    localStorage.removeItem('ei_session');
+  }
   return false;
 }
 
 // Al cargar la página verificar si hay sesión guardada
-window.addEventListener('load', () => {
-  if (!verificarSesionGuardada()) {
-    // Mostrar login
+window.addEventListener('load', async () => {
+  const ok = await verificarSesionGuardada();
+  if (!ok) {
     document.getElementById('login-screen').style.display = 'flex';
   }
 });
