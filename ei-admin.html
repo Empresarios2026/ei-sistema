@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel Agentes · Empresarios Inmobiliarios</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --rojo: #CE011F;
+  --rojo-d: #a80018;
+  --bg: #0d0d0d;
+  --surface: #181818;
+  --surface2: #222222;
+  --border: #2e2e2e;
+  --text: #e8e8e8;
+  --text-muted: #888;
+  --text-dim: #555;
+  --blanco: #ffffff;
+  --verde: #1a6b3c;
+  --azul: #1a3a6b;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ─── OVERLAY / SCREENS ─── */
+.screen {
+  display: none; position: fixed; inset: 0;
+  background: var(--bg); z-index: 300;
+  align-items: center; justify-content: center; flex-direction: column;
+}
+.screen.visible { display: flex; }
+
+.screen-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 40px; width: 100%; max-width: 460px;
+  border-top: 3px solid var(--rojo);
+}
+.screen-logo {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+}
+.screen-logo-icon {
+  width: 36px; height: 36px; background: var(--rojo);
+  clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%);
+  display: flex; align-items: center; justify-content: center;
+}
+.screen-logo-icon svg { width: 16px; fill: white; }
+.screen-logo-text { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--text); }
+.screen-logo-text small { display: block; font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
+
+.screen h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--blanco); margin-bottom: 6px; }
+.screen p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+
+label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); display: block; margin-bottom: 6px; }
+input, textarea, select {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  padding: 10px 14px; outline: none; transition: border .2s;
+  border-radius: 0;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--rojo); }
+input::placeholder, textarea::placeholder { color: var(--text-dim); }
+select option { background: var(--surface); }
+
+.field { margin-bottom: 18px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+.btn {
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  padding: 12px 20px; border: none; transition: all .2s;
+}
+.btn-red { background: var(--rojo); color: var(--blanco); }
+.btn-red:hover { background: var(--rojo-d); }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 7px 14px; font-size: 11px; }
+
+.msg-error { background: rgba(206,1,31,.12); border: 1px solid rgba(206,1,31,.3); color: #ff6b7a; padding: 10px 14px; font-size: 12px; margin-bottom: 16px; display: none; }
+.msg-ok { background: rgba(26,107,60,.15); border: 1px solid rgba(26,107,60,.3); color: #5dd47a; padding: 10px 14px; font-size: 12px; margin-bottom: 16px; display: none; }
+
+/* setup steps */
+.setup-step { display: none; }
+.setup-step.active { display: block; }
+.step-nav { display: flex; gap: 8px; margin-bottom: 24px; }
+.step-dot { width: 8px; height: 8px; background: var(--border); border-radius: 50%; }
+.step-dot.done { background: var(--rojo); }
+
+.sql-box {
+  background: #0a0a0a; border: 1px solid var(--border); padding: 14px;
+  font-family: 'Courier New', monospace; font-size: 11px; color: #7ec8a4;
+  white-space: pre; overflow-x: auto; margin: 12px 0; max-height: 200px; overflow-y: auto;
+  line-height: 1.6;
+}
+.copy-sql { display: block; margin-top: 8px; }
+
+/* PIN dots */
+.pin-display { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); transition: all .15s; }
+.pin-dot.filled { background: var(--rojo); border-color: var(--rojo); }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pin-key {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; font-weight: 600; padding: 16px;
+  cursor: pointer; text-align: center; transition: all .15s; font-family: 'DM Sans', sans-serif;
+  border-radius: 0;
+}
+.pin-key:hover { background: var(--border); }
+.pin-key:active { background: var(--rojo); color: white; }
+.pin-key.del { font-size: 14px; color: var(--text-muted); }
+
+/* ─── LAYOUT ─── */
+#app { display: none; min-height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+
+header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 60px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  border-bottom: 2px solid var(--rojo);
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.logo-icon { width: 30px; height: 30px; background: var(--rojo); clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%); display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 13px; fill: white; }
+.logo-name { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--blanco); }
+.header-badge { background: var(--rojo); color: white; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; }
+.header-right { display: flex; align-items: center; gap: 14px; }
+.agent-name { font-size: 12px; color: var(--text-muted); }
+#btnLogout { font-size: 11px; color: var(--text-muted); cursor: pointer; background: none; border: 1px solid var(--border); padding: 5px 12px; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+#btnLogout:hover { border-color: var(--rojo); color: var(--rojo); }
+
+/* STATS */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--border); border-bottom: 1px solid var(--border);
+}
+.stat-card { background: var(--surface); padding: 16px 20px; }
+.stat-card strong { display: block; font-size: 22px; color: var(--blanco); font-weight: 600; }
+.stat-card span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .07em; }
+.stat-card.red strong { color: var(--rojo); }
+
+/* TOOLBAR */
+.toolbar { padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border); }
+.toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-pill { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 6px 14px; cursor: pointer; transition: all .2s; }
+.filter-pill:hover { border-color: var(--rojo); color: var(--rojo); }
+.filter-pill.active { background: var(--rojo); color: white; border-color: var(--rojo); }
+.search-wrap { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); padding: 7px 14px; }
+.search-wrap input { background: transparent; border: none; padding: 0; font-size: 12px; width: 200px; }
+
+/* TABLE */
+.table-wrap { flex: 1; overflow: auto; padding: 24px 28px; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+thead th { padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 13px 14px; font-size: 13px; color: var(--text); vertical-align: middle; }
+.td-code { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-muted); }
+.td-title { font-weight: 500; max-width: 280px; }
+.td-title small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+.badge-op { font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 3px 8px; }
+.badge-venta { background: rgba(206,1,31,.15); color: #ff6b7a; }
+.badge-alquiler { background: rgba(26,107,60,.2); color: #5dd47a; }
+.badge-anticresis { background: rgba(26,58,107,.2); color: #7ab0ff; }
+.badge-activo { background: rgba(26,107,60,.2); color: #5dd47a; font-size: 9px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; text-transform: uppercase; }
+.badge-inactivo { background: rgba(100,100,100,.15); color: #888; font-size: 9px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; text-transform: uppercase; }
+.td-actions { display: flex; gap: 8px; }
+.td-price { font-weight: 600; color: var(--blanco); white-space: nowrap; }
+.td-area { color: var(--text-muted); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state svg { width: 40px; height: 40px; stroke: var(--text-dim); margin-bottom: 14px; }
+
+/* loading */
+.loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--rojo); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 10px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── MODAL FORM ─── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-top: 3px solid var(--rojo); width: 100%; max-width: 680px; max-height: 92vh; overflow-y: auto; animation: slideUp .25s ease; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 22px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--blanco); }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+.modal-close:hover { color: var(--blanco); }
+.modal-body { padding: 28px; }
+.modal-footer { padding: 18px 28px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; }
+
+.section-sep { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 22px 0 16px; }
+
+/* confirm modal */
+.confirm-box { background: var(--surface); border-top: 3px solid var(--rojo); padding: 32px; max-width: 380px; width: 100%; text-align: center; }
+.confirm-box h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--blanco); margin-bottom: 10px; }
+.confirm-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+.confirm-btns { display: flex; gap: 12px; }
+
+/* toast */
+#toast { position: fixed; bottom: 28px; right: 28px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--rojo); padding: 14px 20px; font-size: 13px; z-index: 500; display: none; animation: toastIn .3s ease; max-width: 320px; }
+@keyframes toastIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+#toast.ok { border-left-color: #1a6b3c; }
+
+/* photo preview */
+.foto-preview { margin-top: 8px; width: 100%; height: 120px; background: var(--bg); border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.foto-preview img { width: 100%; height: 100%; object-fit: cover; }
+.foto-preview span { font-size: 11px; color: var(--text-dim); }
+
+/* active toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.toggle { width: 40px; height: 22px; background: var(--border); border-radius: 11px; position: relative; transition: background .2s; flex-shrink: 0; }
+.toggle.on { background: var(--verde); }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: left .2s; }
+.toggle.on::after { left: 21px; }
+.toggle-label { font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 700px) {
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  header, .toolbar, .table-wrap { padding-left: 16px; padding-right: 16px; }
+  .field-row, .field-row3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP SCREEN ══ -->
+<div class="screen" id="screenSetup">
+  <div class="screen-card">
+    <div class="screen-logo">
+      <div class="screen-logo-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+      <div class="screen-logo-text">Empresarios Inmobiliarios <small>Configuración inicial</small></div>
+    </div>
+
+    <div class="step-nav">
+      <div class="step-dot done" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- Step 1: SQL -->
+    <div class="setup-step active" id="step1">
+      <h2>Paso 1: Crear la tabla</h2>
+      <p>Ve a <strong style="color:var(--text)">supabase.com</strong> → Tu proyecto → SQL Editor → pega esto y ejecuta:</p>
+      <div class="sql-box" id="sqlCode">create table propiedades (
+  id uuid default gen_random_uuid() primary key,
+  codigo text,
+  operacion text,
+  tipo text,
+  titulo text,
+  ubicacion text,
+  precio numeric,
+  moneda text default 'USD',
+  area numeric,
+  dormitorios int,
+  banos int,
+  estacionamiento int,
+  agente text,
+  descripcion text,
+  foto_url text,
+  activo boolean default true,
+  created_at timestamptz default now()
+);
+alter table propiedades enable row level security;
+create policy "read_all" on propiedades for select using (true);
+create policy "insert_all" on propiedades for insert with check (true);
+create policy "update_all" on propiedades for update using (true);
+create policy "delete_all" on propiedades for delete using (true);</div>
+      <button class="btn btn-ghost btn-sm copy-sql" onclick="copySql()">📋 Copiar SQL</button>
+      <div style="margin-top:20px">
+        <button class="btn btn-red btn-full" onclick="nextStep(2)">Ya ejecuté el SQL →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Supabase keys -->
+    <div class="setup-step" id="step2">
+      <h2>Paso 2: Conectar Supabase</h2>
+      <p>Ve a tu proyecto Supabase → <strong style="color:var(--text)">Settings → API</strong> y copia los valores:</p>
+      <div id="errorSetup" class="msg-error"></div>
+      <div class="field">
+        <label>Project URL</label>
+        <input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co" />
+      </div>
+      <div class="field">
+        <label>Anon / Public Key</label>
+        <input type="text" id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5..." />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-ghost" onclick="nextStep(1)" style="flex:0 0 auto">← Atrás</button>
+        <button class="btn btn-red btn-full" onclick="testConnection()">Probar conexión →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: PIN -->
+    <div class="setup-step" id="step3">
+      <h2>Paso 3: PIN de acceso</h2>
+      <p>Define un PIN de 4 dígitos que compartirás con los agentes autorizados.</p>
+      <div class="field">
+        <label>PIN (4 dígitos)</label>
+        <input type="password" id="pinSetup" placeholder="••••" maxlength="4" />
+      </div>
+      <div class="field">
+        <label>Confirmar PIN</label>
+        <input type="password" id="pinConfirm" placeholder="••••" maxlength="4" />
+      </div>
+      <div id="errorPin" class="msg-error"></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-ghost" onclick="nextStep(2)" style="flex:0 0 auto">← Atrás</button>
+        <button class="btn btn-red btn-full" onclick="saveSetup()">Guardar y entrar →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div class="screen" id="screenLogin">
+  <div class="screen-card" style="max-width:360px">
+    <div class="screen-logo">
+      <div class="screen-logo-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+      <div class="screen-logo-text">Panel de Agentes <small>Empresarios Inmobiliarios</small></div>
+    </div>
+    <h2 style="text-align:center;margin-bottom:4px">Acceso seguro</h2>
+    <p style="text-align:center">Ingresa tu PIN para continuar</p>
+    <div class="pin-display">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div id="pinError" class="msg-error">PIN incorrecto. Intenta nuevamente.</div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del" onclick="pinKey('C')">Borrar</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinKey('X')">✕</button>
+    </div>
+    <button class="btn btn-ghost btn-full" style="margin-top:16px;font-size:10px" onclick="resetConfig()">⚙ Reconfigurar sistema</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+      <span class="logo-name">Empresarios Inmobiliarios</span>
+      <span class="header-badge">Admin</span>
+    </div>
+    <div class="header-right">
+      <span class="agent-name">Panel de Propiedades</span>
+      <button id="btnLogout" onclick="logout()">Salir</button>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card"><strong id="stTotal">—</strong><span>Total</span></div>
+    <div class="stat-card red"><strong id="stVenta">—</strong><span>Venta</span></div>
+    <div class="stat-card"><strong id="stAlq">—</strong><span>Alquiler</span></div>
+    <div class="stat-card"><strong id="stAnti">—</strong><span>Anticresis</span></div>
+    <div class="stat-card"><strong id="stActivo">—</strong><span>Activas</span></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="filter-pill active" data-f="todos" onclick="setFilter('todos',this)">Todos</button>
+      <button class="filter-pill" data-f="Venta" onclick="setFilter('Venta',this)">Venta</button>
+      <button class="filter-pill" data-f="Alquiler" onclick="setFilter('Alquiler',this)">Alquiler</button>
+      <button class="filter-pill" data-f="Anticresis" onclick="setFilter('Anticresis',this)">Anticresis</button>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#666" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchAdmin" placeholder="Buscar propiedad..." oninput="renderTable()" />
+      </div>
+    </div>
+    <button class="btn btn-red" onclick="openForm()">+ Nueva Propiedad</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div id="tableContent">
+      <div class="loading"><span class="spinner"></span>Cargando propiedades...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FORM MODAL ══ -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="formTitle">Nueva Propiedad</h3>
+      <button class="modal-close" onclick="closeForm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fId" />
+
+      <div class="field-row">
+        <div class="field">
+          <label>Código</label>
+          <input type="text" id="fCodigo" placeholder="EI-001" />
+        </div>
+        <div class="field">
+          <label>Agente responsable</label>
+          <select id="fAgente">
+            <option value="">— Seleccionar —</option>
+            <option>Zulema Gutiérrez</option>
+            <option>David Rodríguez</option>
+            <option>Marilyn Benavente</option>
+            <option>Cecilia Cayani</option>
+            <option>María López</option>
+            <option>Carlos Huanca</option>
+            <option>Rosa Quispe</option>
+            <option>Luis Vargas</option>
+            <option>Ana Flores</option>
+            <option>Pedro Cárdenas</option>
+            <option>Gloria Mamani</option>
+            <option>Roberto Salas</option>
+            <option>Carmen Zegarra</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Título de la propiedad</label>
+        <input type="text" id="fTitulo" placeholder="Ej: Departamento moderno con vista panorámica" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Tipo de operación</label>
+          <select id="fOperacion">
+            <option value="">— Seleccionar —</option>
+            <option>Venta</option>
+            <option>Alquiler</option>
+            <option>Anticresis</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tipo de propiedad</label>
+          <select id="fTipo">
+            <option value="">— Seleccionar —</option>
+            <option>Residencial</option>
+            <option>Comercial</option>
+            <option>Terreno</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Ubicación</label>
+        <input type="text" id="fUbicacion" placeholder="Ej: Cayma, Arequipa" />
+      </div>
+
+      <div class="section-sep">Precio</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Moneda</label>
+          <select id="fMoneda">
+            <option value="USD">USD (Dólares)</option>
+            <option value="S/">S/ (Soles)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Precio</label>
+          <input type="number" id="fPrecio" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="section-sep">Características</div>
+      <div class="field-row3">
+        <div class="field">
+          <label>Área total (m²)</label>
+          <input type="number" id="fArea" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>Dormitorios</label>
+          <input type="number" id="fDorm" placeholder="—" min="0" />
+        </div>
+        <div class="field">
+          <label>Baños</label>
+          <input type="number" id="fBanos" placeholder="—" min="0" />
+        </div>
+      </div>
+      <div class="field" style="max-width:200px">
+        <label>Estacionamiento</label>
+        <input type="number" id="fEst" placeholder="—" min="0" />
+      </div>
+
+      <div class="section-sep">Descripción y foto</div>
+      <div class="field">
+        <label>Descripción</label>
+        <textarea id="fDesc" rows="4" placeholder="Describe la propiedad para los clientes..."></textarea>
+      </div>
+      <div class="field">
+        <label>URL de la foto principal</label>
+        <input type="url" id="fFoto" placeholder="https://..." oninput="previewFoto()" />
+        <div class="foto-preview" id="fotoPreview">
+          <span>Sin foto · ingresa una URL de imagen</span>
+        </div>
+      </div>
+
+      <div class="section-sep">Visibilidad</div>
+      <div class="field">
+        <div class="toggle-wrap" onclick="toggleActivo()">
+          <div class="toggle on" id="toggleActivo"></div>
+          <span class="toggle-label" id="toggleLabel">Propiedad activa (visible en el portal)</span>
+        </div>
+        <input type="hidden" id="fActivo" value="true" />
+      </div>
+
+      <div id="formError" class="msg-error" style="margin-top:16px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancelar</button>
+      <button class="btn btn-red" onclick="saveProperty()">Guardar Propiedad</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM MODAL ══ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="confirm-box">
+    <h3>¿Eliminar propiedad?</h3>
+    <p id="confirmText">Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost btn-full" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-red btn-full" id="confirmOk">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const AGENTS = ['Zulema Gutiérrez','David Rodríguez','Marilyn Benavente','Cecilia Cayani',
+  'María López','Carlos Huanca','Rosa Quispe','Luis Vargas','Ana Flores',
+  'Pedro Cárdenas','Gloria Mamani','Roberto Salas','Carmen Zegarra'];
+
+let sb = null;
+let allProps = [];
+let activeFilter = 'todos';
+let deleteId = null;
+let activoValue = true;
+
+// ─── INIT ───
+function init() {
+  const cfg = getConfig();
+  // Auto-configurar con credenciales EI si no hay config guardada
+  if (!cfg) {
+    localStorage.setItem('ei_sb_url', EI_URL);
+    localStorage.setItem('ei_sb_key', EI_KEY);
+  }
+  const cfg2 = getConfig();
+  if (!cfg2) {
+    // Pre-llenar formulario
+    document.getElementById('sbUrl').value = EI_URL;
+    document.getElementById('sbKey').value = EI_KEY;
+    showScreen('screenSetup');
+    return;
+  }
+  if (!sessionStorage.getItem('ei_auth')) { showScreen('screenLogin'); return; }
+  startApp(cfg2);
+}
+
+function getConfig() {
+  const raw = localStorage.getItem('ei_config');
+  return raw ? JSON.parse(raw) : null;
+}
+
+function showScreen(id) {
+  ['screenSetup','screenLogin'].forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.remove('visible');
+  });
+  document.getElementById(id).classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+}
+
+function startApp(cfg) {
+  document.getElementById('screenSetup').classList.remove('visible');
+  document.getElementById('screenLogin').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+  sb = supabase.createClient(cfg.url, cfg.key);
+  loadProperties();
+}
+
+// ─── SETUP ───
+let currentStep = 1;
+function nextStep(n) {
+  document.getElementById('step'+currentStep).classList.remove('active');
+  document.getElementById('dot'+currentStep).classList.remove('done');
+  currentStep = n;
+  document.getElementById('step'+n).classList.add('active');
+  for (let i=1;i<=n;i++) document.getElementById('dot'+i).classList.add('done');
+}
+
+async function testConnection() {
+  const url = document.getElementById('sbUrl').value.trim();
+  const key = document.getElementById('sbKey').value.trim();
+  const errEl = document.getElementById('errorSetup');
+  if (!url || !key) { showError(errEl,'Completa ambos campos.'); return; }
+  try {
+    const client = supabase.createClient(url, key);
+    const { error } = await client.from('propiedades').select('id').limit(1);
+    if (error && error.code !== 'PGRST116') throw error;
+    localStorage.setItem('ei_sb_url', url);
+    localStorage.setItem('ei_sb_key', key);
+    nextStep(3);
+  } catch(e) {
+    showError(errEl,'No se pudo conectar. Verifica la URL y la clave.');
+  }
+}
+
+// ── CREDENCIALES PRECARGADAS ──
+const EI_URL = 'https://xqdgvwxdcgvmeivvixft.supabase.co';
+const EI_KEY = 'sb_publishable_kLLTZgNk9WQQe7ewLfG6Eg_QOzA48pf';
+function _unused() {
+}
+
+function saveSetup() {
+  const pin = document.getElementById('pinSetup').value;
+  const pin2 = document.getElementById('pinConfirm').value;
+  const errEl = document.getElementById('errorPin');
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) { showError(errEl,'El PIN debe tener exactamente 4 dígitos.'); return; }
+  if (pin !== pin2) { showError(errEl,'Los PINs no coinciden.'); return; }
+  const cfg = { url: localStorage.getItem('ei_sb_url'), key: localStorage.getItem('ei_sb_key'), pin };
+  localStorage.setItem('ei_config', JSON.stringify(cfg));
+  sessionStorage.setItem('ei_auth','1');
+  startApp(cfg);
+}
+
+function copySql() {
+  navigator.clipboard.writeText(document.getElementById('sqlCode').textContent);
+  toast('SQL copiado al portapapeles', true);
+}
+
+// ─── PIN LOGIN ───
+let pinInput = '';
+function pinKey(k) {
+  const errEl = document.getElementById('pinError');
+  errEl.style.display = 'none';
+  if (k === 'C') { pinInput = pinInput.slice(0,-1); }
+  else if (k === 'X') { pinInput = ''; }
+  else if (pinInput.length < 4) { pinInput += k; }
+  updateDots();
+  if (pinInput.length === 4) checkPin();
+}
+function updateDots() {
+  for (let i=0;i<4;i++) {
+    document.getElementById('pd'+i).classList.toggle('filled', i < pinInput.length);
+  }
+}
+function checkPin() {
+  const cfg = getConfig();
+  if (pinInput === cfg.pin) {
+    sessionStorage.setItem('ei_auth','1');
+    startApp(cfg);
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    pinInput = '';
+    setTimeout(updateDots, 400);
+  }
+}
+function logout() { sessionStorage.removeItem('ei_auth'); showScreen('screenLogin'); pinInput=''; updateDots(); }
+function resetConfig() { if(confirm('¿Reconfigurar? Se borrarán las credenciales guardadas.')) { localStorage.removeItem('ei_config'); showScreen('screenSetup'); } }
+
+// ─── DATA ───
+async function loadProperties() {
+  const { data, error } = await sb.from('propiedades').select('*').order('created_at', { ascending: false });
+  if (error) { toast('Error al cargar datos: ' + error.message); return; }
+  allProps = data || [];
+  updateStats();
+  renderTable();
+}
+
+function updateStats() {
+  document.getElementById('stTotal').textContent = allProps.length;
+  document.getElementById('stVenta').textContent = allProps.filter(p=>p.operacion==='Venta').length;
+  document.getElementById('stAlq').textContent = allProps.filter(p=>p.operacion==='Alquiler').length;
+  document.getElementById('stAnti').textContent = allProps.filter(p=>p.operacion==='Anticresis').length;
+  document.getElementById('stActivo').textContent = allProps.filter(p=>p.activo).length;
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('searchAdmin').value.toLowerCase();
+  let data = [...allProps];
+  if (activeFilter !== 'todos') data = data.filter(p=>p.operacion===activeFilter);
+  if (q) data = data.filter(p=>(p.titulo+p.ubicacion+p.codigo+p.agente).toLowerCase().includes(q));
+
+  const wrap = document.getElementById('tableContent');
+  if (!data.length) {
+    wrap.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><p>Sin propiedades con esos filtros.</p></div>`;
+    return;
+  }
+
+  const fmt = n => new Intl.NumberFormat('es-PE').format(n);
+  const badgeOp = op => {
+    const cls = op==='Venta'?'badge-venta':op==='Alquiler'?'badge-alquiler':'badge-anticresis';
+    return `<span class="badge-op ${cls}">${op}</span>`;
+  };
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Código</th><th>Propiedad</th><th>Operación</th><th>Precio</th><th>Área</th><th>Agente</th><th>Estado</th><th>Acciones</th>
+    </tr></thead>
+    <tbody>${data.map(p=>`<tr>
+      <td class="td-code">${p.codigo||'—'}</td>
+      <td class="td-title">${p.titulo||'Sin título'}<small>${p.ubicacion||''} · ${p.tipo||''}</small></td>
+      <td>${badgeOp(p.operacion)}</td>
+      <td class="td-price">${p.moneda} ${fmt(p.precio)}</td>
+      <td class="td-area">${p.area?p.area+' m²':'—'}</td>
+      <td style="font-size:12px">${p.agente||'—'}</td>
+      <td><span class="${p.activo?'badge-activo':'badge-inactivo'}">${p.activo?'Activa':'Inactiva'}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editProperty('${p.id}')">Editar</button>
+        <button class="btn btn-sm" style="background:rgba(206,1,31,.15);color:#ff6b7a;border:1px solid rgba(206,1,31,.2)" onclick="confirmDelete('${p.id}','${(p.titulo||'').replace(/'/g,"\\'")}')">Eliminar</button>
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ─── FORM ───
+function openForm(data=null) {
+  document.getElementById('formTitle').textContent = data ? 'Editar Propiedad' : 'Nueva Propiedad';
+  const fields = ['Id','Codigo','Agente','Titulo','Operacion','Tipo','Ubicacion','Moneda','Precio','Area','Dorm','Banos','Est','Desc','Foto'];
+  fields.forEach(f => { const el = document.getElementById('f'+f); if(el) el.value = ''; });
+  document.getElementById('fMoneda').value = 'USD';
+  activoValue = true;
+  document.getElementById('fActivo').value = 'true';
+  document.getElementById('toggleActivo').className = 'toggle on';
+  document.getElementById('toggleLabel').textContent = 'Propiedad activa (visible en el portal)';
+  previewFoto();
+
+  if (data) {
+    document.getElementById('fId').value = data.id||'';
+    document.getElementById('fCodigo').value = data.codigo||'';
+    document.getElementById('fAgente').value = data.agente||'';
+    document.getElementById('fTitulo').value = data.titulo||'';
+    document.getElementById('fOperacion').value = data.operacion||'';
+    document.getElementById('fTipo').value = data.tipo||'';
+    document.getElementById('fUbicacion').value = data.ubicacion||'';
+    document.getElementById('fMoneda').value = data.moneda||'USD';
+    document.getElementById('fPrecio').value = data.precio||'';
+    document.getElementById('fArea').value = data.area||'';
+    document.getElementById('fDorm').value = data.dormitorios||'';
+    document.getElementById('fBanos').value = data.banos||'';
+    document.getElementById('fEst').value = data.estacionamiento||'';
+    document.getElementById('fDesc').value = data.descripcion||'';
+    document.getElementById('fFoto').value = data.foto_url||'';
+    activoValue = !!data.activo;
+    document.getElementById('fActivo').value = activoValue.toString();
+    document.getElementById('toggleActivo').className = 'toggle'+(activoValue?' on':'');
+    document.getElementById('toggleLabel').textContent = activoValue ? 'Propiedad activa (visible en el portal)' : 'Propiedad inactiva (oculta del portal)';
+    previewFoto();
+  }
+  document.getElementById('formError').style.display = 'none';
+  document.getElementById('formModal').classList.add('open');
+}
+
+function editProperty(id) {
+  const p = allProps.find(x=>x.id===id);
+  if (p) openForm(p);
+}
+
+function closeForm() { document.getElementById('formModal').classList.remove('open'); }
+
+function toggleActivo() {
+  activoValue = !activoValue;
+  document.getElementById('fActivo').value = activoValue.toString();
+  document.getElementById('toggleActivo').className = 'toggle'+(activoValue?' on':'');
+  document.getElementById('toggleLabel').textContent = activoValue ? 'Propiedad activa (visible en el portal)' : 'Propiedad inactiva (oculta del portal)';
+}
+
+function previewFoto() {
+  const url = document.getElementById('fFoto').value.trim();
+  const box = document.getElementById('fotoPreview');
+  box.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='<span>URL de imagen inválida</span>'" />` : '<span>Sin foto · ingresa una URL de imagen</span>';
+}
+
+async function saveProperty() {
+  const errEl = document.getElementById('formError');
+  const payload = {
+    codigo: document.getElementById('fCodigo').value.trim(),
+    agente: document.getElementById('fAgente').value,
+    titulo: document.getElementById('fTitulo').value.trim(),
+    operacion: document.getElementById('fOperacion').value,
+    tipo: document.getElementById('fTipo').value,
+    ubicacion: document.getElementById('fUbicacion').value.trim(),
+    moneda: document.getElementById('fMoneda').value,
+    precio: parseFloat(document.getElementById('fPrecio').value) || 0,
+    area: parseFloat(document.getElementById('fArea').value) || null,
+    dormitorios: parseInt(document.getElementById('fDorm').value) || null,
+    banos: parseInt(document.getElementById('fBanos').value) || null,
+    estacionamiento: parseInt(document.getElementById('fEst').value) || null,
+    descripcion: document.getElementById('fDesc').value.trim(),
+    foto_url: document.getElementById('fFoto').value.trim() || null,
+    activo: activoValue,
+  };
+  if (!payload.titulo) { showError(errEl,'El título es obligatorio.'); return; }
+  if (!payload.operacion) { showError(errEl,'Selecciona un tipo de operación.'); return; }
+  if (!payload.precio) { showError(errEl,'Ingresa el precio.'); return; }
+
+  const id = document.getElementById('fId').value;
+  let error;
+  if (id) {
+    ({ error } = await sb.from('propiedades').update(payload).eq('id', id));
+  } else {
+    ({ error } = await sb.from('propiedades').insert(payload));
+  }
+  if (error) { showError(errEl,'Error al guardar: '+error.message); return; }
+  closeForm();
+  toast(id ? 'Propiedad actualizada ✓' : 'Propiedad agregada ✓', true);
+  loadProperties();
+}
+
+// ─── DELETE ───
+function confirmDelete(id, title) {
+  deleteId = id;
+  document.getElementById('confirmText').textContent = `¿Eliminar "${title}"? Esta acción no se puede deshacer.`;
+  document.getElementById('confirmModal').classList.add('open');
+  document.getElementById('confirmOk').onclick = doDelete;
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); deleteId=null; }
+async function doDelete() {
+  const { error } = await sb.from('propiedades').delete().eq('id', deleteId);
+  closeConfirm();
+  if (error) { toast('Error al eliminar: '+error.message); return; }
+  toast('Propiedad eliminada', false);
+  loadProperties();
+}
+
+// ─── UTILS ───
+function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+let toastTimer;
+function toast(msg, ok=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = ok ? 'ok' : '';
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.display='none'; }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>

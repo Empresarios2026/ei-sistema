@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Propiedades · Empresarios Inmobiliarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .setup-notice {
+    background: #fff8e1; border-left: 4px solid #f59e0b;
+    padding: 14px 40px; font-size: 13px; color: #78350f;
+    display: none;
+  }
+  .setup-notice a { color: #CE011F; font-weight: 600; }
+  .loading-grid {
+    grid-column: 1/-1; text-align: center; padding: 60px 20px;
+    color: #999; font-size: 14px;
+  }
+  .spinner-inline {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid #ddd; border-top-color: #CE011F;
+    border-radius: 50%; animation: spin .7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .card-img-real { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+</style>
+<style>
+  :root {
+    --rojo: #CE011F;
+    --rojo-dark: #a80018;
+    --gris-oscuro: #1a1a1a;
+    --gris-medio: #666666;
+    --gris-claro: #CCCCCC;
+    --gris-bg: #f4f3f1;
+    --blanco: #ffffff;
+    --card-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    --card-hover: 0 8px 40px rgba(0,0,0,0.14);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gris-bg);
+    color: var(--gris-oscuro);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--gris-oscuro);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--rojo);
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--rojo);
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%);
+  }
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .logo-text { display: flex; flex-direction: column; line-height: 1; }
+  .logo-text span:first-child {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--blanco); letter-spacing: 0.02em;
+  }
+  .logo-text span:last-child {
+    font-size: 10px; color: var(--gris-claro); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-top: 2px;
+  }
+  .header-contact {
+    font-size: 12px; color: var(--gris-claro); letter-spacing: 0.04em;
+  }
+
+  /* ── HERO STRIP ── */
+  .hero {
+    background: linear-gradient(135deg, #111 60%, #2a0008 100%);
+    padding: 52px 40px 44px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -40px; right: -60px;
+    width: 320px; height: 320px;
+    border: 60px solid rgba(206,1,31,0.12);
+    border-radius: 50%; pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: repeating-linear-gradient(90deg, var(--rojo) 0, var(--rojo) 32px, transparent 32px, transparent 40px);
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 700; color: var(--blanco);
+    line-height: 1.15; max-width: 560px;
+  }
+  .hero h1 em { color: var(--rojo); font-style: normal; }
+  .hero p {
+    margin-top: 12px; font-size: 14px; color: var(--gris-claro);
+    font-weight: 300; letter-spacing: 0.03em;
+  }
+  .stats-row {
+    display: flex; gap: 36px; margin-top: 28px;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat strong { font-size: 22px; color: var(--blanco); font-weight: 600; }
+  .stat span { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── FILTERS ── */
+  .filters-bar {
+    background: var(--blanco);
+    padding: 18px 40px;
+    display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e5e5e5;
+    position: sticky; top: 68px; z-index: 90;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .filter-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris-medio); font-weight: 600; }
+  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    padding: 7px 16px; border-radius: 2px;
+    border: 1.5px solid var(--gris-claro);
+    font-size: 12px; font-weight: 500; color: var(--gris-medio);
+    cursor: pointer; transition: all 0.2s; background: transparent;
+    font-family: 'DM Sans', sans-serif; letter-spacing: 0.02em;
+  }
+  .pill:hover { border-color: var(--rojo); color: var(--rojo); }
+  .pill.active { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
+  .filter-divider { width: 1px; height: 28px; background: #e5e5e5; }
+  .search-box {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+    border: 1.5px solid var(--gris-claro); border-radius: 2px;
+    padding: 7px 14px; background: var(--gris-bg);
+  }
+  .search-box input {
+    border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--gris-oscuro); outline: none; width: 180px;
+  }
+  .search-box input::placeholder { color: #bbb; }
+  .search-box svg { width: 14px; height: 14px; fill: none; stroke: #aaa; stroke-width: 2; }
+
+  /* ── COUNT BAR ── */
+  .count-bar {
+    padding: 16px 40px 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .count-text { font-size: 13px; color: var(--gris-medio); }
+  .count-text strong { color: var(--gris-oscuro); }
+  .sort-select {
+    font-family: 'DM Sans', sans-serif; font-size: 12px;
+    color: var(--gris-medio); border: 1.5px solid var(--gris-claro);
+    padding: 6px 12px; border-radius: 2px; background: var(--blanco);
+    cursor: pointer; outline: none;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 24px 40px 60px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--blanco);
+    border-radius: 0;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: box-shadow 0.3s, transform 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .card:hover { box-shadow: var(--card-hover); transform: translateY(-4px); }
+
+  .card-img {
+    width: 100%; aspect-ratio: 4/3;
+    object-fit: cover; display: block;
+    background: #e8e8e8;
+    position: relative; overflow: hidden;
+  }
+  .card-img-placeholder {
+    width: 100%; aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #e5e5e5 0%, #d0d0d0 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+  }
+  .card-img-placeholder svg { width: 40px; height: 40px; fill: none; stroke: #bbb; stroke-width: 1.5; }
+  .card-img-placeholder span { font-size: 11px; color: #bbb; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .card-badge {
+    position: absolute; top: 14px; left: 14px;
+    padding: 4px 10px; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--blanco);
+  }
+  .badge-venta { background: var(--rojo); }
+  .badge-alquiler { background: #1a4a2e; }
+  .badge-anticresis { background: #1a2c4a; }
+
+  .card-tipo {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    padding: 4px 10px; font-size: 10px; color: #ddd;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  .card-body { padding: 20px 20px 16px; flex: 1; display: flex; flex-direction: column; }
+  .card-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: var(--gris-oscuro);
+    line-height: 1;
+  }
+  .card-price span { font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--gris-medio); font-weight: 400; }
+  .card-title {
+    font-size: 14px; font-weight: 600; color: var(--gris-oscuro);
+    margin-top: 10px; line-height: 1.4;
+  }
+  .card-location {
+    font-size: 12px; color: var(--gris-medio); margin-top: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .card-location svg { width: 11px; height: 11px; fill: none; stroke: var(--rojo); stroke-width: 2; flex-shrink: 0; }
+
+  .card-specs {
+    display: flex; gap: 16px; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid #f0f0f0;
+  }
+  .spec { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gris-medio); }
+  .spec svg { width: 13px; height: 13px; fill: none; stroke: var(--gris-medio); stroke-width: 2; flex-shrink: 0; }
+
+  .card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #f0f0f0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-agente { font-size: 11px; color: var(--gris-medio); }
+  .card-agente strong { color: var(--gris-oscuro); font-weight: 600; }
+  .card-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 600;
+    color: var(--rojo); text-transform: uppercase; letter-spacing: 0.06em;
+    cursor: pointer; border: none; background: transparent; padding: 0;
+  }
+  .card-btn:hover { text-decoration: underline; }
+
+  /* EMPTY STATE */
+  .empty {
+    grid-column: 1/-1; text-align: center;
+    padding: 80px 20px; color: var(--gris-medio);
+  }
+  .empty svg { width: 48px; height: 48px; stroke: var(--gris-claro); margin-bottom: 16px; }
+  .empty p { font-size: 15px; }
+
+  /* MODAL */
+  .modal-bg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--blanco); max-width: 580px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    background: var(--gris-oscuro); padding: 24px 28px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    border-bottom: 3px solid var(--rojo);
+  }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--blanco); max-width: 420px; line-height: 1.3; }
+  .modal-close { background: none; border: none; color: #999; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
+  .modal-close:hover { color: var(--blanco); }
+  .modal-body { padding: 28px; }
+  .modal-price { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--rojo); }
+  .modal-location { font-size: 13px; color: var(--gris-medio); margin-top: 6px; }
+  .modal-specs {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px;
+  }
+  .modal-spec {
+    background: var(--gris-bg); padding: 14px; text-align: center;
+  }
+  .modal-spec strong { display: block; font-size: 18px; color: var(--gris-oscuro); }
+  .modal-spec span { font-size: 11px; color: var(--gris-medio); text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal-desc { margin-top: 22px; font-size: 13px; color: var(--gris-medio); line-height: 1.7; }
+  .modal-cta {
+    margin-top: 24px; display: flex; gap: 12px;
+  }
+  .btn-primary {
+    flex: 1; background: var(--rojo); color: var(--blanco); border: none;
+    padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--rojo-dark); }
+  .btn-secondary {
+    flex: 1; background: transparent; color: var(--gris-oscuro);
+    border: 1.5px solid var(--gris-oscuro); padding: 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--gris-oscuro); color: var(--gris-claro);
+    text-align: center; padding: 24px;
+    font-size: 12px; letter-spacing: 0.04em;
+    border-top: 3px solid var(--rojo);
+  }
+  footer strong { color: var(--blanco); }
+
+  @media (max-width: 680px) {
+    header { padding: 0 20px; }
+    .hero { padding: 36px 20px 32px; }
+    .stats-row { gap: 20px; }
+    .filters-bar { padding: 14px 20px; }
+    .grid { padding: 20px; gap: 16px; }
+    .count-bar { padding: 14px 20px 0; }
+    .modal-specs { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP NOTICE -->
+<div class="setup-notice" id="setupNotice">
+  ⚙️ <strong>Conectar base de datos:</strong> Abre el <a href="ei-admin.html">Panel Admin</a> y configura Supabase para ver propiedades reales.
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9H3z"/></svg>
+    </div>
+    <div class="logo-text">
+      <span>Empresarios Inmobiliarios</span>
+      <span>Construimos Patrimonio con Conocimiento y Propósito</span>
+    </div>
+  </div>
+  <div class="header-contact">📞 940 916 247 · Arequipa, Perú</div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Encuentra tu próxima<br><em>propiedad ideal</em></h1>
+  <p>Análisis técnico · Asesoría legal · Diagnóstico bio-ambiental</p>
+  <div class="stats-row" id="heroStats">
+    <div class="stat"><strong id="statTotal">12</strong><span>Propiedades</span></div>
+    <div class="stat"><strong id="statVenta">6</strong><span>En Venta</span></div>
+    <div class="stat"><strong id="statAlquiler">4</strong><span>En Alquiler</span></div>
+    <div class="stat"><strong id="statAnticresis">2</strong><span>Anticresis</span></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <span class="filter-label">Operación</span>
+  <div class="pill-group" id="filtrosOperacion">
+    <button class="pill active" data-operacion="todos">Todos</button>
+    <button class="pill" data-operacion="Venta">Venta</button>
+    <button class="pill" data-operacion="Alquiler">Alquiler</button>
+    <button class="pill" data-operacion="Anticresis">Anticresis</button>
+  </div>
+  <div class="filter-divider"></div>
+  <span class="filter-label">Tipo</span>
+  <div class="pill-group" id="filtrosTipo">
+    <button class="pill active" data-tipo="todos">Todos</button>
+    <button class="pill" data-tipo="Residencial">Residencial</button>
+    <button class="pill" data-tipo="Comercial">Comercial</button>
+    <button class="pill" data-tipo="Terreno">Terreno</button>
+  </div>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Buscar por ubicación, código..." />
+  </div>
+</div>
+
+<!-- COUNT -->
+<div class="count-bar">
+  <p class="count-text">Mostrando <strong id="countVisible">12</strong> propiedades</p>
+  <select class="sort-select" id="sortSelect">
+    <option value="default">Ordenar por: Defecto</option>
+    <option value="precio-asc">Precio: Menor a Mayor</option>
+    <option value="precio-desc">Precio: Mayor a Menor</option>
+    <option value="area-desc">Área: Mayor</option>
+  </select>
+</div>
+
+<!-- GRID -->
+<div class="grid" id="propiedadesGrid"></div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">-</h2>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-price" id="modalPrice">-</div>
+      <div class="modal-location" id="modalLocation">-</div>
+      <div class="modal-specs" id="modalSpecs"></div>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-cta">
+        <button class="btn-primary" id="modalWhatsapp">💬 Consultar por WhatsApp</button>
+        <button class="btn-secondary" onclick="closeModal()">Ver más tarde</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>Empresarios Inmobiliarios</strong> · Arequipa, Perú · 940 916 247 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3d5e5253495c5e49527d58504d4f584e5c4f54524e545350525f5451545c4f54524e135e5250">[email&#160;protected]</a>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── SUPABASE CONNECTION ──
+const EI_URL = 'https://xqdgvwxdcgvmeivvixft.supabase.co';
+const EI_KEY = 'sb_publishable_kLLTZgNk9WQQe7ewLfG6Eg_QOzA48pf';
+
+let sb = null;
+let PROPIEDADES = [];
+
+function getConfig() {
+  // Siempre usar credenciales EI
+  return { url: EI_URL, key: EI_KEY };
+}
+
+async function initSupabase() {
+  const cfg = getConfig();
+  sb = supabase.createClient(cfg.url, cfg.key);
+  try {
+    const { data, error } = await sb
+      .from('propiedades')
+      .select('*')
+      .eq('activo', true)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    PROPIEDADES = data || [];
+  } catch(e) {
+    console.warn('Supabase error, usando demo:', e.message);
+    PROPIEDADES = DEMO_DATA;
+  }
+  finishInit();
+}
+
+function finishInit() {
+  const ventas = PROPIEDADES.filter(p => p.operacion === 'Venta').length;
+  const alquileres = PROPIEDADES.filter(p => p.operacion === 'Alquiler').length;
+  const anticre = PROPIEDADES.filter(p => p.operacion === 'Anticresis').length;
+  document.getElementById('statTotal').textContent = PROPIEDADES.length;
+  document.getElementById('statVenta').textContent = ventas;
+  document.getElementById('statAlquiler').textContent = alquileres;
+  document.getElementById('statAnticresis').textContent = anticre;
+  render();
+}
+
+// ── DEMO DATA (mientras no hay Supabase configurado) ──
+const DEMO_DATA = [
+  {
+    id: "EI-001", operacion: "Venta", tipo: "Residencial",
+    titulo: "Departamento moderno con vista panorámica",
+    ubicacion: "Cayma, Arequipa",
+    precio: 180000, moneda: "USD",
+    area: 95, dormitorios: 3, banos: 2, estacionamiento: 1,
+    agente: "María López",
+    descripcion: "Hermoso departamento en piso alto con vista a los volcanes. Cocina equipada, áreas comunes con gimnasio y jardín. Entrega inmediata. Excelente ubicación con acceso a avenidas principales.",
+    codigo: "EI-001"
+  },
+  {
+    id: "EI-002", operacion: "Venta", tipo: "Residencial",
+    titulo: "Casa en condominio cerrado de 3 niveles",
+    ubicacion: "Cerro Colorado, Arequipa",
+    precio: 245000, moneda: "USD",
+    area: 185, dormitorios: 4, banos: 3, estacionamiento: 2,
+    agente: "Carlos Huanca",
+    descripcion: "Casa independiente dentro de condominio privado. Tres niveles funcionales, jardín propio, cochera doble. Acabados de primera con cerámicos importados y carpintería en madera.",
+    codigo: "EI-002"
+  },
+  {
+    id: "EI-003", operacion: "Alquiler", tipo: "Comercial",
+    titulo: "Local comercial en zona de alta rotación",
+    ubicacion: "Miraflores, Arequipa",
+    precio: 1200, moneda: "USD",
+    area: 80, dormitorios: null, banos: 1, estacionamiento: 0,
+    agente: "Rosa Quispe",
+    descripcion: "Local a pie de calle en zona comercial consolidada. Amplio frente de 8 metros, depósito posterior, instalaciones trifásicas. Ideal para retail, restaurante o consultorios.",
+    codigo: "EI-003"
+  },
+  {
+    id: "EI-004", operacion: "Anticresis", tipo: "Residencial",
+    titulo: "Departamento amoblado en Yanahuara",
+    ubicacion: "Yanahuara, Arequipa",
+    precio: 35000, moneda: "USD",
+    area: 75, dormitorios: 2, banos: 2, estacionamiento: 1,
+    agente: "Luis Vargas",
+    descripcion: "Departamento completamente amoblado con electrodomésticos incluidos. Zona residencial exclusiva de Yanahuara. Capital en anticresis S/ 35,000 USD, plazo 2 años.",
+    codigo: "EI-004"
+  },
+  {
+    id: "EI-005", operacion: "Venta", tipo: "Terreno",
+    titulo: "Terreno habilitado en urbanización nueva",
+    ubicacion: "Sachaca, Arequipa",
+    precio: 85000, moneda: "USD",
+    area: 300, dormitorios: null, banos: null, estacionamiento: null,
+    agente: "Ana Flores",
+    descripcion: "Terreno plano en urbanización con todos los servicios habilitados: agua, desagüe, luz y gas. Zonificación R5. Documentos saneados. Ideal para proyecto multifamiliar.",
+    codigo: "EI-005"
+  },
+  {
+    id: "EI-006", operacion: "Alquiler", tipo: "Residencial",
+    titulo: "Departamento independiente con terraza",
+    ubicacion: "Selva Alegre, Arequipa",
+    precio: 500, moneda: "USD",
+    area: 60, dormitorios: 2, banos: 1, estacionamiento: 0,
+    agente: "Pedro Cárdenas",
+    descripcion: "Departamento en primer piso con ingreso independiente y terraza privada de 20m². Cocina equipada, calefón solar. Contrato mínimo 12 meses.",
+    codigo: "EI-006"
+  },
+  {
+    id: "EI-007", operacion: "Venta", tipo: "Comercial",
+    titulo: "Oficina corporativa con sala de reuniones",
+    ubicacion: "Centro, Arequipa",
+    precio: 120000, moneda: "USD",
+    area: 110, dormitorios: null, banos: 2, estacionamiento: 1,
+    agente: "Gloria Mamani",
+    descripcion: "Oficina en edificio corporativo con recepción, sala de reuniones para 12 personas, 3 módulos de trabajo y depósito. Sistema de seguridad 24h. Vista a plaza principal.",
+    codigo: "EI-007"
+  },
+  {
+    id: "EI-008", operacion: "Alquiler", tipo: "Comercial",
+    titulo: "Almacén industrial con acceso vehicular",
+    ubicacion: "Parque Industrial, Arequipa",
+    precio: 800, moneda: "USD",
+    area: 250, dormitorios: null, banos: 1, estacionamiento: 0,
+    agente: "Roberto Salas",
+    descripcion: "Galpón industrial con puerta metálica de 4m de altura para carga/descarga. Portón eléctrico, piso pulido de concreto, instalaciones trifásicas. Ideal para logística y almacenaje.",
+    codigo: "EI-008"
+  },
+  {
+    id: "EI-009", operacion: "Venta", tipo: "Residencial",
+    titulo: "Casa tradicional remodelada en el centro",
+    ubicacion: "Cercado, Arequipa",
+    precio: 165000, moneda: "USD",
+    area: 140, dormitorios: 3, banos: 2, estacionamiento: 1,
+    agente: "Carmen Zegarra",
+    descripcion: "Casa de sillar con remodelación integral. Mantiene la arquitectura colonial arequipeña con cocina moderna integrada. Patio interior, azotea habitable. Excelente para vivir o inversión.",
+    codigo: "EI-009"
+  },
+  {
+    id: "EI-010", operacion: "Anticresis", tipo: "Residencial",
+    titulo: "Flat de un dormitorio near campus universitario",
+    ubicacion: "Umacollo, Arequipa",
+    precio: 18000, moneda: "USD",
+    area: 42, dormitorios: 1, banos: 1, estacionamiento: 0,
+    agente: "María López",
+    descripcion: "Flat moderno ideal para profesionales o estudiantes de posgrado. A 5 minutos de UNSA y UCSM. Capital anticresis S/ 18,000 USD. Plazo 1-2 años negociable.",
+    codigo: "EI-010"
+  },
+  {
+    id: "EI-011", operacion: "Venta", tipo: "Terreno",
+    titulo: "Terreno con proyecto aprobado 8 pisos",
+    ubicacion: "Cayma, Arequipa",
+    precio: 320000, moneda: "USD",
+    area: 400, dormitorios: null, banos: null, estacionamiento: null,
+    agente: "Carlos Huanca",
+    descripcion: "Terreno esquinero con proyecto de multifamiliar 8 pisos aprobado por municipalidad. Área construible 2,800m². Zona de alta demanda. Oportunidad de inversión inmobiliaria.",
+    codigo: "EI-011"
+  },
+  {
+    id: "EI-012", operacion: "Alquiler", tipo: "Residencial",
+    titulo: "Penthouse exclusivo con jacuzzi",
+    ubicacion: "Cayma, Arequipa",
+    precio: 1800, moneda: "USD",
+    area: 180, dormitorios: 3, banos: 3, estacionamiento: 2,
+    agente: "Ana Flores",
+    descripcion: "Penthouse de lujo en último piso con jacuzzi exterior y vista 360° a la ciudad. Amoblado de diseño, electrodomésticos premium, sistema de seguridad inteligente.",
+    codigo: "EI-012"
+  }
+];
+
+let filtroOperacion = "todos";
+let filtroTipo = "todos";
+let searchQuery = "";
+let sortBy = "default";
+let propActiva = null;
+
+function formatPrecio(p, moneda, op) {
+  const fmt = new Intl.NumberFormat('es-PE').format(p);
+  if (op === "Alquiler") return `${moneda} ${fmt}<span>/mes</span>`;
+  if (op === "Anticresis") return `${moneda} ${fmt}<span> capital</span>`;
+  return `${moneda} ${fmt}`;
+}
+
+function badgeClass(op) {
+  if (op === "Venta") return "badge-venta";
+  if (op === "Alquiler") return "badge-alquiler";
+  return "badge-anticresis";
+}
+
+function buildCard(p) {
+  const specs = [];
+  if (p.dormitorios) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>${p.dormitorios} dorm.</div>`);
+  if (p.banos) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><path d="M4 12h16M4 12V6a2 2 0 012-2h8a2 2 0 012 2v6M4 12v6a2 2 0 002 2h12a2 2 0 002-2v-6"/></svg>${p.banos} baño${p.banos>1?'s':''}</div>`);
+  if (p.area) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="1"/><line x1="2" y1="9" x2="22" y2="9"/></svg>${p.area} m²</div>`);
+  if (p.estacionamiento) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="22" height="18" rx="2"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/><path d="M1 9l3-6h16l3 6"/></svg>${p.estacionamiento} est.</div>`);
+
+  // Imagen real o placeholder
+  const imgHtml = p.foto_url
+    ? `<img class="card-img-real" src="${p.foto_url}" alt="${p.titulo}" onerror="this.parentElement.innerHTML=fallbackImg('${p.codigo||''}')"/>`
+    : `<div class="card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>${p.codigo||''}</span></div>`;
+
+  const uid = p.id || p.codigo;
+  return `
+    <div class="card" onclick="openModal('${uid}')">
+      <div style="position:relative">
+        ${imgHtml}
+        <div class="card-badge ${badgeClass(p.operacion)}">${p.operacion}</div>
+        <div class="card-tipo">${p.tipo}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-price">${formatPrecio(p.precio, p.moneda||'USD', p.operacion)}</div>
+        <div class="card-title">${p.titulo}</div>
+        <div class="card-location">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${p.ubicacion}
+        </div>
+        <div class="card-specs">${specs.join('')}</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-agente">Agente: <strong>${p.agente||'EI'}</strong></div>
+        <button class="card-btn">Ver detalle →</button>
+      </div>
+    </div>`;
+}
+
+function fallbackImg(cod) {
+  return `<div class="card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>${cod}</span></div>`;
+}
+
+function filtrar() {
+  let data = [...PROPIEDADES];
+  if (filtroOperacion !== "todos") data = data.filter(p => p.operacion === filtroOperacion);
+  if (filtroTipo !== "todos") data = data.filter(p => p.tipo === filtroTipo);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    data = data.filter(p => (p.ubicacion+p.titulo+(p.codigo||'')).toLowerCase().includes(q));
+  }
+  if (sortBy === "precio-asc") data.sort((a, b) => a.precio - b.precio);
+  if (sortBy === "precio-desc") data.sort((a, b) => b.precio - a.precio);
+  if (sortBy === "area-desc") data.sort((a, b) => (b.area||0) - (a.area||0));
+  return data;
+}
+
+function render() {
+  const data = filtrar();
+  const grid = document.getElementById("propiedadesGrid");
+  grid.innerHTML = data.length
+    ? data.map(buildCard).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><p>No se encontraron propiedades con esos filtros.</p></div>`;
+  document.getElementById("countVisible").textContent = data.length;
+}
+
+function openModal(uid) {
+  const p = PROPIEDADES.find(x => (x.id||x.codigo) === uid);
+  if (!p) return;
+  propActiva = p;
+  document.getElementById("modalTitle").textContent = p.titulo;
+  document.getElementById("modalPrice").innerHTML = formatPrecio(p.precio, p.moneda||'USD', p.operacion);
+  document.getElementById("modalLocation").innerHTML = `📍 ${p.ubicacion} &nbsp;|&nbsp; ${p.operacion} &nbsp;|&nbsp; ${p.tipo} &nbsp;|&nbsp; Cód: ${p.codigo||'—'}`;
+  const specs = [
+    p.dormitorios ? `<div class="modal-spec"><strong>${p.dormitorios}</strong><span>Dormitorios</span></div>` : '',
+    p.banos ? `<div class="modal-spec"><strong>${p.banos}</strong><span>Baños</span></div>` : '',
+    p.area ? `<div class="modal-spec"><strong>${p.area} m²</strong><span>Área total</span></div>` : '',
+    p.estacionamiento ? `<div class="modal-spec"><strong>${p.estacionamiento}</strong><span>Estac.</span></div>` : '',
+  ].filter(Boolean);
+  document.getElementById("modalSpecs").innerHTML = specs.join('');
+  document.getElementById("modalDesc").textContent = p.descripcion||'';
+  document.getElementById("modal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("open");
+  propActiva = null;
+}
+
+document.getElementById("modalClose").onclick = closeModal;
+document.getElementById("modal").onclick = (e) => { if (e.target === document.getElementById("modal")) closeModal(); };
+
+document.getElementById("modalWhatsapp").onclick = () => {
+  if (!propActiva) return;
+  const msg = `Hola, me interesa la propiedad ${propActiva.codigo||''}: ${propActiva.titulo} en ${propActiva.ubicacion}. ¿Pueden darme más información?`;
+  window.open(`https://wa.me/51940916247?text=${encodeURIComponent(msg)}`, "_blank");
+};
+
+document.getElementById("filtrosOperacion").addEventListener("click", e => {
+  if (!e.target.dataset.operacion) return;
+  filtroOperacion = e.target.dataset.operacion;
+  document.querySelectorAll("[data-operacion]").forEach(el => el.classList.remove("active"));
+  e.target.classList.add("active");
+  render();
+});
+
+document.getElementById("filtrosTipo").addEventListener("click", e => {
+  if (!e.target.dataset.tipo) return;
+  filtroTipo = e.target.dataset.tipo;
+  document.querySelectorAll("[data-tipo]").forEach(el => el.classList.remove("active"));
+  e.target.classList.add("active");
+  render();
+});
+
+document.getElementById("searchInput").addEventListener("input", e => { searchQuery = e.target.value; render(); });
+document.getElementById("sortSelect").addEventListener("change", e => { sortBy = e.target.value; 
