@@ -2295,17 +2295,8 @@ function dbDelete(key, id) {
 }
 
 // Iniciar sincronización cuando carga la página
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(cargarDesdeSupabase, 800);
-});
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const badge = document.getElementById('sync-badge');
-    if (badge && badge.style.display === 'none') {
-      cargarDesdeSupabase();
-    }
-  }, 1200);
-});
+// cargarDesdeSupabase se llama desde activarSistema() — no en DOMContentLoaded
+// Este listener fue removido — cargarDesdeSupabase solo se llama desde activarSistema()
 
 // ===================== CUSTOM DROPDOWN =====================
 function toggleDropdown(id) {
@@ -4053,7 +4044,7 @@ function buscarDash() {
 }
 
 // Actualizar buscador del dashboard al cargar la página
-window.addEventListener('load', () => { if(typeof dbGet==='function') buscarDash(); });
+// buscarDash se llama desde activarSistema() — no en load
 
 
 // ══════════════════════════════════════════
