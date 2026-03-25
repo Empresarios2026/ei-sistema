@@ -1,804 +1,692 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Propiedades · Empresarios Inmobiliarios</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  .setup-notice {
-    background: #fff8e1; border-left: 4px solid #f59e0b;
-    padding: 14px 40px; font-size: 13px; color: #78350f;
-    display: none;
-  }
-  .setup-notice a { color: #CE011F; font-weight: 600; }
-  .loading-grid {
-    grid-column: 1/-1; text-align: center; padding: 60px 20px;
-    color: #999; font-size: 14px;
-  }
-  .spinner-inline {
-    display: inline-block; width: 18px; height: 18px;
-    border: 2px solid #ddd; border-top-color: #CE011F;
-    border-radius: 50%; animation: spin .7s linear infinite;
-    vertical-align: middle; margin-right: 8px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .card-img-real { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-</style>
-<style>
-  :root {
-    --rojo: #CE011F;
-    --rojo-dark: #9E0117;
-    --gris-oscuro: #1E2023;
-    --gris-medio: #555560;
-    --gris-claro: #CCCCCC;
-    --gris-bg: #F2F3F5;
-    --blanco: #ffffff;
-    --card-shadow: 0 2px 20px rgba(0,0,0,0.08);
-    --card-hover: 0 8px 40px rgba(0,0,0,0.14);
-  }
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --r: #CE011F;
+  --bg: #F2F3F5;
+  --s1: #FFFFFF;
+  --s2: #F7F8FA;
+  --border: rgba(0,0,0,0.09);
+  --t1: #1A1A1A;
+  --t2: #555560;
+  --t3: #9A9AAF;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--t1); min-height:100vh; }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* TOPBAR */
+.topbar {
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:0 40px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:70px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.topbar img { height:40px; }
+.topbar-contact { font-size:13px; color:var(--t2); display:flex; align-items:center; gap:6px; }
+.topbar-contact strong { color:var(--r); }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--gris-bg);
-    color: var(--gris-oscuro);
-    min-height: 100vh;
-  }
+/* HERO */
+.hero {
+  background:linear-gradient(135deg,#fff 0%,#F8F0F1 100%);
+  padding:60px 40px;
+  border-bottom:3px solid var(--r);
+  text-align:center;
+}
+.hero h1 { font-family:'Playfair Display',serif; font-size:42px; font-weight:900; color:var(--t1); line-height:1.2; margin-bottom:12px; }
+.hero h1 em { color:var(--r); font-style:normal; }
+.hero p { font-size:15px; color:var(--t2); margin-bottom:32px; }
+.hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+.stat { text-align:center; }
+.stat-n { font-size:32px; font-weight:900; color:var(--r); line-height:1; }
+.stat-l { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--t3); margin-top:4px; }
 
-  /* ── HEADER ── */
-  header {
-    background: var(--gris-oscuro);
-    padding: 0 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 68px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 3px solid var(--rojo);
-  }
-  .logo-wrap { display: flex; align-items: center; gap: 14px; }
-  .logo-icon {
-    width: 38px; height: 38px;
-    background: var(--rojo);
-    display: flex; align-items: center; justify-content: center;
-    clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%);
-  }
-  .logo-icon svg { width: 18px; height: 18px; fill: white; }
-  .logo-text { display: flex; flex-direction: column; line-height: 1; }
-  .logo-text span:first-child {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px; font-weight: 700;
-    color: var(--blanco); letter-spacing: 0.02em;
-  }
-  .logo-text span:last-child {
-    font-size: 10px; color: var(--gris-claro); letter-spacing: 0.08em;
-    text-transform: uppercase; margin-top: 2px;
-  }
-  .header-contact {
-    font-size: 12px; color: var(--gris-claro); letter-spacing: 0.04em;
-  }
+/* FILTROS */
+.filtros {
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:16px 40px;
+  position:sticky;
+  top:70px;
+  z-index:90;
+  display:flex;
+  align-items:center;
+  gap:24px;
+  flex-wrap:wrap;
+}
+.filtro-grupo { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.filtro-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--t3); font-weight:700; }
+.btn-filtro {
+  padding:7px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:#fff;
+  font-size:13px;
+  font-weight:500;
+  color:var(--t2);
+  cursor:pointer;
+  transition:all .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.btn-filtro:hover { border-color:var(--r); color:var(--r); }
+.btn-filtro.active { background:var(--r); color:#fff; border-color:var(--r); font-weight:700; }
+.filtro-sep { width:1px; height:24px; background:var(--border); }
+.buscar-input {
+  margin-left:auto;
+  padding:8px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  font-size:13px;
+  font-family:'DM Sans',sans-serif;
+  outline:none;
+  width:220px;
+  color:var(--t1);
+  background:#fff;
+}
+.buscar-input:focus { border-color:var(--r); }
 
-  /* ── HERO STRIP ── */
-  .hero {
-    background: linear-gradient(135deg, #111 60%, #2a0008 100%);
-    padding: 52px 40px 44px;
-    position: relative; overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute; top: -40px; right: -60px;
-    width: 320px; height: 320px;
-    border: 60px solid rgba(206,1,31,0.12);
-    border-radius: 50%; pointer-events: none;
-  }
-  .hero::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-    background: repeating-linear-gradient(90deg, var(--rojo) 0, var(--rojo) 32px, transparent 32px, transparent 40px);
-  }
-  .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 4vw, 46px);
-    font-weight: 700; color: var(--blanco);
-    line-height: 1.15; max-width: 560px;
-  }
-  .hero h1 em { color: var(--rojo); font-style: normal; }
-  .hero p {
-    margin-top: 12px; font-size: 14px; color: var(--gris-claro);
-    font-weight: 300; letter-spacing: 0.03em;
-  }
-  .stats-row {
-    display: flex; gap: 36px; margin-top: 28px;
-  }
-  .stat { display: flex; flex-direction: column; gap: 2px; }
-  .stat strong { font-size: 22px; color: var(--blanco); font-weight: 600; }
-  .stat span { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+/* DROPDOWNS */
+.dropdown-wrap { position:relative; }
+.dropdown-btn {
+  padding:9px 16px;
+  border-radius:8px;
+  border:1.5px solid var(--border);
+  background:#fff;
+  font-size:13px;
+  font-weight:500;
+  color:var(--t2);
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  white-space:nowrap;
+  transition:all .2s;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.dropdown-btn:hover, .dropdown-btn.open { border-color:var(--r); color:var(--r); }
+.dropdown-btn.activo { background:var(--r); color:#fff; border-color:var(--r); }
+.dropdown-panel {
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.12);
+  z-index:200;
+  min-width:200px;
+}
+.dropdown-panel.open { display:block; }
+.drop-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--t3); margin-bottom:10px; }
+.drop-subtitle { font-size:11px; font-weight:700; color:var(--r); text-transform:uppercase; letter-spacing:.5px; margin:10px 0 6px; }
+.drop-cols { display:flex; gap:20px; }
+.drop-opt {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 4px;
+  font-size:13px;
+  color:var(--t2);
+  cursor:pointer;
+  border-radius:6px;
+  transition:background .15s;
+}
+.drop-opt:hover { background:var(--bg); }
+.drop-opt input { accent-color:var(--r); cursor:pointer; }
+.drop-clear {
+  margin-top:12px;
+  font-size:12px;
+  color:var(--t3);
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  padding:4px 0;
+}
+.drop-clear:hover { color:var(--r); }
+.btn-limpiar {
+  padding:9px 16px;
+  border-radius:8px;
+  border:1.5px solid var(--r);
+  background:#fff;
+  color:var(--r);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  white-space:nowrap;
+}
 
-  /* ── FILTERS ── */
-  .filters-bar {
-    background: var(--blanco);
-    padding: 18px 40px;
-    display: flex; align-items: center; gap: 16px;
-    flex-wrap: wrap;
-    border-bottom: 1px solid #e5e5e5;
-    position: sticky; top: 68px; z-index: 90;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .filter-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris-medio); font-weight: 600; }
-  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .pill {
-    padding: 7px 16px; border-radius: 2px;
-    border: 1.5px solid var(--gris-claro);
-    font-size: 12px; font-weight: 500; color: var(--gris-medio);
-    cursor: pointer; transition: all 0.2s; background: transparent;
-    font-family: 'DM Sans', sans-serif; letter-spacing: 0.02em;
-  }
-  .pill:hover { border-color: var(--rojo); color: var(--rojo); }
-  .pill.active { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
-  .filter-divider { width: 1px; height: 28px; background: #e5e5e5; }
-  .search-box {
-    margin-left: auto;
-    display: flex; align-items: center; gap: 10px;
-    border: 1.5px solid var(--gris-claro); border-radius: 2px;
-    padding: 7px 14px; background: var(--gris-bg);
-  }
-  .search-box input {
-    border: none; background: transparent; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; color: var(--gris-oscuro); outline: none; width: 180px;
-  }
-  .search-box input::placeholder { color: #bbb; }
-  .search-box svg { width: 14px; height: 14px; fill: none; stroke: #aaa; stroke-width: 2; }
+/* RESULTADOS */
+.resultados-bar {
+  padding:16px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.resultados-bar span { font-size:13px; color:var(--t2); }
+select.ordenar {
+  padding:6px 12px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  font-size:13px;
+  font-family:'DM Sans',sans-serif;
+  color:var(--t2);
+  background:#fff;
+  cursor:pointer;
+  outline:none;
+}
 
-  /* ── COUNT BAR ── */
-  .count-bar {
-    padding: 16px 40px 0;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .count-text { font-size: 13px; color: var(--gris-medio); }
-  .count-text strong { color: var(--gris-oscuro); }
-  .sort-select {
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
-    color: var(--gris-medio); border: 1.5px solid var(--gris-claro);
-    padding: 6px 12px; border-radius: 2px; background: var(--blanco);
-    cursor: pointer; outline: none;
-  }
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:20px;
+  padding:0 40px 60px;
+}
+.card {
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 2px 12px rgba(0,0,0,0.05);
+  transition:transform .2s,box-shadow .2s;
+  cursor:pointer;
+}
+.card:hover { transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.1); }
+.card-img {
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  background:linear-gradient(135deg,#F0F0F0,#E0E0E0);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+  color:#ccc;
+}
+.card-img img { width:100%; height:100%; object-fit:cover; }
+.card-body { padding:16px; }
+.card-tags { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+.tag {
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  padding:3px 10px;
+  border-radius:20px;
+}
+.tag-op { background:rgba(206,1,31,.1); color:var(--r); }
+.tag-tipo { background:var(--bg); color:var(--t3); }
+.card-title { font-size:15px; font-weight:700; color:var(--t1); margin-bottom:4px; line-height:1.3; }
+.card-loc { font-size:12px; color:var(--t3); margin-bottom:10px; }
+.card-precio { font-size:18px; font-weight:900; color:var(--t1); margin-bottom:10px; }
+.card-precio span { font-size:12px; font-weight:400; color:var(--t3); margin-left:4px; }
+.card-specs { display:flex; gap:12px; flex-wrap:wrap; border-top:1px solid var(--border); padding-top:10px; }
+.spec { font-size:12px; color:var(--t2); display:flex; align-items:center; gap:4px; }
 
-  /* ── GRID ── */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
-    padding: 24px 40px 60px;
-  }
+/* EMPTY */
+.empty { text-align:center; padding:80px 40px; color:var(--t3); }
+.empty-icon { font-size:48px; margin-bottom:16px; }
 
-  /* ── CARD ── */
-  .card {
-    background: var(--blanco);
-    border-radius: 0;
-    box-shadow: var(--card-shadow);
-    overflow: hidden;
-    display: flex; flex-direction: column;
-    transition: box-shadow 0.3s, transform 0.3s;
-    cursor: pointer;
-    position: relative;
-  }
-  .card:hover { box-shadow: var(--card-hover); transform: translateY(-4px); }
+/* MODAL */
+.modal-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:#fff;
+  border-radius:16px;
+  width:700px;
+  max-width:95vw;
+  max-height:90vh;
+  overflow-y:auto;
+}
+.modal-header {
+  background:var(--r);
+  padding:24px 28px;
+  color:#fff;
+}
+.modal-header h2 { font-size:20px; font-weight:900; margin-bottom:4px; }
+.modal-header p { font-size:13px; opacity:.8; }
+.modal-body { padding:24px 28px; }
+.modal-fotos { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:20px; }
+.modal-fotos img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; }
+.modal-desc { font-size:14px; line-height:1.7; color:var(--t2); white-space:pre-line; }
+.modal-footer {
+  padding:16px 28px;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.btn-wsp {
+  background:#25D366;
+  color:#fff;
+  border:none;
+  padding:12px 24px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.modal-close {
+  background:var(--bg);
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  color:var(--t2);
+}
 
-  .card-img {
-    width: 100%; aspect-ratio: 4/3;
-    object-fit: cover; display: block;
-    background: #e8e8e8;
-    position: relative; overflow: hidden;
-  }
-  .card-img-placeholder {
-    width: 100%; aspect-ratio: 4/3;
-    background: linear-gradient(135deg, #e5e5e5 0%, #d0d0d0 100%);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 8px;
-  }
-  .card-img-placeholder svg { width: 40px; height: 40px; fill: none; stroke: #bbb; stroke-width: 1.5; }
-  .card-img-placeholder span { font-size: 11px; color: #bbb; text-transform: uppercase; letter-spacing: 0.06em; }
+/* FOOTER */
+footer {
+  background:#1E2023;
+  color:rgba(255,255,255,0.6);
+  text-align:center;
+  padding:24px 40px;
+  font-size:13px;
+}
+footer strong { color:#fff; }
 
-  .card-badge {
-    position: absolute; top: 14px; left: 14px;
-    padding: 4px 10px; font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--blanco);
-  }
-  .badge-venta { background: var(--rojo); }
-  .badge-alquiler { background: #1a4a2e; }
-  .badge-anticresis { background: #1a2c4a; }
-
-  .card-tipo {
-    position: absolute; top: 14px; right: 14px;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-    padding: 4px 10px; font-size: 10px; color: #ddd;
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-
-  .card-body { padding: 20px 20px 16px; flex: 1; display: flex; flex-direction: column; }
-  .card-price {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 700; color: var(--gris-oscuro);
-    line-height: 1;
-  }
-  .card-price span { font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--gris-medio); font-weight: 400; }
-  .card-title {
-    font-size: 14px; font-weight: 600; color: var(--gris-oscuro);
-    margin-top: 10px; line-height: 1.4;
-  }
-  .card-location {
-    font-size: 12px; color: var(--gris-medio); margin-top: 5px;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .card-location svg { width: 11px; height: 11px; fill: none; stroke: var(--rojo); stroke-width: 2; flex-shrink: 0; }
-
-  .card-specs {
-    display: flex; gap: 16px; margin-top: 14px;
-    padding-top: 14px; border-top: 1px solid #f0f0f0;
-  }
-  .spec { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gris-medio); }
-  .spec svg { width: 13px; height: 13px; fill: none; stroke: var(--gris-medio); stroke-width: 2; flex-shrink: 0; }
-
-  .card-footer {
-    padding: 12px 20px;
-    border-top: 1px solid #f0f0f0;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .card-agente { font-size: 11px; color: var(--gris-medio); }
-  .card-agente strong { color: var(--gris-oscuro); font-weight: 600; }
-  .card-btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px; font-weight: 600;
-    color: var(--rojo); text-transform: uppercase; letter-spacing: 0.06em;
-    cursor: pointer; border: none; background: transparent; padding: 0;
-  }
-  .card-btn:hover { text-decoration: underline; }
-
-  /* EMPTY STATE */
-  .empty {
-    grid-column: 1/-1; text-align: center;
-    padding: 80px 20px; color: var(--gris-medio);
-  }
-  .empty svg { width: 48px; height: 48px; stroke: var(--gris-claro); margin-bottom: 16px; }
-  .empty p { font-size: 15px; }
-
-  /* MODAL */
-  .modal-bg {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6); z-index: 200;
-    align-items: center; justify-content: center; padding: 20px;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--blanco); max-width: 580px; width: 100%;
-    max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: slideUp 0.3s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .modal-header {
-    background: var(--gris-oscuro); padding: 24px 28px;
-    display: flex; align-items: flex-start; justify-content: space-between;
-    border-bottom: 3px solid var(--rojo);
-  }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--blanco); max-width: 420px; line-height: 1.3; }
-  .modal-close { background: none; border: none; color: #999; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
-  .modal-close:hover { color: var(--blanco); }
-  .modal-body { padding: 28px; }
-  .modal-price { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--rojo); }
-  .modal-location { font-size: 13px; color: var(--gris-medio); margin-top: 6px; }
-  .modal-specs {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px;
-  }
-  .modal-spec {
-    background: var(--gris-bg); padding: 14px; text-align: center;
-  }
-  .modal-spec strong { display: block; font-size: 18px; color: var(--gris-oscuro); }
-  .modal-spec span { font-size: 11px; color: var(--gris-medio); text-transform: uppercase; letter-spacing: 0.05em; }
-  .modal-desc { margin-top: 22px; font-size: 13px; color: var(--gris-medio); line-height: 1.7; }
-  .modal-cta {
-    margin-top: 24px; display: flex; gap: 12px;
-  }
-  .btn-primary {
-    flex: 1; background: var(--rojo); color: var(--blanco); border: none;
-    padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background 0.2s;
-  }
-  .btn-primary:hover { background: var(--rojo-dark); }
-  .btn-secondary {
-    flex: 1; background: transparent; color: var(--gris-oscuro);
-    border: 1.5px solid var(--gris-oscuro); padding: 14px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;
-  }
-
-  /* FOOTER */
-  footer {
-    background: var(--gris-oscuro); color: var(--gris-claro);
-    text-align: center; padding: 24px;
-    font-size: 12px; letter-spacing: 0.04em;
-    border-top: 3px solid var(--rojo);
-  }
-  footer strong { color: var(--blanco); }
-
-  @media (max-width: 680px) {
-    header { padding: 0 20px; }
-    .hero { padding: 36px 20px 32px; }
-    .stats-row { gap: 20px; }
-    .filters-bar { padding: 14px 20px; }
-    .grid { padding: 20px; gap: 16px; }
-    .count-bar { padding: 14px 20px 0; }
-    .modal-specs { grid-template-columns: repeat(2, 1fr); }
-  }
+@media(max-width:600px) {
+  .topbar { padding:0 20px; }
+  .hero { padding:40px 20px; }
+  .hero h1 { font-size:28px; }
+  .filtros { padding:12px 20px; gap:12px; }
+  .buscar-input { width:100%; margin-left:0; }
+  .grid { padding:0 20px 40px; }
+  .resultados-bar { padding:12px 20px; }
+}
 </style>
 </head>
 <body>
 
-<!-- SETUP NOTICE -->
-<div class="setup-notice" id="setupNotice">
-  ⚙️ <strong>Conectar base de datos:</strong> Abre el <a href="ei-admin.html">Panel Admin</a> y configura Supabase para ver propiedades reales.
-</div>
-
-<!-- HEADER -->
-<header>
-  <div class="logo-wrap">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9H3z"/></svg>
-    </div>
-    <div class="logo-text">
-      <span style="display:flex;align-items:center;gap:6px;">
-        <span style="width:8px;height:8px;background:var(--rojo);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;display:inline-block;"></span>
-        Empresarios Inmobiliarios
-      </span>
-      <span>Construimos Patrimonio con Conocimiento y Propósito</span>
-    </div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAADICAIAAADdvUsCAAAAtGVYSWZJSSoACAAAAAYAEgEDAAEAAAABAAAAGgEFAAEAAABWAAAAGwEFAAEAAABeAAAAKAEDAAEAAAACAAAAEwIDAAEAAAABAAAAaYcEAAEAAABmAAAAAAAAAGAAAAABAAAAYAAAAAEAAAAGAACQBwAEAAAAMDIxMAGRBwAEAAAAAQIDAACgBwAEAAAAMDEwMAGgAwABAAAA//8AAAKgBAABAAAALAEAAAOgBAABAAAAyAAAAAAAAABX4BNvAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFYGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTAyLTEzPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUc1RU5nTVNiUSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBRTlld2FxZkw4JnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBRTlleFlYMjZzJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4xNjllMTRjMy1iZjZiLTQzMDItODMxMC0yYTY5ZjEyZDc4NWY8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+RU1QUkVTQVJJT1MgSU5NT0JJTElBUklPUyAoNDAwIHggMjUwIHB4KSAtIDI8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+WnVsZW1hIEd1dGllcnJlejwvcGRmOkF1dGhvcj4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIGRvYz1EQUc1RU5nTVNiUSB1c2VyPVVBRTlld2FxZkw4IGJyYW5kPUJBRTlleFlYMjZzPC94bXA6Q3JlYXRvclRvb2w+CiA8L3JkZjpEZXNjcmlwdGlvbj4KPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KPD94cGFja2V0IGVuZD0ncic/PoOFh/QAACAASURBVHic7Z17lFXVle6PRpMePTpt59XdSfSqeXSnH7f73tt35I++Y3TSnXFz+yamjRloYcTE+KBRbyQKSkRQFFBRUAIGBR/xBQQRgwYKEAFFnlVAAfJ+CKjhIUohCPKoqn1/Z3+cyap9zqk6Beg6JPMbe5w6tc/aa8+19vzWnOs1dy5xOBxRkYstgMPxhw4nocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaT0OGIDCehwxEZTkKHIzKchA5HZDgJHY7IcBI6HJHhJHQ4IsNJ6HBEhpPQ4YgMJ6HDERlOQocjMpyEDkdkOAkdjshwEjockeEkdDgiw0nocESGk9DhiAwnocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaT0OGIDCehwxEZTkKHIzKchA5HZDgJHY7IcBI6HJHhJHQ4IsNJ6HBEhpPQ4YgMJ6HDERlOQocjMpyEDkdkOAkdjshwEjockeEkdDgiw0nocESGk9DhiAwnocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaTsAgtLS1NTX784RxJc0tcjXMSOhyR4SQM0JJvEQ9v39k4fnLjs7V+/P4fE6bsGvP8/iUr7OlHgZMwQHMzH/vql637Zs36b13sx+/9seHbXdZ+/T/eHvqoPf0ocBI6HJHhJHQ4IsNJ6HBEhpPQ4YgMJ6HDERlOQocjMn7fSdjSEnH+x+GoBCcDCfPryA7nlxeJUR062kZzc8TZIYdDqHoSHjNJtPzlncbDO3fZv61+hdX8PXSo5fDh4xPR4TguVDUJW5ryDGzeu+/dx8dv6frz1y+8+vVO3So8NtVcu+H//mjzj69v3rc/zSsgYd605nP+YM2GHYNHlUjgcHyEqF4StqSWas+seSv/6pv1uU/Xn/Jn+c8Kj1M+W587Y8kff3Ff3fJ8XqE5hYHpv7tGT1ycO/N3P78rf66MMWypACWTlS1UqWRt5NwhkY6tCMWXNLdGubKUvMWJlbncrx0Sr6PF+ehRpSSUpdo19oUlHz9rUe7PG077UsPpX85/VnKc/pWGT3x5ce4vG8dNyueVkrmQb8qZpqY3rulLtnW5P9lxf37dYNV6pFK4cupYjOPUs3LXtkGJ40flBSyXsqR4bdO4o0J+qKhKEqa0eW/yrMWnn7nklDPh1ZJTzq7wyJPwY2fX5z61/e4Hk4I5PYq09jdf2r0u96cNf/RVbOaOe0cmZUh48ODB3bt3v1ce/Pr++++Tcv/+/ZbSThbj0KFDmRyk9Hv27CnOnExIX5D6iD41NTWVlIQcPvjgA6OQKVnlRbCrDh8+vGnTpoULF86ePXvevHmrV6+mdEl5xT1w4EB4i6ZMhacZdkhmZcivfPI9eHRHEuzcubOhoWHOnDkLFixYu3YtmSRFlLN/9+3bRxEoCMUhPUU7nD7rquJh9ZEwfSofrFq/9HN/vzj3hSUfO5ej4eNfbv84Ha6esyj3FxxiYHZQJ/1324BheU/19Pwl9bk/o0+YFJFQmsFjvvLKK6+77rr/Vwo//elPu3btes8995Dy6aefvvzyy0nJyauvvvrmm282zQgznDZtmpJx+bXXXsuXHTt2wLQbbrjhmmuu4dowf37t1avXsGHDUB00Wzn87ne/4zzXmgyG7t279+vXD0nefPPNJKVrhUUYPHhwS8Gpfvnll2+55RZOIudll132k5/8hMt79Ojx/PPPw+fMg9JVjz322BVXXHFdChKj61Zefa5YsYI6CW9quP766/v37//MM8+8/fbbSUpXPidNmsSt+YnPyZMnqyzKCgoNHTqUuuKOl6Xgjj179vzNb34TthRGP3KmbklDQX784x/zSdH69u07f/78pJp4WGUkVCUeOLT2n89flPtsagPPWXRK3m+sy32y7aP+lE8tyn1h1d/97/dqZ+azyjIwn/PBTW8tPeNrdAWXnHoOpG2bhK+88kqXLl14bDzFq6666j9bo1u3bjzUO++8M0kV8Yc//KFSAjSYFjoJvDs97+HDh19yySVKhhrxZdu2bZAQUnEJt+B81wK4Bf/+6Ec/QgYuRKXIAYLxE9fqRlcVwEk+kYf8ubCurk73raQId911l8R78sknKQVn+InEEok03K5z586//OUvWz+otD4PHrzxxhshg2Tg8lGjRtmvKv7y5ctF5lDgjMy0IKoxMHHiRG4H02pqaiB/UiAnhSI9FcKFSGVFQDzuO3DgQKyr3RrzzqO5+OKLualqUsXhO3ekTkTvKuFhlZFQxmrgcPzJhtO+jA2k57b+XzvjNG677b5ttw9t49gxeOSeaa+0HMg32C1FfRvRbMfQR+vIOW8zz66EhDSftOI8aR4hT/qSADzITp060ayS8vHHH7/00ktJyTPmk+9TpkyxfPSksY3oK9ogBUKTSLl9+3ZIiE2QunMSJeNyMucWqNfVKVBKeJ6kJORfaSGfPymAS7iQk/yKqLCanEmPZWu7CBdeeGGfPn1IWV9fz7/dUpASVmCjsIEQDGmhBNeSW6ZQ69evl2ZLJEqH9ZbNVG+WL6+99pqYQAKxzmRGNsnMl5tuumnv3r2kh3jIRp3w+cILL+iJYAPV+iAJualQ4qSJd//995t4Y8eOhYGcVy2R+R133EGefNeFYPPmzUl18LDKSJhi/bcuxqWUF4qJ29YvX7kthyoeO2kqMbqgzuEb3W6GeA2nf7lCEvKMpdZ4ehMmTBg3btwzBYwfP37MmDHTp09PUhJKg6WRqJfsRugdbdiwwZp/fZLeSCgrgdLU1ta+9NJLL774Irfr3bu37JJM2datW3Ff9S/qiGLhVmEf6L+9+uqrI0aMkHVFYNQXe8JNZ82a1W4RuB0p8XtJiQCwDuGxJFQCspEeGThvZj+sIqRVwUlgcsLMpDUJEYxfkeH222+XwPjYUHrIkCEqoFouKpz0zz33HIzCceVTlhDcd999Eo+s8FS5lvZo48aNv/rVr+RkIgMJyJnEkFleqG4Kk7GlCIOpxPcmPY0UYlO0pPxY1EeJKiKhRkT3zpy3JHdWfpTl1LNFwq23DuF8874P4GFbB0QqGhU4irSuN1/6s/rcpzXSUyEJefA8MPpaSakHJoKhCugQj5ynS3oePEbPuoXqnsEr6St9J9E1Q0J13sLO5O7du+lekpt4BeEbGxvlrHLytttuU842CDFy5EgJzOcvfvGLCouQpCNGP//5z8VhSiEToZQHDhzgJyyPxNi1a1cSWA/uor4WVghRKQL1IE/PxmlFQgpLSkmVBP7q3XffzXkkpID4w5ykg2ckVFPy+uuvSzCVffXq1UkwUvrEE09Yqe+9994wPTLTxZU3K2HgrZx55AzblLioKhKmxuqa3vW5M44Yq2OzhCVxlIQdcEdNg7F1SWGEIIRoIBLCK7iH28OzRwlkEExX6CyhZz/72c9QO9m9kiSkFSc9eqOhUbSQq+A2n7Bo586d0kVuceutt5JGBkeJMTLwgWyxZvSRODN79uy2iyD5YRrmxawx9jZpreVIeGOKLVu2WP1gLbkKYZDtt7/9rZoAbj106NCwGkMSmsdoMqttEoXkPlBkIyGE1BmloZIx+CqFtW70q/lJHibNBOYOp0NmkNrA/lOZ1k5RUqwxdhLJBwwYYOPPcVE1JCx45uv+5cJFuc/lB0VPBhKGlhBVo39F5w1t48Jp06YlhVFKHjaGgpN0mZ566ikSqI9UTEIb5ZMMYpG8tYcffhiFU29QJLT5AImxcuVKcRsmDBo0qMIiSDwsBnmKKhAjCcYk+XKwgHDYc/ny5fIzuWTFihW4jnTDkI2GZs+ePUl5EoaVPGfOHFlCCqhBHSMhuckdHT58OL+KqGG/1MpOu0aRVXBuR1Mln1/2EOsXFgdOWnGOS6NOHKqHhCkLm5vX/M/z1CGsKhLCnKQ9dxRVQ5XRYLSZCx988EG7BAOiTgu9IBm3Ckk4Y8YM6R8yQG/ShyQ0S2jjhxp44BLsUpIOzFRYhIceekhjS4jB57x58zIJiuuHzhvZyjJjf7hEg0PI1tDQkBRGNSuxhDL16qRZnxASYmA5owZCN7IOZyjJ6NGjzV/QkFjPnj11Uy7EncZBTdpbiBMRTsL2B2bUmeHxY2pWFcB3mlilNHeUZ7927Vp1C2+66SacHz3ymTNn0kijIs8++ywWEvXSOGS7JKSbJB1FL7n23XffbaNPCEsRQ6MOGuSwgZk2iqBM+I6ENsjJdwizbNkym9ouXq2CsdVMHW5qkg5gyg5TzPHjxyelSJjpEwJaJQ11khWmNQn6hNTSpEn5NU98l6tM0bBy4eUSnmRcYk57kg6xcrkNC1MunGoktOdbDeMxBidhOySU5dEknoF/UR1skfTMSIgntnv37t69e+vB0zlRhiTQ3MOCBQto+zt37lyOhOHAzNKlS9XbISXXYuiMhKg1DTxEWrdu3Zo1a2ALt1BHCOXr37+/1ppUUgTzaSdPnsxdNAAjzkAMEpBJuMpEn7t27YIbmlN54IEHknRy3GbG77zzTmsajIScp6eKwLRTyLxkyRI6gTJxNTU18FPpQ3cUkTipSiBnKkrrezIkfOmll9Rp5JN6SFIHG0+EfNTLRU49oMGDB+M5Jx/yQryOwklYEQkzUKcfWxSSkPOoDizCtQu7hfChb9++mrDeunUrLlZJSygrhC6imvSCBgwYIM1TW45+k5LLNbKakUcOsOYnhg0bpgUoFRbBzCmfuJSYNVSZDNFdGSiKBqvNo1PlLFy4kJ80qil7BYYOHUrByZzzMllJgYTFAmgVC1+wYHR3cWglA0bMSFhbW0t9qshURffu3UsuRbKOg/nhGtyaMGECRaA4XKtJFJJxX/hJW5mU8rSjwEl47JYQaqljYyREn3iu2DrNRMNGfn3rrbc0U9ejR4+k0OcpJqH6PJcVoGESXYgY6qS98cYbIQlNHum9lpjJqRO1KilCxqfdu3cv9gdjLn01q8gXGXalHzNmDPSTeLqjisZJJCH93LlzdTIkYSiDZNYsghiuFi0kIZJQP5pel6eglUMZEuJ1q+fM5yOPPJIEDue2bdvoDOOhqNNOGopD/rQ+4QqbuHASVtQnpI3HiUKfVhTAd7pYYZ9QlvDgwYPqHaFevXr14tf58+er1ZfbRn8JTW2XhKSnCSdbbKANk8BnIyHprytAJstWutEFVfpKimBOpgb9bT0atg5N1ZIU5WCNDsluv/12CnhlunTTllmTp8Z1kFyTfklrEmqaVNBgJplfkQLvVOlDEsrGqn2h1JzMMCecg1VnWONPNgisZFyFUYWKuiMScgstQnISBqhWElY+OioS0mmhRb/pppvULaQXh1NEDigxekDicePGlSShdBRncsSIEXikuFVYm1dffVWLuaRtIqH8zz59+uzZs2f//v3ckbuMHTtWk4RadNbY2JhUNjpaXCIbg6EgcMkmVMiKPm2SriPX6jkt3KlNMXXq1GeeeSYUT3MAmsmQOaVLhj+JNUPmHTt2jBo1ClaoBbH0YZ9Qo6M0Q7YYiBpIiiyhnAsNX2lMyIoZFod+7F133aXJDA3zyG+PzkMn4QmbJ0RLoJOaas1cwwq8Mhil9TRao4ymliRh8cBMUDdHfMWQhJnuHJ8DBw6UTnPf+vr6pDA62u48IayAV3hu5G+mprmwRnTQoEG2qGX06NGWrRbBos1dCpDZlNtpK2+WLVtmJLR5fNvooJU6ukrubjg6qrWjNg1IqWUwQ44l6UIIm0jkqVGl+O30nymUjTarrmAd9lA9bWpJK92jj5SePCQ8eChPpKa2juzuwRAngoRiXYiMOwqd1OOfPn36j1NwIW08+WAx1J8p546GfR7dyFa0JAVtC0loY7MahEgCg4DAsrrFJMwUQfk3NDTI2UPXQ4OpX6dMmaKeng17PProo1qCJ//58gK0MlsmncSa9F+6dGlmnjCsOrpwmp/kQu0wCkmoZWtUr80lag1NuGtRCyE0ysonVYQTS3ot1y7eWjV8+HCrE62bLd4D+RHjJCCh1o5WtPmdZ3uwzEKk4yOhejjtuqNmCTEC6qHR7kp9NXeftEfCcjtoS5LQtEdfYL5NKmriOyRhySIoW6RVnw1GDRgwwPipHuC0adNEQpsAkNKLbNhJnMx7UwwZMqRfv35GQi1DC93R4hUz1IY1HBpMDhdwi4R0ibXfQqM4qiJrobCN8sO5i2Ys6RJr0Igc8NKT1K8GSv/QQw/ZUKo6z24JC2jPEh56c+u+Rcv2vrJg7+yFJY/35yx6Z9ToD1avP5pbiOMgIZ/00/Bk3nzzzbcC8C8OT1LYyiQSasUW6qvZQs3ymYYlHw4JJTDKqmkDLa9Jgj5hG0VABq3S1uAQqrx48eIksB6wS+4oOj158mQysZWZ/fv3z3iGmkRRd7FHjx6cXLlyZUkSSngytO6crFzxLgp6xWRlmdCamH+O8GoRQm9548aNXQsbMulP2lJYPvmuyUxRWuO6TsICSpLwtHMX5T678fwrN/7gP/N75zmZ+y8lj4bT8tvkt3S96WhWGRzfFIVGJkJo3JwnmqRLnLV31kiYpOtXOKkBDFLaxP2HR0Jz/GwCvfIi0FNF6bVXCErglGJXYcidd96p3UYAhsMx8rQ1YlL6UIkxOAhmzuGmTZvWrVtnq1KLLaHNLlhu4S4K20+Id82/2rGJGIoh8PDDD1Njmkeh9mwXJXWFPVfDwa+9evWaMGECxYHefNdqhMxOl8r19MNAVZMwPc5ZfMrn63OfXZw7K8+3knFlToeBn1r7jU5HBm9OEAnpTmjvmXbWltNgHiEqqxERW7ucpFaIk1pWwrO3cXwUAmJcm0Ik7N69u7T8+uuvb5eEkodb33777Zke4/r16/lJRNKmngqLAHPoyvbs2VN8kDOpvcUyMsjWuXNnuoJJ6s5RLvW4Xn311SQgoTnnEAB6kMOMGTPgoRhCVrZsza6qq6vjV3VHNcWH9eNCXa7R0aYU9913nxY5aHZR+5g12Uh5bTuircJDPE0MauiIBPBcC2i4I9/D7mJcVD8Jz2742Dn5HYCnnpMeZ7c+zmn4+Fewliu/9g38VeVQOv+OkNAWQ33/+9/nafHsf1gEztfU1PBQ0byRI0eef/75JEOT1CdM0nF8tISUZDJ8+PCkMBlNE/69731Pe9sxLJCQq2pSoFuZyeigevJntmzZgj5xo06dOuGhHS6IrV+5I6qmX2Xf4EC7RUCPxXx6hn369NEgp0XQUDAIBMPlplrwDEnPVXCSZPLGixeRcVMk4ZMeY0NDw0UXXcS9LrjgguJtwa+99hq56VfMV5La5O9+97vQ+LzzzgvXoFIz1DN1hTxafqRIM9qGLwaGC+vmz58PkzU5ZCsENPsKD7UbO7oNFE4CEua597Hi49w0COK5dbkzVv71Nw6s36TLy+bfERLacAWu0aRJk35bBjhLU6dOTdJReFwdzuA1mcVDI3nSnMT0hSFnaKRJPCkFOs1JrnohxZQpU8rtcJNImFnJg7nAkcu04jhXZKVfNTIJaSspgpEZNmIfRo0aNXDgwL59++L1DRkyZNy4cdq7ABobG7lEF9LLzYwrSsidO3cqDWJASIjKd2SYOHGiphnDxGQoSfhVpmnNmjXUGAWxerOxXNUefcK7775b4uHfcm1mVbd9f+edd8iHFvCOO+4gPZ/Dhg0jvXmtZbXlo8XJQMJTzlyc+3zmIE0a2enPN37/qkPb39a1beXfERL+YSKjxDacaGfiam1GgGLxitPbd+32yuxC/NAk7TCqm4SnnrM4d+byz/zjqq/928qv/MvKr37DjtX//Tubu/xsd+3M/G5grm3Xs+84CTVM3y6SwnC5/Wuwkxn9zpzP5NZmJR29tmRnJvNr5UUIc8jkHK7/ymTYrpBNhS3w5WQu/rW4fsoJk5TZY9XGr22nj4WqJuGRecK+g/O/7N3XcuCgHUlzQQN4JJXU6TFZwtARCv9t46mXS9/Gg68kWfEynXbzOWZR25Wz3bt3SLyS6dv91Rq+dknVocRRcBKQsNyyNaq2rSUyGZyc7mhLYWVJ8fkOKVO1bWMtRoX0KJesZIW0zfBjk/PDwMlDwoOH8mlaKn73YAYdJ+G+ffsswLva0TCEe/FTDIPhN6fhG8L48CUvScvdEobB5xKLfWK6wpn169cvWLBgzpw5S5Ys0exz0rpjE0obgvNNrWcyQlH5RM7mNBygoPXixbBo9lyiIdwQYeVkwtdnLq8kGH5YJ2G92ZfGxsbly5fPnTt33rx5K1euzETyL5mYqps9e/aiRYu2bdtmdylZ0o8eJw8JP8IF3MLw4cOvuuoqbbrZuHHjhg0b+KJg9ddcc82qVauSwoCnHudTTz11xRVXkODaa6995513Fi5cqPjwCv/OyXXr1tkl9mXt2rUW1p7E3FE78ZoKEaJqa2t79eqlsLlaqHn11Vffe++9a9asSQJNMmkzoeY5c+uttyKbphN0U4mqpcx1dXWoqQSggAMGDMh09nSJotlLQq0ECH99+eWXLRg+X5544gmTLby8kmD4Sdqg9OjR45oUPXv2tHVqSbo/8KGHHiKHMBI+OTz99NPhLid9kvjBBx9UdIxwlya1l4lVExdOwrIkHDJkiBaj8fB4ZlBIM05d0yB/toPbPh977DFFuUc/du7cSSNtQe+7piHitai6qfWCT60FsWRdunTRSD15YiLuv/9+ftU6GO1a6FYI1A0nZ82aZXc3aa9sHR5fy2u0llLxl5JC3P5uaTyY+fPnv/vuu5pGo6S2zTeouSOx1bQ4m7vcd999hYd2xFaj6yosNyUTWg2bawkvt/3E5YLhq2XBGsMcLQrni0iYpLMXkFaLk7R6RhVCnhTn5ptv1tyD5N+8eTMtgibobdeitmtQe5wMm9G4cBKWJSEE0DoYHp5IqNVYogGNtE1VSxEff/xxWyOGJUS5taFWu0gtrmbGuRoxYkSYDJ6LhEm6w0BrtbTmS/tlEckWgvBdEVNCaaVw0mAFp5C0fEfL4VtSiHmDBdYWwV27dkmhudB2SAU1d2RW3QTI7EiyCP9ScX0q0GBLx4Ph43uToUwuQGZ5v7Rr2pWrsltV27oZsurXr58F4cekawGQduX36dOHoqlJUm3ccsstaimi20MnYVkS0t7b4n0joe0Qpz22/aPSMy3jlpKJhPpXl6DfeFaZ93jRd0Ltwo3n2hGXFEyHrJ/CoiDAW2+9hYHFzmjBJJqEI6esTFru/sILLyxdurS+vh5Xc+zYsdr1p/WZssbaiyTFFQnNZoZLUgs1VzZ8qHnUMuN6LYQqR8sYrHIqD4avMAI0EJntXdqqokVnfE6ZMuWNN97YtGkTT8Ei/9oeLqycbqeC05FWnb/++utUuLUmdBGTKjCGTsJjIaGMBqTSMIaeIh2hYhKq7dcrX4B1RcQcrfdXX05GzEioQKCK12J9MN0I5cNJs3cMod9JIXZgGJzTCDBhwgQLwaKwN1pcfvwkbCpEHFQwJRxCKk2xPLRSr6X1Gym6VRAMn1aD8+rIKcIaxm3Pnj0WBIT8RVQbKaXRkTfBT717907S9XpWwIcffjiU5KWXXlLc186dO//6179OnIRHcVKR0MIQqlemZV8lSag4iCiZFhnLPthM9/Tp07VQc9CgQSSTlzV37lw0BjdMOmfUbQpivz/11FMWVUWbDwYPHmyWUG9rIGUm8qftrtA22eMnoTggT5jMR40aBR/UObzhhhs0aFnucrURmWD44gyss50lsDFJd2mJZorwb1OIypwbKdqvLO3WrVth2sUXXxzWj62YwXiSGHtIzgpS6u5oAScPCXnSGkhEIfCsmoN3Nti7mUISQid+Emm1tdcsIQon5YNUJCMxafDT6G2aStGZCReUSpPwo+y1E4p4j2YbCTW8YVQP4y9pf/0JsYQtheWsNB9cq5Aw3EsGmcTarVcuDneYuQXDl4RckiGhdlpp/5Q2GZaLcEEyGIu7a8Hg6PupOVArBiwMvr+LojVOEhJ2S2OTQJ4ePXpok4GFCStJQnWT8I40qKCw3Eqvjb/c4vrrr8eiyh0lh8WLF8Mxe02K8bZQT/kvO3bs0JADmo3NIU+9IEnuqM2FSFPhhkXm1vzHCekT2iZGVQuiUuTdu3ernSL/5557Lul4MHxt7Q37hHSkhw0bZoG69f4zI2FTYXOwdjkq1tO2bdvUiqmd4o4WaDS63SuGk7BjJFTQBLxK9BgN5gFbD6ccCVHKZcuWYTMVZ9529yqIKLcYMGCAorxId/k+c+bMmpoaKaUCNGQafvQyfI8St9MLBnV3zTrglb355pvwHz3mvnSB7D1EJ8QdtQ6n9ihzXzy9JH0PhGY7cMJN4AqD4fOJL03O1ifEQaDj3b9/f3tVo5oYu1Zi0LgoBxuF5vEpKodeWUN1YUItJHFVrV9zEnaYhGgzfTl0xTgmXpUkYbc09snatWvVY7Sw3Em6qVxTCPii5CZ7Iks4ZcoU7hIGfcgQI3yjIFfBN8Uv0mCstvZaCG2N0Y8cOdI2HJ/APuFdd91lr7bXhJ4k6ZqGQtaMSNKRYPhJOllv7igkfO+99/DJLaoNLUtSRELysf37msZ8++23uUrToRpTlTvwyCOPhOsWqgFOwg6T0ELx6bWYKJwWiITv6w1JCA1gKZTTBlONTybBCypeeeUVMldUP/6tr6/X+0xEQttdHsqGj2d6CTBBDzzwgM2IWOAzTa8r+gPKh1R26xNCQjJESE3WaTg0Sb1fmSBKpABqSUeC4SfpQAvWWyTEjW9sbLSJHMqCq5kUkdDCSckC61fKhTOvbfi6hXbZk4ymrdwukI8eTsJjcUfxwZJCIAaermLDKDJ8MQnRMwwdzicqpbDcWq6JusuG0LSvWLFCJERF6BDqfRUiocYhikmoF4apA0bmkNAsIUaJBgJTie6KDKQhK3qPMgInaoqCMtobKRQZLUkDKNrbhTX8mHQkGH6SWsKQhPbGYpEwHNbp7AAAC09JREFUs50/E18Hee65554k6P5hb6kcNXC6HQJQvYqmUQ1wEqaTSB0koYYctm/fjtfUNV3FhjVThKJiElpULzpL0iTUiNY9fEEFOqTRTvUJX3zxRfUJ9Ua0pKhPePDgwRtvvBG10yT1jh07zB3lzMqVK5N0JYAWkePuKtIMcoo/J8oSwjEz/hqS1X0V0cxeopgULJWtSSgXDF+B3ugEGglxR/Gib7vtNll1UqrnmSEh7oMWMCAe3eOksC/R6g2PHWn1egIt0KE2MjFyYqG6SZjnyRnb78n7by2HinZRVHgIRSTkFotyn3vnsXx8zpbDJTyTNkioflpScCl5/IMGDcIS6qWZxSTUos0RI0bobU0LFy7E9HGVTdyhfNYnpHuDctg0lyYVMqOjmryWSdEbGsKBmTCaRpJ2IFFi61NBOdTR4vkeMwlJZtygWsaPHz916tTa2trJkydrbEa3w0onreNwtxEMH3tIAXErwj4hKS0It818ZNbBz5w50xYk2Oy8JTCryENUUH3N7Nt6o7ioahIuSUMetsGTDqCYhPlt+198r3ZWPvNS3YNKSMh5LYVBadBINfbFAzNq4KdNm0aGaD+GFGXli72ggoZcJFSfEKti73+WcxXUU76i8Nzs5fV0DuGDXksWklCaJ0bp/aHSPHzjsWPHHg8JNfKBPe8WvJ2GJsDi4WukV/MWM2bMSFrH4W4jGD4XbtmyBWc7XDGDPKH/nInY21wIImyBGHk65ImTj/WjA9kURD9I0vZOA602sJwEjI2CKibhqecsyZ3V8ImvfLAqHZL+4EDLwUMdOKjyPe/vb1hxJPJFhoRp4IylZ/z9obe2Hb17a7RLQj1UW6piC1yKSShLuHHjRg2XwytNfKG+Igz9wHC2DUMnVtjwYFJQFN00bPhtRD5DQmmn0sv/lLeGpR03bpyijJYkoUXXD2kcknDIkHxM9FmFN1JofAVYPHx76a9Fzi+Owx0uebFg+FrPGS5bg1dJYa+JXAN7+VmgOy16bbCaLSoQp0PeKflk1tnjLSuUsNqO1wvvXTyh2twxVDEJMVa5s5b+yd9s+M5lq/7h/6z6m3/rwPG33+J47Ytf3/PibGV7hIRduudJeNqXOOpzn9l4weVHb12Edkmo3k5dXZ2S2btQypGQx3/zzTere0af5/L0ldoa1jd3FLVWR0Xzipr4slcmmObZS1rslQ/hsrWMO8qXO+64w97ZxK9tWMI2dlFkLCFksA4h0sJMBcNHErxH1YaFpi8Xh9vsmHFMhs4m62ERaTZs2KA2Tq2SpvvMuGkJriqf9DRh2lam22ly3wJDWXdazQSGN3ESHoE25h06vOq/fntR7i+DaGtn4ZFyZnGHjlPPXJj742398g32kSA08uIuuAru5S3hx84l2Z6pL+dv2lS6X16hJeTp6kW8bZAQZ0x5aqmK9g2FL6gwEnLHl1/OS2UD/dp9q51BUtmJEyfa+71IoL2wmu/WSe2UQ9uQDcfsmWee0USc3gfGGS09LSYh9+rduzfGgY7clgI2bdrELbCfV6bR4zXbTtnxIdXPNBlMlfm1X79+uil5kgnMLxmH29a7iIR6MWhStGKGM+p/ypgPHz7cVpzhJgwYMECDtDRYmmmcPn26LX+nXZBttxlFc3016pM4CY9AC+r3H1hx9j8vzn0+74tayMPTzs1zsuJj6Se+irnb1OW6fLayBoUaXvevNYtyn1v6R39VlzvjSILytV8JCfVcp06dam8pKiYhVxkJzYXTSk6buA9JqP2Eu3fvpsGW2mkLHIwdPXq04tJL9ZFkzJgxGWn5CQNLu0BfEUbRp5JzqPSjRuWnZEpOUdgm4G6twfmePXtioNR2aEnKpvRFqNrTEMYCT4I9JfZ2Giw5jYhMcbvB8GkyQncUEmrlJ3LKo5bPiU/x5JNP4mYjm5okNSLyAmgUNCuoxFTapEmTYObTTz/NeW3I5I4aFYs+NlNdJKSHtvSTf5uPeK8+YQePNBzwl+pyn1z/75c27/vAsj3C8Pf34aAuyZ1dn/v06v/x7027dh9NUAq0qWi/niXukMZgUA60UHNizcHbJzFWtpsOQEKUhsevuexly5YpT706WyC9LWGjeZaZ4o5z5szRSS3LtED0ih4tWmqEHSfTwquYtPZyaUH79DSPguJqHOLxxx9XKHstxUR+KXfJaPkiITwhc8064ojOmDEDeciBz8zrRy3ghd2CbiHGWdPlbQfD1/teMFzFrwZIUj8CU9m18G5wrUCSO8CnNY62YtYSc1NFwrfVvOJtZrYjFqqFhPIJd0+asTj3hcX5aL8dPb6I/VQ44M2X3di8L31s1nfXhpc5iyBqXe5PV//Tdw6+0WbM/BQDBw78wQ9+gO526tSJ9nX16tV84Vmed9552odmw258ojoKON85BS0xBu38888n/YUXXqjNoxrkwEyRz0UXXUQbbzGdYIIyv+CCCzScKA+KC2+44QaytdD0Wv8hewJ5koIOIS3XWsT7SwJI4TCktoiM78hGPnzSBYWZXIXYJaPl19TUoLh6QRr/chd6pPfccw9fJLD858xMpkXsp/hwj0Ipt3aD4ZM5rKOtybwaQHWC5aceSGnBMhQJnwLKjw0Z9eyzz5LYwuZfmUbO1yguT0GzqdEZmFQPCcWH1y+5Gk9y+Wf+27Iz/q5jx2f+ceVff3NTzbVHunnNrcOxaSPZZd0X5D6x+bKeTY3p6yKa26l9/EksHm7M888//24KvvCkJ0yYoA17La1jCvGrBZzXELnC3XM+XGkFryamUEx4ndy6dasupy23oQIpKH4pBBg2bBheHx4mGowz2dDQEMaYkrQlI95PmTJl7ty5EsDSY2ORjbJwCcaZTle5OPmKZo8AGA1ljuRkiIfJeSUQtzPaDGHw0hXev7a2FkvI7XR528HwyZz+HmJnXg1gw5u4D2PHjoWrt6agM0xZMq/Rtu/aeo+vTh+VxDRVmGWsujyIamBgUi0kTPVp7ysL1/6vH+ybt5ieYdPuPU3v7e3Asff9o68HLcXA96a9suafvrv7N1OPnGmPgVWCUEua01ju4ax9h3SoOnfxdAiZInQoEr62OBeztBpQHSRM8mFF36uddcRGHWvtlA0H3NKyr24ZXE3k91aWf3Pr4PYtbYZnbymKD18ufRgNuuTlmcxbiiK3l4zkG0qbQfG2nTCxTT+2jfASCdBGbQhtXN5G7dn0ZliZGeEzOZSskLCkxfcqmTgWqoWER0dQmgozCse8Qq2NW1RZ7TscSRWRMEkqIlJ1Zu5wHAeqiYQOxx8knIQOR2Q4CR2OyHASOhyR4SQsQjqG7ccfzhF90thJ6HBEhpMwQDqHcXj7zsbxkxufrfXj9/+YMGXXmOf3L1lhTz8KnIQB0lUX++qXrftmzfpvXezH7/2x4dtd1n79P94e+qg9/ShwEjockeEkdDgiw0nocESGk9DhiAwnocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaT0OGIDCehwxEZTkKHIzKchA5HZDgJHY7IcBI6HJHhJHQ4IsNJ6HBEhpPQ4YgMJ6HDERlOQocjMpyEDkdkOAkdjshwEjockeEkdDgiw0nocESGk9DhiAwnocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaT0OGIDCehwxEZTkKHIzKchA5HZDgJHY7IcBI6HJHhJHQ4IsNJ6HBEhpPQ4YgMJ6HDERlOQocjMpyEDkdkOAkdjshwEjockeEkdDgiw0nocESGk9DhiAwnocMRGU5ChyMynIQOR2Q4CR2OyHASOhyR4SR0OCLDSehwRIaT0OGIDCehwxEZTkKHIzKchA5HZDgJHY7IcBI6HJHx/wG9tTg/aV0ngwAAAABJRU5ErkJggg==" alt="Empresarios Inmobiliarios">
+  <div class="topbar-contact">
+    <strong>940 916 247</strong> &nbsp;·&nbsp; Perú
   </div>
-  <div class="header-contact">📞 940 916 247 · Arequipa, Perú</div>
-</header>
+</div>
 
 <!-- HERO -->
 <div class="hero">
   <h1>Encuentra tu próxima<br><em>propiedad ideal</em></h1>
   <p>Análisis técnico · Asesoría legal · Diagnóstico bio-ambiental</p>
-  <div class="stats-row" id="heroStats">
-    <div class="stat"><strong id="statTotal">12</strong><span>Propiedades</span></div>
-    <div class="stat"><strong id="statVenta">6</strong><span>En Venta</span></div>
-    <div class="stat"><strong id="statAlquiler">4</strong><span>En Alquiler</span></div>
-    <div class="stat"><strong id="statAnticresis">2</strong><span>Anticresis</span></div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n" id="total-props">—</div><div class="stat-l">Propiedades</div></div>
+    <div class="stat"><div class="stat-n" id="total-venta">—</div><div class="stat-l">En Venta</div></div>
+    <div class="stat"><div class="stat-n" id="total-alquiler">—</div><div class="stat-l">En Alquiler</div></div>
+    <div class="stat"><div class="stat-n" id="total-anticresis">—</div><div class="stat-l">Anticresis</div></div>
   </div>
 </div>
 
-<!-- FILTERS -->
-<div class="filters-bar">
-  <span class="filter-label">Operación</span>
-  <div class="pill-group" id="filtrosOperacion">
-    <button class="pill active" data-operacion="todos">Todos</button>
-    <button class="pill" data-operacion="Venta">Venta</button>
-    <button class="pill" data-operacion="Alquiler">Alquiler</button>
-    <button class="pill" data-operacion="Anticresis">Anticresis</button>
+<!-- FILTROS -->
+<div class="filtros">
+
+  <!-- Operación -->
+  <div class="dropdown-wrap">
+    <button class="dropdown-btn" id="btn-op" onclick="toggleDrop('drop-op')">
+      <span id="label-op">Operación</span> ▾
+    </button>
+    <div class="dropdown-panel" id="drop-op">
+      <div class="drop-title">Tipo de operación</div>
+      <label class="drop-opt"><input type="radio" name="op" value="" onchange="setFiltroRadio('op','')" checked> Todas</label>
+      <label class="drop-opt"><input type="radio" name="op" value="Venta" onchange="setFiltroRadio('op','Venta')"> Venta</label>
+      <label class="drop-opt"><input type="radio" name="op" value="Alquiler" onchange="setFiltroRadio('op','Alquiler')"> Alquiler</label>
+      <label class="drop-opt"><input type="radio" name="op" value="Anticresis" onchange="setFiltroRadio('op','Anticresis')"> Anticresis</label>
+      <label class="drop-opt"><input type="radio" name="op" value="Venta+Alquiler" onchange="setFiltroRadio('op','Venta+Alquiler')"> Venta y Alquiler</label>
+    </div>
   </div>
-  <div class="filter-divider"></div>
-  <span class="filter-label">Tipo</span>
-  <div class="pill-group" id="filtrosTipo">
-    <button class="pill active" data-tipo="todos">Todos</button>
-    <button class="pill" data-tipo="Residencial">Residencial</button>
-    <button class="pill" data-tipo="Comercial">Comercial</button>
-    <button class="pill" data-tipo="Terreno">Terreno</button>
+
+  <!-- Tipo de inmueble -->
+  <div class="dropdown-wrap">
+    <button class="dropdown-btn" id="btn-tipo" onclick="toggleDrop('drop-tipo')">
+      <span id="label-tipo">Tipo de inmueble</span> ▾
+    </button>
+    <div class="dropdown-panel" id="drop-tipo">
+      <div class="drop-title">Tipo de inmueble</div>
+      <div class="drop-cols">
+        <div>
+          <div class="drop-subtitle">Residencial</div>
+          <label class="drop-opt"><input type="checkbox" value="Departamento" onchange="setFiltroCheck()"> Departamento</label>
+          <label class="drop-opt"><input type="checkbox" value="Casa" onchange="setFiltroCheck()"> Casa</label>
+          <label class="drop-opt"><input type="checkbox" value="Casa de playa" onchange="setFiltroCheck()"> Casa de playa</label>
+          <label class="drop-opt"><input type="checkbox" value="Habitación" onchange="setFiltroCheck()"> Habitación</label>
+          <label class="drop-opt"><input type="checkbox" value="Penthouse" onchange="setFiltroCheck()"> Penthouse</label>
+        </div>
+        <div>
+          <div class="drop-subtitle">Comercial</div>
+          <label class="drop-opt"><input type="checkbox" value="Oficina" onchange="setFiltroCheck()"> Oficina</label>
+          <label class="drop-opt"><input type="checkbox" value="Local comercial" onchange="setFiltroCheck()"> Local comercial</label>
+          <label class="drop-opt"><input type="checkbox" value="Almacén" onchange="setFiltroCheck()"> Almacén</label>
+          <label class="drop-opt"><input type="checkbox" value="Consultorio" onchange="setFiltroCheck()"> Consultorio</label>
+          <label class="drop-opt"><input type="checkbox" value="Hotel" onchange="setFiltroCheck()"> Hotel</label>
+          <div class="drop-subtitle" style="margin-top:10px;">Terreno</div>
+          <label class="drop-opt"><input type="checkbox" value="Terreno" onchange="setFiltroCheck()"> Terreno</label>
+          <label class="drop-opt"><input type="checkbox" value="Terreno industrial" onchange="setFiltroCheck()"> Terreno industrial</label>
+        </div>
+      </div>
+      <button class="drop-clear" onclick="limpiarTipos()">✕ Limpiar selección</button>
+    </div>
   </div>
-  <div class="search-box">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" id="searchInput" placeholder="Buscar por ubicación, código..." />
+
+  <!-- Precio -->
+  <div class="dropdown-wrap">
+    <button class="dropdown-btn" id="btn-precio" onclick="toggleDrop('drop-precio')">
+      <span id="label-precio">Precio</span> ▾
+    </button>
+    <div class="dropdown-panel" id="drop-precio" style="width:260px;">
+      <div class="drop-title">Rango de precio (USD)</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+        <input type="number" id="precio-min" placeholder="Mínimo" oninput="renderGrid()"
+          style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;">
+        <span style="color:var(--t3);">—</span>
+        <input type="number" id="precio-max" placeholder="Máximo" oninput="renderGrid()"
+          style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;">
+      </div>
+      <button class="drop-clear" onclick="document.getElementById('precio-min').value='';document.getElementById('precio-max').value='';renderGrid()">✕ Limpiar</button>
+    </div>
   </div>
+
+  <!-- Buscar -->
+  <input type="text" class="buscar-input" id="buscar-input" placeholder="🔍 Buscar por zona..." oninput="renderGrid()">
+
+  <!-- Limpiar todo -->
+  <button class="btn-limpiar" onclick="limpiarTodo()" id="btn-limpiar-todo" style="display:none;">✕ Limpiar filtros</button>
+
 </div>
 
-<!-- COUNT -->
-<div class="count-bar">
-  <p class="count-text">Mostrando <strong id="countVisible">12</strong> propiedades</p>
-  <select class="sort-select" id="sortSelect">
-    <option value="default">Ordenar por: Defecto</option>
-    <option value="precio-asc">Precio: Menor a Mayor</option>
-    <option value="precio-desc">Precio: Mayor a Menor</option>
-    <option value="area-desc">Área: Mayor</option>
+<!-- RESULTADOS -->
+<div class="resultados-bar">
+  <span id="resultados-label">Cargando propiedades...</span>
+  <select class="ordenar" id="ordenar" onchange="renderGrid()">
+    <option value="">Ordenar por: Defecto</option>
+    <option value="precio-asc">Precio: menor a mayor</option>
+    <option value="precio-desc">Precio: mayor a menor</option>
+    <option value="area-desc">Mayor área</option>
   </select>
 </div>
 
 <!-- GRID -->
-<div class="grid" id="propiedadesGrid"></div>
+<div class="grid" id="grid-propiedades">
+  <div class="empty"><div class="empty-icon">⏳</div><p>Cargando propiedades...</p></div>
+</div>
 
 <!-- MODAL -->
-<div class="modal-bg" id="modal">
-  <div class="modal">
+<div class="modal-overlay" id="modal" onclick="cerrarModal(event)">
+  <div class="modal" id="modal-content">
     <div class="modal-header">
-      <h2 id="modalTitle">-</h2>
-      <button class="modal-close" id="modalClose">✕</button>
+      <h2 id="modal-titulo">—</h2>
+      <p id="modal-subtitulo">—</p>
     </div>
     <div class="modal-body">
-      <div class="modal-price" id="modalPrice">-</div>
-      <div class="modal-location" id="modalLocation">-</div>
-      <div class="modal-specs" id="modalSpecs"></div>
-      <p class="modal-desc" id="modalDesc"></p>
-      <div class="modal-cta">
-        <button class="btn-primary" id="modalWhatsapp">💬 Consultar por WhatsApp</button>
-        <button class="btn-secondary" onclick="closeModal()">Ver más tarde</button>
-      </div>
+      <div class="modal-fotos" id="modal-fotos"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+    </div>
+    <div class="modal-footer">
+      <a class="btn-wsp" id="modal-wsp" href="#" target="_blank">💬 Consultar por WhatsApp</a>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">Cerrar</button>
     </div>
   </div>
 </div>
 
+<!-- FOOTER -->
 <footer>
-  <strong>Empresarios Inmobiliarios</strong> · Arequipa, Perú · 940 916 247 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3d5e5253495c5e49527d58504d4f584e5c4f54524e545350525f5451545c4f54524e135e5250">[email&#160;protected]</a>
+  <strong>Empresarios Inmobiliarios</strong> · Arequipa, Perú · 940 916 247 · contacto@empresariosinmobiliarios.com · @empresarios.inmobiliarios
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ── SUPABASE — mismo proyecto que EI Sistema ──
-const EI_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
-const EI_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
+<script>
+const SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
 
-let sb = null;
-let PROPIEDADES = [];
+let todasProps = [];
+let filtros = { op: '', tipo: '' };
 
-function getConfig() {
-  return { url: EI_URL, key: EI_KEY };
+async function cargarProps() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/ei_props?order=created_at.desc`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    const rows = await res.json();
+    todasProps = rows.map(mapRow).filter(p => p.estado === 'Activa' || !p.estado);
+    actualizarStats();
+    renderGrid();
+  } catch(e) {
+    document.getElementById('grid-propiedades').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Error al cargar propiedades. Verifica tu conexión.</p></div>';
+  }
 }
 
-// Mapear tipo del sistema interno → categoría del portal
-function mapTipo(tipo) {
-  if (!tipo) return 'Residencial';
-  const t = tipo.toLowerCase();
-  if (t.includes('terreno')) return 'Terreno';
-  if (t.includes('local') || t.includes('oficina') || t.includes('almacén') || t.includes('almacen') || t.includes('comercial')) return 'Comercial';
-  return 'Residencial';
-}
-
-// Parsear características: "3 dorms, 2 baños, 1 cochera"
-function parseCaract(caract) {
-  if (!caract) return { dormitorios: null, banos: null, estacionamiento: null };
+function mapRow(r) {
+  let fotos = [];
+  try { fotos = JSON.parse(r.fotos_urls || '[]'); } catch(e) {}
+  const caract = r.caract || '';
   const dorm = caract.match(/(\d+)\s*dorm/i);
   const bano = caract.match(/(\d+)\s*ba[ñn]/i);
   const coch = caract.match(/(\d+)\s*cochera/i);
-  return {
-    dormitorios: dorm ? parseInt(dorm[1]) : null,
-    banos: bano ? parseInt(bano[1]) : null,
-    estacionamiento: coch ? parseInt(coch[1]) : null,
-  };
-}
-
-// Parsear precio (puede venir como "95000" o "USD 95,000")
-function parsePrecio(precio) {
-  if (!precio) return 0;
-  return parseFloat(String(precio).replace(/[^0-9.]/g, '')) || 0;
-}
-
-// Detectar moneda del precio
-function parseMoneda(precio) {
-  if (!precio) return 'USD';
-  const p = String(precio).toUpperCase();
-  if (p.includes('S/') || p.includes('SOL') || p.includes('PEN')) return 'S/';
-  return 'USD';
-}
-
-// Obtener primera foto de fotos_urls
-function primerFoto(row) {
-  try {
-    if (row.fotos_urls) {
-      const urls = typeof row.fotos_urls === 'string' ? JSON.parse(row.fotos_urls) : row.fotos_urls;
-      if (Array.isArray(urls) && urls.length > 0) return urls[0];
-    }
-  } catch(e) {}
-  return null;
-}
-
-// Convertir registro ei_props → formato portal
-function mapRow(r) {
-  const caract = parseCaract(r.caract);
+  const tipo = r.tipo || '';
+  const tipoCateg = tipo.toLowerCase().includes('terreno') ? 'Terreno' :
+    (tipo.toLowerCase().includes('local') || tipo.toLowerCase().includes('oficina') || tipo.toLowerCase().includes('comercial')) ? 'Comercial' : 'Residencial';
   return {
     id: r.id,
-    codigo: r.id ? String(r.id).substring(0,8).toUpperCase() : '—',
+    tipo: r.tipo || '—',
+    tipoCateg,
     operacion: r.operacion || 'Venta',
-    tipo: mapTipo(r.tipo),
-    titulo: [r.tipo, r.ubicacion].filter(Boolean).join(' en ') || 'Propiedad',
-    ubicacion: [r.ubicacion, r.direccion].filter(Boolean).join(' — ') || '—',
-    precio: parsePrecio(r.precio),
-    moneda: parseMoneda(r.precio),
-    area: parseFloat(r.area) || null,
-    dormitorios: caract.dormitorios,
-    banos: caract.banos,
-    estacionamiento: caract.estacionamiento,
-    agente: r.asesor || 'Empresarios Inmobiliarios',
-    descripcion: r.ficha || r.caract || '',
-    foto_url: primerFoto(r),
-    activo: (r.estado || 'Activa') === 'Activa',
+    ubicacion: r.ubicacion || '—',
+    direccion: r.direccion || '',
+    precio: parseFloat(r.precio) || 0,
+    area: parseFloat(r.area) || 0,
+    caract: r.caract || '',
+    dormitorios: dorm ? parseInt(dorm[1]) : null,
+    banos: bano ? parseInt(bano[1]) : null,
+    cocheras: coch ? parseInt(coch[1]) : null,
+    asesor: r.asesor || 'Empresarios Inmobiliarios',
+    asesor_tel: r.asesor_tel || '940916247',
+    fotos,
+    ficha: r.ficha || '',
+    estado: r.estado || 'Activa',
+    fecha: r.fecha || ''
   };
 }
 
-async function initSupabase() {
-  const cfg = getConfig();
-  try {
-    const res = await fetch(`${cfg.url}/rest/v1/ei_props?estado=eq.Activa&order=created_at.desc`, {
-      headers: {
-        'apikey': cfg.key,
-        'Authorization': 'Bearer ' + cfg.key,
-      }
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    PROPIEDADES = (data || []).map(mapRow);
-  } catch(e) {
-    console.warn('Error cargando propiedades:', e.message);
-    PROPIEDADES = DEMO_DATA;
+function actualizarStats() {
+  document.getElementById('total-props').textContent = todasProps.length;
+  document.getElementById('total-venta').textContent = todasProps.filter(p => p.operacion === 'Venta').length;
+  document.getElementById('total-alquiler').textContent = todasProps.filter(p => p.operacion === 'Alquiler').length;
+  document.getElementById('total-anticresis').textContent = todasProps.filter(p => p.operacion === 'Anticresis').length;
+}
+
+let tiposSeleccionados = [];
+
+function toggleDrop(id) {
+  // Cerrar otros dropdowns
+  document.querySelectorAll('.dropdown-panel').forEach(p => {
+    if (p.id !== id) { p.classList.remove('open'); }
+  });
+  document.querySelectorAll('.dropdown-btn').forEach(b => {
+    if (b.id !== 'btn-' + id.replace('drop-','')) b.classList.remove('open');
+  });
+  const panel = document.getElementById(id);
+  const btn = document.getElementById('btn-' + id.replace('drop-',''));
+  panel.classList.toggle('open');
+  if(btn) btn.classList.toggle('open');
+}
+
+// Cerrar dropdowns al hacer clic fuera
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    document.querySelectorAll('.dropdown-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.dropdown-btn').forEach(b => b.classList.remove('open'));
   }
-  finishInit();
-}
+});
 
-function finishInit() {
-  const ventas = PROPIEDADES.filter(p => p.operacion === 'Venta').length;
-  const alquileres = PROPIEDADES.filter(p => p.operacion === 'Alquiler').length;
-  const anticre = PROPIEDADES.filter(p => p.operacion === 'Anticresis').length;
-  document.getElementById('statTotal').textContent = PROPIEDADES.length;
-  document.getElementById('statVenta').textContent = ventas;
-  document.getElementById('statAlquiler').textContent = alquileres;
-  document.getElementById('statAnticresis').textContent = anticre;
-  render();
-}
-
-// ── DEMO DATA (mientras no hay Supabase configurado) ──
-const DEMO_DATA = [
-  {
-    id: "EI-001", operacion: "Venta", tipo: "Residencial",
-    titulo: "Departamento moderno con vista panorámica",
-    ubicacion: "Cayma, Arequipa",
-    precio: 180000, moneda: "USD",
-    area: 95, dormitorios: 3, banos: 2, estacionamiento: 1,
-    agente: "María López",
-    descripcion: "Hermoso departamento en piso alto con vista a los volcanes. Cocina equipada, áreas comunes con gimnasio y jardín. Entrega inmediata. Excelente ubicación con acceso a avenidas principales.",
-    codigo: "EI-001"
-  },
-  {
-    id: "EI-002", operacion: "Venta", tipo: "Residencial",
-    titulo: "Casa en condominio cerrado de 3 niveles",
-    ubicacion: "Cerro Colorado, Arequipa",
-    precio: 245000, moneda: "USD",
-    area: 185, dormitorios: 4, banos: 3, estacionamiento: 2,
-    agente: "Carlos Huanca",
-    descripcion: "Casa independiente dentro de condominio privado. Tres niveles funcionales, jardín propio, cochera doble. Acabados de primera con cerámicos importados y carpintería en madera.",
-    codigo: "EI-002"
-  },
-  {
-    id: "EI-003", operacion: "Alquiler", tipo: "Comercial",
-    titulo: "Local comercial en zona de alta rotación",
-    ubicacion: "Miraflores, Arequipa",
-    precio: 1200, moneda: "USD",
-    area: 80, dormitorios: null, banos: 1, estacionamiento: 0,
-    agente: "Rosa Quispe",
-    descripcion: "Local a pie de calle en zona comercial consolidada. Amplio frente de 8 metros, depósito posterior, instalaciones trifásicas. Ideal para retail, restaurante o consultorios.",
-    codigo: "EI-003"
-  },
-  {
-    id: "EI-004", operacion: "Anticresis", tipo: "Residencial",
-    titulo: "Departamento amoblado en Yanahuara",
-    ubicacion: "Yanahuara, Arequipa",
-    precio: 35000, moneda: "USD",
-    area: 75, dormitorios: 2, banos: 2, estacionamiento: 1,
-    agente: "Luis Vargas",
-    descripcion: "Departamento completamente amoblado con electrodomésticos incluidos. Zona residencial exclusiva de Yanahuara. Capital en anticresis S/ 35,000 USD, plazo 2 años.",
-    codigo: "EI-004"
-  },
-  {
-    id: "EI-005", operacion: "Venta", tipo: "Terreno",
-    titulo: "Terreno habilitado en urbanización nueva",
-    ubicacion: "Sachaca, Arequipa",
-    precio: 85000, moneda: "USD",
-    area: 300, dormitorios: null, banos: null, estacionamiento: null,
-    agente: "Ana Flores",
-    descripcion: "Terreno plano en urbanización con todos los servicios habilitados: agua, desagüe, luz y gas. Zonificación R5. Documentos saneados. Ideal para proyecto multifamiliar.",
-    codigo: "EI-005"
-  },
-  {
-    id: "EI-006", operacion: "Alquiler", tipo: "Residencial",
-    titulo: "Departamento independiente con terraza",
-    ubicacion: "Selva Alegre, Arequipa",
-    precio: 500, moneda: "USD",
-    area: 60, dormitorios: 2, banos: 1, estacionamiento: 0,
-    agente: "Pedro Cárdenas",
-    descripcion: "Departamento en primer piso con ingreso independiente y terraza privada de 20m². Cocina equipada, calefón solar. Contrato mínimo 12 meses.",
-    codigo: "EI-006"
-  },
-  {
-    id: "EI-007", operacion: "Venta", tipo: "Comercial",
-    titulo: "Oficina corporativa con sala de reuniones",
-    ubicacion: "Centro, Arequipa",
-    precio: 120000, moneda: "USD",
-    area: 110, dormitorios: null, banos: 2, estacionamiento: 1,
-    agente: "Gloria Mamani",
-    descripcion: "Oficina en edificio corporativo con recepción, sala de reuniones para 12 personas, 3 módulos de trabajo y depósito. Sistema de seguridad 24h. Vista a plaza principal.",
-    codigo: "EI-007"
-  },
-  {
-    id: "EI-008", operacion: "Alquiler", tipo: "Comercial",
-    titulo: "Almacén industrial con acceso vehicular",
-    ubicacion: "Parque Industrial, Arequipa",
-    precio: 800, moneda: "USD",
-    area: 250, dormitorios: null, banos: 1, estacionamiento: 0,
-    agente: "Roberto Salas",
-    descripcion: "Galpón industrial con puerta metálica de 4m de altura para carga/descarga. Portón eléctrico, piso pulido de concreto, instalaciones trifásicas. Ideal para logística y almacenaje.",
-    codigo: "EI-008"
-  },
-  {
-    id: "EI-009", operacion: "Venta", tipo: "Residencial",
-    titulo: "Casa tradicional remodelada en el centro",
-    ubicacion: "Cercado, Arequipa",
-    precio: 165000, moneda: "USD",
-    area: 140, dormitorios: 3, banos: 2, estacionamiento: 1,
-    agente: "Carmen Zegarra",
-    descripcion: "Casa de sillar con remodelación integral. Mantiene la arquitectura colonial arequipeña con cocina moderna integrada. Patio interior, azotea habitable. Excelente para vivir o inversión.",
-    codigo: "EI-009"
-  },
-  {
-    id: "EI-010", operacion: "Anticresis", tipo: "Residencial",
-    titulo: "Flat de un dormitorio near campus universitario",
-    ubicacion: "Umacollo, Arequipa",
-    precio: 18000, moneda: "USD",
-    area: 42, dormitorios: 1, banos: 1, estacionamiento: 0,
-    agente: "María López",
-    descripcion: "Flat moderno ideal para profesionales o estudiantes de posgrado. A 5 minutos de UNSA y UCSM. Capital anticresis S/ 18,000 USD. Plazo 1-2 años negociable.",
-    codigo: "EI-010"
-  },
-  {
-    id: "EI-011", operacion: "Venta", tipo: "Terreno",
-    titulo: "Terreno con proyecto aprobado 8 pisos",
-    ubicacion: "Cayma, Arequipa",
-    precio: 320000, moneda: "USD",
-    area: 400, dormitorios: null, banos: null, estacionamiento: null,
-    agente: "Carlos Huanca",
-    descripcion: "Terreno esquinero con proyecto de multifamiliar 8 pisos aprobado por municipalidad. Área construible 2,800m². Zona de alta demanda. Oportunidad de inversión inmobiliaria.",
-    codigo: "EI-011"
-  },
-  {
-    id: "EI-012", operacion: "Alquiler", tipo: "Residencial",
-    titulo: "Penthouse exclusivo con jacuzzi",
-    ubicacion: "Cayma, Arequipa",
-    precio: 1800, moneda: "USD",
-    area: 180, dormitorios: 3, banos: 3, estacionamiento: 2,
-    agente: "Ana Flores",
-    descripcion: "Penthouse de lujo en último piso con jacuzzi exterior y vista 360° a la ciudad. Amoblado de diseño, electrodomésticos premium, sistema de seguridad inteligente.",
-    codigo: "EI-012"
+function setFiltroRadio(key, val) {
+  filtros[key] = val;
+  const btn = document.getElementById('btn-op');
+  const label = document.getElementById('label-op');
+  if (val) {
+    btn.classList.add('activo');
+    label.textContent = val;
+  } else {
+    btn.classList.remove('activo');
+    label.textContent = 'Operación';
   }
-];
-
-let filtroOperacion = "todos";
-let filtroTipo = "todos";
-let searchQuery = "";
-let sortBy = "default";
-let propActiva = null;
-
-function formatPrecio(p, moneda, op) {
-  const fmt = new Intl.NumberFormat('es-PE').format(p);
-  if (op === "Alquiler") return `${moneda} ${fmt}<span>/mes</span>`;
-  if (op === "Anticresis") return `${moneda} ${fmt}<span> capital</span>`;
-  return `${moneda} ${fmt}`;
+  actualizarBtnLimpiar();
+  renderGrid();
 }
 
-function badgeClass(op) {
-  if (op === "Venta") return "badge-venta";
-  if (op === "Alquiler") return "badge-alquiler";
-  return "badge-anticresis";
+function setFiltroCheck() {
+  tiposSeleccionados = Array.from(document.querySelectorAll('#drop-tipo input[type=checkbox]:checked')).map(c => c.value);
+  const btn = document.getElementById('btn-tipo');
+  const label = document.getElementById('label-tipo');
+  if (tiposSeleccionados.length) {
+    btn.classList.add('activo');
+    label.textContent = tiposSeleccionados.length === 1 ? tiposSeleccionados[0] : tiposSeleccionados.length + ' tipos';
+  } else {
+    btn.classList.remove('activo');
+    label.textContent = 'Tipo de inmueble';
+  }
+  actualizarBtnLimpiar();
+  renderGrid();
 }
 
-function buildCard(p) {
-  const specs = [];
-  if (p.dormitorios) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>${p.dormitorios} dorm.</div>`);
-  if (p.banos) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><path d="M4 12h16M4 12V6a2 2 0 012-2h8a2 2 0 012 2v6M4 12v6a2 2 0 002 2h12a2 2 0 002-2v-6"/></svg>${p.banos} baño${p.banos>1?'s':''}</div>`);
-  if (p.area) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="1"/><line x1="2" y1="9" x2="22" y2="9"/></svg>${p.area} m²</div>`);
-  if (p.estacionamiento) specs.push(`<div class="spec"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="22" height="18" rx="2"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/><path d="M1 9l3-6h16l3 6"/></svg>${p.estacionamiento} est.</div>`);
+function limpiarTipos() {
+  document.querySelectorAll('#drop-tipo input[type=checkbox]').forEach(c => c.checked = false);
+  setFiltroCheck();
+}
 
-  // Imagen real o placeholder
-  const imgHtml = p.foto_url
-    ? `<img class="card-img-real" src="${p.foto_url}" alt="${p.titulo}" onerror="this.parentElement.innerHTML=fallbackImg('${p.codigo||''}')"/>`
-    : `<div class="card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>${p.codigo||''}</span></div>`;
+function limpiarTodo() {
+  filtros.op = '';
+  document.querySelector('input[name=op][value=""]').checked = true;
+  setFiltroRadio('op', '');
+  limpiarTipos();
+  document.getElementById('precio-min').value = '';
+  document.getElementById('precio-max').value = '';
+  document.getElementById('buscar-input').value = '';
+  document.getElementById('btn-limpiar-todo').style.display = 'none';
+  renderGrid();
+}
 
-  const uid = p.id || p.codigo;
-  return `
-    <div class="card" onclick="openModal('${uid}')">
-      <div style="position:relative">
-        ${imgHtml}
-        <div class="card-badge ${badgeClass(p.operacion)}">${p.operacion}</div>
-        <div class="card-tipo">${p.tipo}</div>
-      </div>
+function actualizarBtnLimpiar() {
+  const hayFiltros = filtros.op || tiposSeleccionados.length || 
+    document.getElementById('precio-min').value || 
+    document.getElementById('precio-max').value;
+  document.getElementById('btn-limpiar-todo').style.display = hayFiltros ? 'block' : 'none';
+}
+
+function setFiltro(key, val) {
+  filtros[key] = val;
+  renderGrid();
+}
+
+function renderGrid() {
+  const buscar = document.getElementById('buscar-input').value.toLowerCase().trim();
+  const ordenar = document.getElementById('ordenar').value;
+
+  const precioMin = parseFloat(document.getElementById('precio-min').value) || 0;
+  const precioMax = parseFloat(document.getElementById('precio-max').value) || Infinity;
+
+  let lista = todasProps.filter(p => {
+    const mOp = !filtros.op || p.operacion === filtros.op || (filtros.op && p.operacion && p.operacion.includes(filtros.op));
+    const mTipo = !tiposSeleccionados.length || tiposSeleccionados.some(t => p.tipo.toLowerCase().includes(t.toLowerCase()));
+    const mBuscar = !buscar || p.ubicacion.toLowerCase().includes(buscar) || p.tipo.toLowerCase().includes(buscar) || p.caract.toLowerCase().includes(buscar);
+    const mPrecio = (!precioMin || p.precio >= precioMin) && (!precioMax || precioMax === Infinity || p.precio <= precioMax);
+    return mOp && mTipo && mBuscar && mPrecio;
+  });
+
+  if (ordenar === 'precio-asc') lista.sort((a,b) => a.precio - b.precio);
+  else if (ordenar === 'precio-desc') lista.sort((a,b) => b.precio - a.precio);
+  else if (ordenar === 'area-desc') lista.sort((a,b) => b.area - a.area);
+
+  document.getElementById('resultados-label').textContent = `Mostrando ${lista.length} propiedad${lista.length !== 1 ? 'es' : ''}`;
+
+  if (!lista.length) {
+    document.getElementById('grid-propiedades').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No se encontraron propiedades con esos filtros.</p></div>';
+    return;
+  }
+
+  document.getElementById('grid-propiedades').innerHTML = lista.map(p => {
+    const fotoHTML = p.fotos.length
+      ? `<div class="card-img"><img src="${p.fotos[0]}" alt="${p.tipo}" onerror="this.parentElement.innerHTML='🏠'"></div>`
+      : `<div class="card-img" style="height:200px;">🏠</div>`;
+    const precioStr = p.precio ? `USD ${p.precio.toLocaleString()}${p.operacion==='Alquiler'?' <span>/mes</span>':''}` : 'A consultar';
+    const specs = [];
+    if (p.dormitorios) specs.push(`🛏 ${p.dormitorios} dorm.`);
+    if (p.banos) specs.push(`🚿 ${p.banos} baños`);
+    if (p.area) specs.push(`📐 ${p.area} m²`);
+    return `<div class="card" onclick="abrirModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      ${fotoHTML}
       <div class="card-body">
-        <div class="card-price">${formatPrecio(p.precio, p.moneda||'USD', p.operacion)}</div>
-        <div class="card-title">${p.titulo}</div>
-        <div class="card-location">
-          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${p.ubicacion}
+        <div class="card-tags">
+          <span class="tag tag-op">${p.operacion}</span>
+          <span class="tag tag-tipo">${p.tipoCateg}</span>
         </div>
-        <div class="card-specs">${specs.join('')}</div>
-      </div>
-      <div class="card-footer">
-        <div class="card-agente">Agente: <strong>${p.agente||'EI'}</strong></div>
-        <button class="card-btn">Ver detalle →</button>
+        <div class="card-title">${p.tipo} en ${p.ubicacion}</div>
+        <div class="card-loc">📍 ${p.ubicacion}${p.direccion?' · '+p.direccion:''}</div>
+        <div class="card-precio">${precioStr}</div>
+        ${specs.length ? `<div class="card-specs">${specs.map(s=>`<span class="spec">${s}</span>`).join('')}</div>` : ''}
       </div>
     </div>`;
+  }).join('');
 }
 
-function fallbackImg(cod) {
-  return `<div class="card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>${cod}</span></div>`;
+function abrirModal(p) {
+  if (typeof p === 'string') p = JSON.parse(p);
+  document.getElementById('modal-titulo').textContent = `${p.tipo} en ${p.ubicacion}`;
+  document.getElementById('modal-subtitulo').textContent = `${p.operacion} · ${p.precio ? 'USD '+p.precio.toLocaleString() : 'A consultar'}`;
+  
+  const fotosEl = document.getElementById('modal-fotos');
+  fotosEl.innerHTML = p.fotos && p.fotos.length
+    ? p.fotos.map(f => `<img src="${f}" onerror="this.style.display='none'">`).join('')
+    : '<p style="color:#999;font-size:12px;grid-column:1/-1;">Sin fotos disponibles</p>';
+
+  document.getElementById('modal-desc').textContent = p.ficha || 'Consulta por más información sobre esta propiedad.';
+  
+  const tel = (p.asesor_tel || '940916247').replace(/\D/g,'');
+  const msg = encodeURIComponent(`Hola, vi la propiedad "${p.tipo} en ${p.ubicacion}" en su portal y me gustaría más información.`);
+  document.getElementById('modal-wsp').href = `https://wa.me/51${tel}?text=${msg}`;
+  
+  document.getElementById('modal').classList.add('open');
 }
 
-function filtrar() {
-  let data = [...PROPIEDADES];
-  if (filtroOperacion !== "todos") data = data.filter(p => p.operacion === filtroOperacion);
-  if (filtroTipo !== "todos") data = data.filter(p => p.tipo === filtroTipo);
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    data = data.filter(p => (p.ubicacion+p.titulo+(p.codigo||'')).toLowerCase().includes(q));
+function cerrarModal(e) {
+  if (e.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('open');
   }
-  if (sortBy === "precio-asc") data.sort((a, b) => a.precio - b.precio);
-  if (sortBy === "precio-desc") data.sort((a, b) => b.precio - a.precio);
-  if (sortBy === "area-desc") data.sort((a, b) => (b.area||0) - (a.area||0));
-  return data;
 }
 
-function render() {
-  const data = filtrar();
-  const grid = document.getElementById("propiedadesGrid");
-  grid.innerHTML = data.length
-    ? data.map(buildCard).join('')
-    : `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><p>No se encontraron propiedades con esos filtros.</p></div>`;
-  document.getElementById("countVisible").textContent = data.length;
-}
-
-function openModal(uid) {
-  const p = PROPIEDADES.find(x => (x.id||x.codigo) === uid);
-  if (!p) return;
-  propActiva = p;
-  document.getElementById("modalTitle").textContent = p.titulo;
-  document.getElementById("modalPrice").innerHTML = formatPrecio(p.precio, p.moneda||'USD', p.operacion);
-  document.getElementById("modalLocation").innerHTML = `📍 ${p.ubicacion} &nbsp;|&nbsp; ${p.operacion} &nbsp;|&nbsp; ${p.tipo} &nbsp;|&nbsp; Cód: ${p.codigo||'—'}`;
-  const specs = [
-    p.dormitorios ? `<div class="modal-spec"><strong>${p.dormitorios}</strong><span>Dormitorios</span></div>` : '',
-    p.banos ? `<div class="modal-spec"><strong>${p.banos}</strong><span>Baños</span></div>` : '',
-    p.area ? `<div class="modal-spec"><strong>${p.area} m²</strong><span>Área total</span></div>` : '',
-    p.estacionamiento ? `<div class="modal-spec"><strong>${p.estacionamiento}</strong><span>Estac.</span></div>` : '',
-  ].filter(Boolean);
-  document.getElementById("modalSpecs").innerHTML = specs.join('');
-  document.getElementById("modalDesc").textContent = p.descripcion||'';
-  document.getElementById("modal").classList.add("open");
-}
-
-function closeModal() {
-  document.getElementById("modal").classList.remove("open");
-  propActiva = null;
-}
-
-document.getElementById("modalClose").onclick = closeModal;
-document.getElementById("modal").onclick = (e) => { if (e.target === document.getElementById("modal")) closeModal(); };
-
-document.getElementById("modalWhatsapp").onclick = () => {
-  if (!propActiva) return;
-  const msg = `Hola, me interesa la propiedad ${propActiva.codigo||''}: ${propActiva.titulo} en ${propActiva.ubicacion}. ¿Pueden darme más información?`;
-  window.open(`https://wa.me/51940916247?text=${encodeURIComponent(msg)}`, "_blank");
-};
-
-document.getElementById("filtrosOperacion").addEventListener("click", e => {
-  if (!e.target.dataset.operacion) return;
-  filtroOperacion = e.target.dataset.operacion;
-  document.querySelectorAll("[data-operacion]").forEach(el => el.classList.remove("active"));
-  e.target.classList.add("active");
-  render();
-});
-
-document.getElementById("filtrosTipo").addEventListener("click", e => {
-  if (!e.target.dataset.tipo) return;
-  filtroTipo = e.target.dataset.tipo;
-  document.querySelectorAll("[data-tipo]").forEach(el => el.classList.remove("active"));
-  e.target.classList.add("active");
-  render();
-});
-
-document.getElementById("searchInput").addEventListener("input", e => { searchQuery = e.target.value; render(); });
-document.getElementById("sortSelect").addEventListener("change", e => { sortBy = e.target.value; 
+// Cargar al iniciar
+cargarProps();
+</script>
+</body>
+</html>
