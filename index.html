@@ -1024,10 +1024,7 @@ Un asesor te atenderá muy pronto. 🏡</div>
             <label>Info adicional del cliente</label>
             <textarea id="cl-extra" rows="3" placeholder="Ej: Familia de 4, busca colegio cercano, trabaja en el centro..."></textarea>
           </div>
-          <div class="field">
-            <label>Propiedades de la cartera a ofrecer (opcional)</label>
-            <textarea id="cl-props" rows="3" placeholder="Ej: Depto 3D en Cayma 95k, Casa en Sachaca 120k con jardín..."></textarea>
-          </div>
+
           <div class="field">
             <label>Asesor / Agente</label>
             <select id="cl-asesor-select" onchange="seleccionarAsesor(this)">
@@ -1985,117 +1982,243 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
   <div class="page" id="page-requerimientos">
     <div class="section-header">
       <div class="section-eyebrow">Módulo 05</div>
-      <div class="section-title">Requerimientos para Grupos</div>
-      <div class="section-desc">Genera en un clic el prompt para WhatsApp, Facebook, Instagram y TikTok — listo para pegar en Claude.ai.</div>
+      <div class="section-title">Requerimientos</div>
+      <div class="section-desc">Registra lo que busca cada cliente y genera el post para grupos en un clic.</div>
     </div>
-    <div class="alert alert-info">
-      <div class="alert-icon">💡</div>
-      <div>Completa el formulario → haz clic en el botón → el prompt se <strong>copia automáticamente</strong> → pégalo en <strong>claude.ai</strong> → copia el resultado generado al grupo correspondiente.</div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0;">
+      <button id="req-tab-nuevo" onclick="switchReqTab('nuevo')"
+        style="padding:10px 20px;border:none;background:none;font-size:13px;font-weight:700;color:var(--r);border-bottom:2px solid var(--r);margin-bottom:-2px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        ✏️ Nuevo Requerimiento
+      </button>
+      <button id="req-tab-buscar" onclick="switchReqTab('buscar')"
+        style="padding:10px 20px;border:none;background:none;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'DM Sans',sans-serif;">
+        🔍 Buscar Requerimientos
+      </button>
     </div>
-    <div class="grid-2" style="margin-bottom:24px;">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">🏡</div>
-          <div>
-            <div class="card-title">¿Qué busca el cliente?</div>
-            <div class="card-sub">Datos del requerimiento a publicar</div>
+
+    <!-- TAB NUEVO -->
+    <div id="req-panel-nuevo">
+      <div class="grid-2" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🏡</div>
+            <div>
+              <div class="card-title">¿Qué busca el cliente?</div>
+              <div class="card-sub">Completa y guarda en la base de datos</div>
+            </div>
           </div>
-        </div>
-        <div class="grid-2">
+          <div class="grid-2">
+            <div class="field">
+              <label>Operación</label>
+              <select id="req-operacion">
+                <option value="Compra">🛒 Compra</option>
+                <option value="Alquiler">🔑 Alquiler</option>
+                <option value="Anticresis">🤝 Anticresis</option>
+                <option value="Venta o Alquiler">🔄 Venta o Alquiler</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tipo de propiedad</label>
+              <select id="req-tipo">
+                <option>Departamento</option><option>Casa</option>
+                <option>Terreno / Lote</option><option>Local Comercial</option>
+                <option>Oficina</option><option>Almacén</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Zona en cascada -->
           <div class="field">
-            <label>Operación</label>
-            <select id="req-operacion">
-              <option value="Compra">🛒 Compra</option>
-              <option value="Alquiler">🔑 Alquiler</option>
-              <option value="Anticresis">🤝 Anticresis</option>
-              <option value="Venta o Alquiler">🔄 Venta o Alquiler</option>
+            <label>Departamento</label>
+            <select id="req-dep" onchange="onReqDep()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+              <option value="">Seleccionar departamento...</option>
             </select>
           </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Provincia</label>
+              <select id="req-prov" onchange="onReqProv()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+                <option value="">Seleccionar provincia...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Distrito</label>
+              <select id="req-dist" onchange="onReqDist()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+                <option value="">Seleccionar distrito...</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" id="req-zona">
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Presupuesto</label>
+              <input type="text" id="req-presupuesto" placeholder="Ej: USD 80,000 – 100,000"/>
+            </div>
+            <div class="field">
+              <label>Área aproximada</label>
+              <input type="text" id="req-area" placeholder="Ej: 90 – 120 m²"/>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Dormitorios</label>
+              <select id="req-dormitorios">
+                <option value="">Indiferente</option>
+                <option>1 dormitorio</option><option>2 dormitorios</option>
+                <option>3 dormitorios</option><option>4+ dormitorios</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Estacionamiento</label>
+              <select id="req-estac">
+                <option value="">Indiferente</option>
+                <option>Con estacionamiento</option>
+                <option>Sin estacionamiento</option>
+              </select>
+            </div>
+          </div>
           <div class="field">
-            <label>Tipo de propiedad</label>
-            <select id="req-tipo">
+            <label>Características importantes</label>
+            <textarea id="req-caract" rows="2" placeholder="Ej: con terraza, vista panorámica, cerca a colegio..."></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Urgencia</label>
+              <select id="req-urgencia">
+                <option value="urgente">🔴 Urgente — esta semana</option>
+                <option value="pronto">🟡 Pronto — este mes</option>
+                <option value="flexible">🟢 Flexible — sin prisa</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Asesor responsable</label>
+              <select id="req-asesor-select" onchange="seleccionarAsesorReq(this)" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+                <option value="">NN — Sin nombre</option>
+                <option value="959749778">Zulema Gutierrez</option>
+                <option value="959798477">David Rodriguez</option>
+                <option value="953769128">Marilyn Benavente</option>
+                <option value="958237709">Cecilia Cayani</option>
+                <option value="921305393">Alexis Valdivia</option>
+                <option value="965231636">Carmen Barrios</option>
+                <option value="961094351">Cinthia Calizaya</option>
+                <option value="959928860">Claudio Condori</option>
+                <option value="957488942">Evelyn Rivera</option>
+                <option value="956702984">Fiorella Heresi</option>
+                <option value="969892569">Joel Cuadros</option>
+                <option value="969000163">Juan Fernando Fuentes</option>
+                <option value="989403914">Lucy Arapa</option>
+                <option value="993266771">Milagros Rodriguez</option>
+                <option value="970267212">Paola Herrera</option>
+                <option value="923071770">Veronica Chacón</option>
+                <option value="992239361">Ylka Stojkic</option>
+              </select>
+              <input type="hidden" id="req-asesor" value="">
+              <input type="hidden" id="req-asesor-tel" value="">
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+            <button class="btn btn-primary" onclick="generarReq('whatsapp')" style="width:100%;">💬 Prompt WhatsApp</button>
+            <button class="btn btn-primary" onclick="generarReq('facebook')" style="width:100%;">📘 Prompt Facebook</button>
+            <button class="btn btn-primary" onclick="generarReq('instagram')" style="width:100%;">📸 Prompt Instagram</button>
+            <button class="btn btn-primary" onclick="generarReq('tiktok')" style="width:100%;">🎵 Prompt TikTok</button>
+          </div>
+          <button onclick="guardarYLimpiarReq()" style="width:100%;margin-top:10px;background:linear-gradient(135deg,#00a040,#007730);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+            💾 Copiar y Guardar Requerimiento
+          </button>
+          <div id="req-guardado-badge" style="display:none;margin-top:8px;padding:8px 14px;background:rgba(0,160,64,.1);border:1px solid rgba(0,160,64,.3);border-radius:8px;font-size:12px;color:#00a040;text-align:center;">
+            ✅ Requerimiento guardado en la base de datos
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">📋</div>
+            <div>
+              <div class="card-title">Prompt generado</div>
+              <div class="card-sub">Copia y pega en claude.ai</div>
+            </div>
+          </div>
+          <div class="output-label" id="req-out-label" style="display:none;">
+            <span id="req-out-platform">PROMPT LISTO</span>
+          </div>
+          <div class="output-box" id="req-out" style="position:relative;min-height:280px;">
+            <button class="btn btn-ghost copy-btn" onclick="copiar('req-out')">Copiar</button>
+            <div style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center;">Selecciona una plataforma y genera el prompt →</div>
+          </div>
+          <div style="margin-top:12px;text-align:center;">
+            <a href="https://claude.ai" target="_blank" class="btn btn-primary" style="text-decoration:none;display:inline-flex;">🤖 Ir a Claude.ai →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB BUSCAR -->
+    <div id="req-panel-buscar" style="display:none;">
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+          <div class="field" style="margin:0;">
+            <label>Tipo</label>
+            <select id="req-filtro-tipo" onchange="filtrarReqs()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+              <option value="">Todos</option>
               <option>Departamento</option><option>Casa</option>
               <option>Terreno / Lote</option><option>Local Comercial</option>
               <option>Oficina</option><option>Almacén</option>
             </select>
           </div>
-        </div>
-        <div class="field">
-          <label>Zona(s) de preferencia</label>
-          <input type="text" id="req-zona" placeholder="Ej: Cayma, Yanahuara, Sachaca, Cercado"/>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Presupuesto</label>
-            <input type="text" id="req-presupuesto" placeholder="Ej: USD 80,000 – 100,000"/>
-          </div>
-          <div class="field">
-            <label>Área aproximada</label>
-            <input type="text" id="req-area" placeholder="Ej: 90 – 120 m²"/>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Dormitorios</label>
-            <select id="req-dormitorios">
-              <option value="">Indiferente</option>
-              <option>1 dormitorio</option><option>2 dormitorios</option>
-              <option>3 dormitorios</option><option>4+ dormitorios</option>
+          <div class="field" style="margin:0;">
+            <label>Operación</label>
+            <select id="req-filtro-op" onchange="filtrarReqs()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+              <option value="">Todas</option>
+              <option>Compra</option><option>Alquiler</option><option>Anticresis</option>
             </select>
           </div>
-          <div class="field">
-            <label>Estacionamiento</label>
-            <select id="req-estac">
-              <option value="">Indiferente</option>
-              <option>Con estacionamiento</option>
-              <option>Sin estacionamiento</option>
-            </select>
+          <div class="field" style="margin:0;">
+            <label>Zona / Distrito</label>
+            <input type="text" id="req-filtro-zona" oninput="filtrarReqs()" placeholder="Ej: Cayma..."
+              style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
           </div>
-        </div>
-        <div class="field">
-          <label>Características importantes</label>
-          <textarea id="req-caract" rows="3" placeholder="Ej: con terraza, vista panorámica, cerca a colegio, planta baja..."></textarea>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Urgencia</label>
-            <select id="req-urgencia">
-              <option value="urgente">🔴 Urgente — esta semana</option>
-              <option value="pronto">🟡 Pronto — este mes</option>
-              <option value="flexible">🟢 Flexible — sin prisa</option>
-            </select>
+          <div class="field" style="margin:0;">
+            <label>Presupuesto máx.</label>
+            <input type="text" id="req-filtro-pres" oninput="filtrarReqs()" placeholder="Ej: 100000"
+              style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
           </div>
-          <div class="field">
-            <label>Asesor responsable</label>
-            <input type="text" id="req-asesor" placeholder="Ej: Zulema"/>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
-          <button class="btn btn-primary" onclick="generarReq('whatsapp')" style="width:100%;">💬 Prompt WhatsApp</button>
-          <button class="btn btn-primary" onclick="generarReq('facebook')" style="width:100%;">📘 Prompt Facebook</button>
-          <button class="btn btn-primary" onclick="generarReq('instagram')" style="width:100%;">📸 Prompt Instagram</button>
-          <button class="btn btn-primary" onclick="generarReq('tiktok')" style="width:100%;">🎵 Prompt TikTok</button>
+          <button onclick="limpiarFiltrosReq()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--s3);color:var(--t2);font-size:12px;cursor:pointer;">✕ Limpiar</button>
         </div>
       </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">📋</div>
-          <div>
-            <div class="card-title">Prompt generado</div>
-            <div class="card-sub">Se copia automáticamente — pégalo en claude.ai</div>
-          </div>
-        </div>
-        <div class="output-label" id="req-out-label" style="display:none;">
-          <span id="req-out-platform">PROMPT LISTO</span>
-        </div>
-        <div class="output-box" id="req-out" style="position:relative;min-height:280px;">
-          <button class="btn btn-ghost copy-btn" onclick="copiar('req-out')">Copiar</button>
-          <div style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center;">Selecciona una plataforma y genera el prompt →</div>
-        </div>
-        <div style="margin-top:12px;text-align:center;">
-          <a href="https://claude.ai" target="_blank" class="btn btn-primary" style="text-decoration:none;display:inline-flex;">🤖 Ir a Claude.ai →</a>
-        </div>
+
+      <div id="req-filtro-resultado" style="font-size:12px;color:var(--t3);margin-bottom:12px;"></div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:var(--s3);text-align:left;">
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Fecha</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Tipo / Op.</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Zona</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Presupuesto</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Características</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);">Asesor</th>
+              <th style="padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-reqs-buscar"></tbody>
+        </table>
       </div>
+      <div style="margin-top:16px;">
+        <button onclick="exportarReqsExcel()" style="background:var(--s1);border:1px solid var(--border);color:var(--t2);padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;">⬇️ Exportar Excel</button>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;padding:20px 0;border-top:1px solid var(--border);display:flex;justify-content:center;">
+      <button onclick="showPage('dashboard', document.querySelector('.nav-item'))"
+        style="display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--border);color:var(--t2);padding:10px 24px;border-radius:30px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        ← Volver al Inicio
+      </button>
     </div>
   </div>
 </div><!-- /main -->
@@ -3124,7 +3247,7 @@ function showPage(id, el) {
 }
 
 // ===================== PHOTOS =====================
-const photos = [null, null, null, null, null, null]; // base64 strings
+const photos = [null, null, null, null, null, null, null, null]; // base64 strings (8 fotos)
 function buildPhotoGrid() {
   const grid = document.getElementById('photo-grid');
   grid.innerHTML = '';
@@ -3134,10 +3257,10 @@ function buildPhotoGrid() {
   multiWrap.style.cssText = 'grid-column:1/-1;margin-bottom:10px;display:flex;align-items:center;gap:10px;';
   multiWrap.innerHTML = `
     <label style="display:inline-flex;align-items:center;gap:8px;background:var(--r);color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.3px;">
-      📁 Seleccionar fotos (hasta 6)
+      📁 Seleccionar fotos (hasta 8)
       <input type="file" accept="image/*" multiple style="display:none;" onchange="handleMultiplePhotos(this)">
     </label>
-    <span style="font-size:11px;color:var(--t3);">${photos.filter(p=>p).length} de 6 cargadas</span>`;
+    <span style="font-size:11px;color:var(--t3);">${photos.filter(p=>p).length} de 8 cargadas</span>`;
   grid.appendChild(multiWrap);
 
   // Slots individuales — sin label, solo número
@@ -3342,7 +3465,7 @@ function exportarWord() {
 
   const fecha = new Date().toLocaleDateString('es-PE');
 
-  const html = `
+  const html = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
@@ -3350,65 +3473,69 @@ function exportarWord() {
 <meta charset="UTF-8">
 <title>Ficha — ${tipo} ${ubi}</title>
 <!--[if gte mso 9]>
-<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom></w:WordDocument></xml>
+<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml>
 <![endif]-->
 <style>
-  body { font-family: Calibri, Arial, sans-serif; color: #222; margin: 0; }
-  .page { width: 17cm; margin: 0 auto; padding: 1.5cm; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16pt; }
+  @page { margin: 2cm; size: A4; }
+  body { font-family: Calibri, Arial, sans-serif; color: #222; margin: 0; padding: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  p { margin: 0 0 8pt; line-height: 1.5; }
+  .seccion-titulo { font-size:9pt; font-weight:bold; color:#CE011F; letter-spacing:1pt; text-transform:uppercase; border-bottom:2px solid #CE011F; padding-bottom:3pt; margin:14pt 0 8pt; }
 </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- HEADER -->
-  <table style="border-collapse:collapse;margin-bottom:16pt;border-bottom:3px solid #CE011F;">
-    <tr>
-      <td style="padding:0 0 10pt;vertical-align:bottom;">
-        <div style="font-size:18pt;font-weight:900;color:#CE011F;font-family:Georgia,serif;line-height:1;">EMPRESARIOS</div>
-        <div style="font-size:14pt;font-weight:400;color:#555;font-family:Georgia,serif;line-height:1;margin-bottom:4pt;">INMOBILIARIOS</div>
-        <div style="font-size:8pt;color:#999;letter-spacing:.5pt;text-transform:uppercase;">Construimos Patrimonio con Conocimiento y Propósito</div>
-      </td>
-      <td style="padding:0 0 10pt;text-align:right;vertical-align:bottom;">
-        <div style="font-size:9pt;color:#888;">Ficha de Captación</div>
-        <div style="font-size:9pt;color:#888;">📞 940 916 247</div>
-        <div style="font-size:9pt;color:#888;">contacto@empresariosinmobiliarios.com</div>
-        <div style="font-size:9pt;color:#999;">${fecha}</div>
-      </td>
-    </tr>
-  </table>
+<!-- HEADER -->
+<table style="margin-bottom:14pt;border-bottom:3px solid #CE011F;padding-bottom:8pt;">
+  <tr>
+    <td style="vertical-align:bottom;padding-bottom:8pt;">
+      <div style="font-size:20pt;font-weight:900;color:#CE011F;font-family:Georgia,serif;line-height:1;">EMPRESARIOS</div>
+      <div style="font-size:14pt;color:#555;font-family:Georgia,serif;line-height:1.2;">INMOBILIARIOS</div>
+      <div style="font-size:8pt;color:#999;letter-spacing:.5pt;text-transform:uppercase;margin-top:4pt;">Construimos Patrimonio con Conocimiento y Propósito</div>
+    </td>
+    <td style="text-align:right;vertical-align:bottom;padding-bottom:8pt;width:35%;">
+      <div style="font-size:9pt;color:#888;">Ficha de Captación</div>
+      <div style="font-size:9pt;color:#888;">940 916 247</div>
+      <div style="font-size:9pt;color:#888;">contacto@empresariosinmobiliarios.com</div>
+      <div style="font-size:9pt;color:#999;">${fecha}</div>
+    </td>
+  </tr>
+</table>
 
-  <!-- TÍTULO Y PRECIO -->
-  <div style="background:#CE011F;padding:12pt 16pt;margin-bottom:16pt;">
-    <div style="font-size:16pt;font-weight:900;color:#fff;font-family:Georgia,serif;line-height:1.2;">${tipo}${ubi ? ' — '+ubi : ''}</div>
-    ${precio ? `<div style="font-size:13pt;font-weight:700;color:rgba(255,255,255,.85);margin-top:4pt;">USD ${Number(precio).toLocaleString()}</div>` : ''}
-  </div>
+<!-- TÍTULO Y PRECIO -->
+<table style="margin-bottom:14pt;">
+  <tr>
+    <td style="background:#CE011F;padding:10pt 14pt;">
+      <div style="font-size:16pt;font-weight:900;color:#fff;font-family:Georgia,serif;">${tipo}${ubi ? ' — '+ubi : ''}</div>
+      ${precio ? `<div style="font-size:13pt;font-weight:700;color:rgba(255,255,255,.85);margin-top:4pt;">USD ${Number(precio).toLocaleString()}</div>` : ''}
+    </td>
+  </tr>
+</table>
 
-  <!-- DATOS -->
-  ${dataRows ? `
-  <p style="font-size:9pt;font-weight:bold;color:#CE011F;letter-spacing:1pt;text-transform:uppercase;border-bottom:1px solid #CE011F;margin-bottom:8pt;">DATOS DE LA PROPIEDAD</p>
-  <table style="margin-bottom:16pt;">${dataRows}</table>` : ''}
+<!-- DATOS DE LA PROPIEDAD -->
+${dataRows ? `<p class="seccion-titulo">DATOS DE LA PROPIEDAD</p>
+<table style="margin-bottom:14pt;border:1px solid #DDD;">${dataRows}</table>` : ''}
 
-  <!-- FICHA -->
-  <p style="font-size:9pt;font-weight:bold;color:#CE011F;letter-spacing:1pt;text-transform:uppercase;border-bottom:1px solid #CE011F;margin-bottom:10pt;">FICHA TÉCNICA</p>
-  ${fichaHtml}
-
-  <!-- FOTOS AL FONDO -->
-  ${fotosWordHTML ? `<p style="font-size:9pt;font-weight:bold;color:#CE011F;letter-spacing:1pt;text-transform:uppercase;border-bottom:1px solid #CE011F;margin:16pt 0 10pt;page-break-before:auto;">GALERÍA DE FOTOS</p>
-  ${fotosWordHTML}` : ''}
-
-  <!-- FOOTER -->
-  <table style="border-collapse:collapse;margin-top:20pt;border-top:2px solid #CE011F;">
-    <tr>
-      <td style="padding:8pt 0;font-size:9pt;color:#888;">
-        <strong style="color:#555;">Empresarios Inmobiliarios</strong> · Arequipa, Perú ·
-        940 916 247 · contacto@empresariosinmobiliarios.com · IG: @empresarios.inmobiliarios
-      </td>
-    </tr>
-  </table>
-
+<!-- FICHA TÉCNICA -->
+<p class="seccion-titulo">FICHA TÉCNICA</p>
+<div style="font-size:11pt;line-height:1.7;color:#333;">
+${fichaHtml}
 </div>
-</div><!-- fin main-app -->
+
+<!-- FOTOS -->
+${fotosWordHTML ? `<p class="seccion-titulo" style="margin-top:18pt;">GALERÍA DE FOTOS</p>
+${fotosWordHTML}` : ''}
+
+<!-- FOOTER -->
+<table style="margin-top:20pt;border-top:2px solid #CE011F;">
+  <tr>
+    <td style="padding-top:8pt;font-size:9pt;color:#888;">
+      <strong style="color:#555;">Empresarios Inmobiliarios</strong> · Perú ·
+      940 916 247 · contacto@empresariosinmobiliarios.com · @empresarios.inmobiliarios
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>`;
 
@@ -3664,15 +3791,15 @@ function generarCopy() {
   if (!ubi) { alert('Primero completa los datos de la propiedad.'); return; }
 
   let instruccion = '';
-  if (red === 'Facebook') instruccion = 'Crea un post completo de Facebook (200-250 palabras). Empieza con un gancho poderoso, describe la propiedad con puntos de valor, menciona el precio, termina con CTA claro al WhatsApp 940 916 247. Incluye emojis con moderación. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces';
+  if (red === 'Facebook') instruccion = 'Crea un post completo de Facebook (200-250 palabras). Empieza con un gancho poderoso, describe la propiedad con puntos de valor, menciona el precio, termina con CTA claro invitando a escribir por WhatsApp. Incluye emojis con moderación. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces';
   else if (red === 'Instagram') instruccion = 'Crea un caption de Instagram (100-120 palabras). Primera línea = gancho que detenga el scroll. Luego 4-5 puntos cortos con emoji. CTA al bio/WhatsApp. Cierra con 12 hashtags relevantes de real estate en Perú/Arequipa.';
-  else if (red === 'TikTok') instruccion = `Crea un GUIÓN completo para un video TikTok de ${duracion} segundos sobre esta propiedad. Formato: [GANCHO 0-3s] texto en pantalla + voz / [ESCENA 1] descripción visual + texto / [ESCENA 2] etc. / [CTA FINAL]. Dinámico, lenguaje joven pero profesional. Sugerencias de música y transiciones. CTA: "Escríbenos al WhatsApp 940 916 247".`;
+  else if (red === 'TikTok') instruccion = `Crea un GUIÓN completo para un video TikTok de ${duracion} segundos sobre esta propiedad. Formato: [GANCHO 0-3s] texto en pantalla + voz / [ESCENA 1] descripción visual + texto / [ESCENA 2] etc. / [CTA FINAL]. Dinámico, lenguaje joven pero profesional. Sugerencias de música y transiciones. CTA: "Escríbenos por WhatsApp".`;
   else if (red === 'MetaAds') instruccion = `Genera un anuncio pagado de Meta Ads completo y estructurado para conseguir leads calificados de compradores reales.
 
 Formato obligatorio con estas 5 partes:
 
 ═══ TEXTO PRINCIPAL ═══
-(máx 150 palabras — primera línea = gancho que pare el scroll, luego beneficio principal, luego filtro de intención "Si estás buscando...", cierra con CTA urgente al WhatsApp 940 916 247)
+(máx 150 palabras — primera línea = gancho que pare el scroll, luego beneficio principal, luego filtro de intención "Si estás buscando...", cierra con CTA urgente invitando a escribir por WhatsApp)
 
 ═══ TITULAR ═══
 (máx 40 caracteres — genera curiosidad o urgencia)
@@ -3756,16 +3883,16 @@ function generarPropuesta() {
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary copy-req-btn';
     btn.style.cssText = 'margin-top:10px;width:100%;';
-    btn.textContent = '📋 Copiar Requerimiento';
+    btn.textContent = '📋 Copiar y Guardar';
     btn.onclick = () => {
       navigator.clipboard.writeText(ta.value).then(() => {
-        btn.textContent = '✅ ¡Copiado!';
-        setTimeout(() => btn.textContent = '📋 Copiar Requerimiento', 2000);
+        btn.textContent = '✅ ¡Copiado y Guardado!';
+        setTimeout(() => { btn.textContent = '📋 Copiar y Guardar'; limpiarFormReq(); }, 2000);
       }).catch(() => {
         ta.select();
         document.execCommand('copy');
-        btn.textContent = '✅ ¡Copiado!';
-        setTimeout(() => btn.textContent = '📋 Copiar Requerimiento', 2000);
+        btn.textContent = '✅ ¡Copiado y Guardado!';
+        setTimeout(() => { btn.textContent = '📋 Copiar y Guardar'; limpiarFormReq(); }, 2000);
       });
     };
     outBox.appendChild(btn);
@@ -3819,7 +3946,7 @@ function generarContenido() {
   };
 
   let formato = '';
-  if (red === 'Facebook') formato = 'Post completo 180-220 palabras, gancho inicial, desarrollo, CTA al WhatsApp 940 916 247. Emojis con moderación. Hashtags al final.';
+  if (red === 'Facebook') formato = 'Post completo 180-220 palabras, gancho inicial, desarrollo, CTA invitando a escribir por WhatsApp. Emojis con moderación. Hashtags al final.';
   else if (red === 'Instagram') formato = 'Primera línea impactante (gancho), desarrollo en 5-7 líneas cortas, CTA, 12 hashtags relevantes para Arequipa/inmobiliario. Total 100-120 palabras.';
   else formato = 'Mensaje de difusión 60-80 palabras, tono personal como si fuera de Zulema directamente, 2-3 emojis max, datos de contacto al final.';
 
@@ -3856,7 +3983,7 @@ function generarReq(plataforma) {
   const asesor= document.getElementById('req-asesor').value || 'Empresarios Inmobiliarios';
   if (!tipo || !zona) { alert('Completa al menos el tipo y la zona.'); return; }
 
-  const base = `Operación: ${op} | Tipo: ${tipo} | Zona: ${zona} | Presupuesto: ${pres||'A consultar'} | Área: ${area||'N/D'} | ${dorms} ${estac} | Características: ${caract||'ninguna especial'} | Urgencia: ${urg} | Asesor: ${asesor} — 940 916 247`;
+  const base = `Operación: ${op} | Tipo: ${tipo} | Zona: ${zona} | Presupuesto: ${pres||'A consultar'} | Área: ${area||'N/D'} | ${dorms} ${estac} | Características: ${caract||'ninguna especial'} | Urgencia: ${urg} | Asesor: ${asesor}`;
 
   const prompts = {
     whatsapp: `Eres asesor de Empresarios Inmobiliarios, Arequipa. Genera un mensaje de requerimiento PARA GRUPOS DE WHATSAPP. Formato exacto — corto, directo, emojis, máx 12 líneas:
@@ -3880,7 +4007,7 @@ DATOS: ${base}`,
 
     facebook: `Eres asesor de Empresarios Inmobiliarios, Arequipa. Genera un post PARA GRUPOS DE FACEBOOK buscando propiedad. Incluye: titular en mayúsculas llamativo, descripción del requerimiento en 3-4 oraciones, bullets de características clave (con emojis), llamada a acción con WhatsApp y nombre del asesor. Tono profesional y urgente. Máx 200 palabras. DATOS: ${base}`,
 
-    instagram: `Eres community manager de Empresarios Inmobiliarios, Arequipa. Genera un CAPTION PARA INSTAGRAM buscando propiedad. Incluye: 1 línea de gancho con emoji, descripción del requerimiento en 2-3 oraciones, bullets de lo que busca, CTA con WhatsApp 940 916 247, y al final 20 hashtags relevantes en español para Arequipa e inmobiliario. DATOS: ${base}`,
+    instagram: `Eres community manager de Empresarios Inmobiliarios, Arequipa. Genera un CAPTION PARA INSTAGRAM buscando propiedad. Incluye: 1 línea de gancho con emoji, descripción del requerimiento en 2-3 oraciones, bullets de lo que busca, CTA con WhatsApp del asesor, y al final 20 hashtags relevantes en español para Arequipa e inmobiliario. DATOS: ${base}`,
 
     tiktok: `Eres creador de contenido de Empresarios Inmobiliarios, Arequipa. Genera para TikTok:
 1) GUIÓN DE 30-45 SEGUNDOS: con gancho (0-3s), desarrollo describiendo el requerimiento (4-30s), CTA final (31-45s). Habla directo a cámara, frases cortas, dinámico.
@@ -4156,7 +4283,7 @@ Genera el anuncio con estas TRES PARTES claramente separadas:
 - Primera línea = GANCHO que detenga el scroll (pregunta, dato sorprendente o afirmación audaz)
 - Párrafo 2: describe el beneficio principal de la propiedad, no solo características
 - Párrafo 3: filtro de intención — indica claramente a quién va dirigido (ej: "Si tienes capital disponible y buscas...")
-- CTA final potente y específico con WhatsApp 940 916 247
+- CTA final potente y específico invitando a escribir por WhatsApp
 
 ═══ PARTE 2: TITULAR DEL ANUNCIO ═══
 (Máx 40 caracteres — aparece en negrita debajo de la imagen)
@@ -4779,6 +4906,239 @@ function actualizarUbicacion() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(inicializarSelectoresUbicacion, 300);
 });
+
+
+// ══════════════════════════════════════════
+// REQUERIMIENTOS — Tabs, zona en cascada, guardar, filtrar
+// ══════════════════════════════════════════
+
+function switchReqTab(tab) {
+  const isNuevo = tab === 'nuevo';
+  document.getElementById('req-panel-nuevo').style.display = isNuevo ? '' : 'none';
+  document.getElementById('req-panel-buscar').style.display = isNuevo ? 'none' : '';
+  document.getElementById('req-tab-nuevo').style.color = isNuevo ? 'var(--r)' : 'var(--t3)';
+  document.getElementById('req-tab-nuevo').style.borderBottom = isNuevo ? '2px solid var(--r)' : 'none';
+  document.getElementById('req-tab-nuevo').style.marginBottom = isNuevo ? '-2px' : '0';
+  document.getElementById('req-tab-buscar').style.color = isNuevo ? 'var(--t3)' : 'var(--r)';
+  document.getElementById('req-tab-buscar').style.borderBottom = isNuevo ? 'none' : '2px solid var(--r)';
+  document.getElementById('req-tab-buscar').style.marginBottom = isNuevo ? '0' : '-2px';
+  if (!isNuevo) filtrarReqs();
+}
+
+function seleccionarAsesorReq(sel) {
+  const opts = {
+    '959749778':'Zulema Gutierrez','959798477':'David Rodriguez',
+    '953769128':'Marilyn Benavente','958237709':'Cecilia Cayani',
+    '921305393':'Alexis Valdivia','965231636':'Carmen Barrios',
+    '961094351':'Cinthia Calizaya','959928860':'Claudio Condori',
+    '957488942':'Evelyn Rivera','956702984':'Fiorella Heresi',
+    '969892569':'Joel Cuadros','969000163':'Juan Fernando Fuentes',
+    '989403914':'Lucy Arapa','993266771':'Milagros Rodriguez',
+    '970267212':'Paola Herrera','923071770':'Veronica Chacón',
+    '992239361':'Ylka Stojkic'
+  };
+  const tel = sel.value;
+  document.getElementById('req-asesor').value = opts[tel] || '';
+  document.getElementById('req-asesor-tel').value = tel;
+}
+
+// Zona en cascada para Requerimientos
+function inicializarSelectoresReq() {
+  const selDep = document.getElementById('req-dep');
+  if (!selDep || selDep.options.length > 1) return;
+  Object.keys(PERU_GEO).sort().forEach(dep => {
+    const opt = document.createElement('option');
+    opt.value = dep; opt.textContent = dep;
+    selDep.appendChild(opt);
+  });
+  selDep.value = 'Arequipa';
+  onReqDep();
+}
+
+function onReqDep() {
+  const dep = document.getElementById('req-dep').value;
+  const selProv = document.getElementById('req-prov');
+  const selDist = document.getElementById('req-dist');
+  selProv.innerHTML = '<option value="">Seleccionar provincia...</option>';
+  selDist.innerHTML = '<option value="">Seleccionar distrito...</option>';
+  if (dep && PERU_GEO[dep]) {
+    Object.keys(PERU_GEO[dep]).sort().forEach(prov => {
+      const opt = document.createElement('option');
+      opt.value = prov; opt.textContent = prov;
+      selProv.appendChild(opt);
+    });
+    if (dep === 'Arequipa') { selProv.value = 'Arequipa'; onReqProv(); }
+  }
+  actualizarZonaReq();
+}
+
+function onReqProv() {
+  const dep = document.getElementById('req-dep').value;
+  const prov = document.getElementById('req-prov').value;
+  const selDist = document.getElementById('req-dist');
+  selDist.innerHTML = '<option value="">Seleccionar distrito...</option>';
+  if (dep && prov && PERU_GEO[dep] && PERU_GEO[dep][prov]) {
+    PERU_GEO[dep][prov].sort().forEach(dist => {
+      const opt = document.createElement('option');
+      opt.value = dist; opt.textContent = dist;
+      selDist.appendChild(opt);
+    });
+  }
+  actualizarZonaReq();
+}
+
+function onReqDist() { actualizarZonaReq(); }
+
+function actualizarZonaReq() {
+  const dep  = document.getElementById('req-dep').value || '';
+  const prov = document.getElementById('req-prov').value || '';
+  const dist = document.getElementById('req-dist').value || '';
+  let zona = '';
+  if (dist && prov && dep) {
+    zona = dist === prov ? `${dist}, ${dep}` : prov === dep ? `${dist}, ${dep}` : `${dist}, ${prov}, ${dep}`;
+  } else if (prov && dep) {
+    zona = `${prov}, ${dep}`;
+  } else if (dep) { zona = dep; }
+  document.getElementById('req-zona').value = zona;
+}
+
+// Guardar y limpiar requerimiento
+async function guardarYLimpiarReq() {
+  const zona = document.getElementById('req-zona').value;
+  const tipo = document.getElementById('req-tipo').value;
+  if (!tipo || !zona) { alert('Completa al menos el tipo y la zona.'); return; }
+
+  const datos = {
+    fecha:    new Date().toLocaleDateString('es-PE'),
+    tipo:     tipo,
+    operacion: document.getElementById('req-operacion').value,
+    zona:     zona,
+    presupuesto: document.getElementById('req-presupuesto').value,
+    requisitos: [
+      document.getElementById('req-dormitorios').value,
+      document.getElementById('req-estac').value,
+      document.getElementById('req-area').value ? 'Área: ' + document.getElementById('req-area').value : '',
+      document.getElementById('req-caract').value
+    ].filter(Boolean).join(' | '),
+    asesor:   document.getElementById('req-asesor').value || 'Empresarios Inmobiliarios',
+    wsp_asesor: document.getElementById('req-asesor-tel').value || '940916247',
+    estado:   'Activo'
+  };
+
+  // Copiar al portapapeles si hay prompt generado
+  const outEl = document.getElementById('req-out');
+  if (outEl && outEl.innerText && !outEl.innerText.includes('Selecciona una plataforma')) {
+    try { await navigator.clipboard.writeText(outEl.innerText.replace('Copiar','').trim()); } catch(e) {}
+  }
+
+  // Guardar en Supabase
+  await dbAddCloud('reqs', datos);
+
+  // Mostrar confirmación
+  const badge = document.getElementById('req-guardado-badge');
+  badge.style.display = 'block';
+  setTimeout(() => badge.style.display = 'none', 3000);
+
+  // Limpiar formulario
+  document.getElementById('req-tipo').selectedIndex = 0;
+  document.getElementById('req-operacion').selectedIndex = 0;
+  document.getElementById('req-dep').value = 'Arequipa'; onReqDep();
+  document.getElementById('req-presupuesto').value = '';
+  document.getElementById('req-area').value = '';
+  document.getElementById('req-dormitorios').selectedIndex = 0;
+  document.getElementById('req-estac').selectedIndex = 0;
+  document.getElementById('req-caract').value = '';
+  document.getElementById('req-urgencia').selectedIndex = 0;
+  document.getElementById('req-asesor-select').selectedIndex = 0;
+  document.getElementById('req-asesor').value = '';
+  document.getElementById('req-asesor-tel').value = '';
+  document.getElementById('req-out').innerHTML = "<button class=\"btn btn-ghost copy-btn\" onclick=\"copiar('req-out')\">Copiar</button><div style=\"color:var(--t3);font-size:13px;padding:20px 0;text-align:center;\">Selecciona una plataforma y genera el prompt →</div>";
+  document.getElementById('req-out-label').style.display = 'none';
+}
+
+// Filtrar requerimientos
+function filtrarReqs() {
+  const tipo = document.getElementById('req-filtro-tipo').value.toLowerCase();
+  const op   = document.getElementById('req-filtro-op').value.toLowerCase();
+  const zona = document.getElementById('req-filtro-zona').value.toLowerCase().trim();
+  const pres = document.getElementById('req-filtro-pres').value.toLowerCase().trim();
+  const all  = dbGet('reqs');
+
+  const filtrados = all.filter(r => {
+    const mTipo = !tipo || (r.tipo||'').toLowerCase().includes(tipo);
+    const mOp   = !op   || (r.operacion||'').toLowerCase().includes(op);
+    const mZona = !zona || (r.zona||'').toLowerCase().includes(zona);
+    const mPres = !pres || (r.presupuesto||'').toLowerCase().includes(pres);
+    return mTipo && mOp && mZona && mPres;
+  });
+
+  const lbl = document.getElementById('req-filtro-resultado');
+  lbl.textContent = `${filtrados.length} requerimiento${filtrados.length !== 1 ? 's' : ''} encontrado${filtrados.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('tbody-reqs-buscar');
+  if (!filtrados.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--t3);">No se encontraron requerimientos</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtrados.map(r => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--t3);font-size:12px;">${r.fecha||'—'}</td>
+      <td style="padding:10px 12px;"><strong>${r.tipo||'—'}</strong><br><span style="font-size:11px;color:var(--t3);">${r.operacion||''}</span></td>
+      <td style="padding:10px 12px;">${r.zona||'—'}</td>
+      <td style="padding:10px 12px;color:var(--r);font-weight:600;">${r.presupuesto||'—'}</td>
+      <td style="padding:10px 12px;font-size:12px;color:var(--t2);max-width:200px;">${r.requisitos||'—'}</td>
+      <td style="padding:10px 12px;font-size:12px;">${r.asesor||'—'}</td>
+      <td style="padding:10px 12px;"><button class="btn-delete" onclick="dbDelete('reqs',${r.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function limpiarFiltrosReq() {
+  document.getElementById('req-filtro-tipo').value = '';
+  document.getElementById('req-filtro-op').value   = '';
+  document.getElementById('req-filtro-zona').value = '';
+  document.getElementById('req-filtro-pres').value = '';
+  filtrarReqs();
+}
+
+function exportarReqsExcel() {
+  const reqs = dbGet('reqs');
+  if (!reqs.length) { alert('No hay requerimientos para exportar.'); return; }
+  const ws = XLSX.utils.json_to_sheet(reqs.map(r => ({
+    'Fecha': r.fecha, 'Tipo': r.tipo, 'Operación': r.operacion,
+    'Zona': r.zona, 'Presupuesto': r.presupuesto, 'Requisitos': r.requisitos,
+    'Asesor': r.asesor, 'WhatsApp': r.wsp_asesor, 'Estado': r.estado
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Requerimientos');
+  XLSX.writeFile(wb, 'EI_Requerimientos.xlsx');
+}
+
+// Inicializar selectores de requerimientos cuando la página carga
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    inicializarSelectoresUbicacion();
+    inicializarSelectoresReq();
+  }, 500);
+});
+
+
+// ── Limpiar formulario de requerimientos ──
+function limpiarFormReq() {
+  const ids = ['req-tipo','req-operacion','req-dep','req-prov','req-dist','req-zona',
+               'req-presupuesto','req-requisitos','req-asesor-nombre','req-asesor-tel'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  // Limpiar el área de resultado
+  const out = document.getElementById('req-out');
+  if (out) out.innerHTML = "<button class=\"btn btn-ghost copy-btn\" onclick=\"copiar('req-out')\">Copiar</button><div style=\"color:var(--t3);font-size:13px;padding:20px 0;text-align:center;\">Completa los datos y genera el post ↑</div>";
+  // Reinicializar selectores de zona
+  if (typeof inicializarSelectoresReq === 'function') inicializarSelectoresReq();
+}
 
 </script>
 </body>
