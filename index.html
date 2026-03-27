@@ -407,9 +407,7 @@ td:first-child { color:var(--t1); font-weight:500; }
     <div class="nav-item" onclick="showPage('captacion', this)">
       <div class="icon">🏠</div> Captación
     </div>
-    <div class="nav-item" onclick="showPage('clientes', this)">
-      <div class="icon">💬</div> Clientes & Leads
-    </div>
+
     <div class="nav-item" onclick="showPage('equipo', this)">
       <div class="icon">👥</div> Equipo
     </div>
@@ -577,7 +575,7 @@ td:first-child { color:var(--t1); font-weight:500; }
               <div class="step-tool">🏠 Genera ficha en segundos</div>
             </div>
           </div>
-          <div class="step" onclick="showPage('clientes', document.querySelectorAll('.nav-item')[2])" style="cursor:pointer">
+          <div class="step" onclick="showPage('requerimientos', document.querySelectorAll('.nav-item')[2])" style="cursor:pointer">
             <div class="step-num">02</div>
             <div class="step-content">
               <div class="step-title">Atención a Clientes & Leads</div>
@@ -843,48 +841,13 @@ td:first-child { color:var(--t1); font-weight:500; }
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">📱</div>
-          <div>
-            <div class="card-title">Copy para Redes Sociales</div>
-            <div class="card-sub">Genera el texto listo para publicar en cada plataforma</div>
-          </div>
-        </div>
-        <div class="field">
-          <label>Plataforma</label>
-          <select id="cap-red">
-            <option value="Facebook">📘 Facebook (post completo)</option>
-            <option value="Instagram">📸 Instagram (caption + hashtags)</option>
-            <option value="TikTok">🎵 TikTok (guión para video)</option>
-            <option value="WhatsApp">💬 WhatsApp Business</option>
-            <option value="MetaAds">📢 Meta Ads (anuncio pagado)</option>
-          </select>
-        </div>
-        <div class="field" id="tiktok-extra" style="display:none">
-          <label>Duración del video TikTok</label>
-          <select id="tiktok-duracion">
-            <option value="15">15 segundos (gancho rápido)</option>
-            <option value="30">30 segundos (tour rápido)</option>
-            <option value="60" selected>60 segundos (presentación completa)</option>
-          </select>
-        </div>
+
         <div id="cap-red-desc" style="font-size:12px;color:var(--t3);margin-bottom:12px;padding:8px 12px;background:var(--s2);border-radius:6px;border-left:3px solid var(--r)">
           Post completo con descripción, beneficios y llamada a acción hacia WhatsApp.
         </div>
         <button class="btn btn-primary" onclick="generarCopy()" style="width:100%">
           📋 Copiar Prompt — Copy
         </button>
-        <div style="margin-top:16px;">
-          <div class="output-label" id="out-copy-label" style="display:none">
-            <div class="spinner" id="spin-copy" style="display:none"></div>
-            <span>COPY GENERADO</span>
-          </div>
-          <div class="output-box" id="out-copy" style="position:relative;">
-            <button class="btn btn-ghost copy-btn" onclick="copiar('out-copy')">Copiar</button>
-          </div>
-        </div>
-      </div>
     </div>
   
   <div style="margin-top:40px;padding:20px 0;border-top:1px solid var(--border);display:flex;justify-content:center;">
@@ -1215,7 +1178,7 @@ Un asesor te atenderá muy pronto. 🏡</div>
     </div>
 
     <!-- ═══ PANEL META ADS ═══ -->
-    <div id="panel-meta">
+    <div id="panel-meta" style="display:none;">
       <div class="grid-2" style="margin-bottom:24px;">
         <div class="card">
           <div class="card-header">
