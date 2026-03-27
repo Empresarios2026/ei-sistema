@@ -3979,14 +3979,49 @@ DATOS: ${base}`
   };
 
   const nombres = {whatsapp:'💬 WhatsApp',facebook:'📘 Facebook',instagram:'📸 Instagram',tiktok:'🎵 TikTok'};
-  const prompt = prompts[plataforma];
   const out = document.getElementById('req-out');
   const lbl = document.getElementById('req-out-label');
   const platLabel = document.getElementById('req-out-platform');
 
   lbl.style.display = 'flex';
-  platLabel.textContent = 'PROMPT — ' + nombres[plataforma] + ' — Listo para pegar en Claude.ai';
   out.classList.add('visible');
+
+  // ── WhatsApp: generar texto DIRECTO sin pasar por Claude.ai ──
+  if (plataforma === 'whatsapp') {
+    const opLabel = op === 'Venta' ? 'VENTA' : op === 'Alquiler' ? 'ALQUILER' : op === 'Anticresis' ? 'ANTICRESIS' : op.toUpperCase();
+    const lines = [];
+    lines.push(`🔍 *BUSCO ${tipo.toUpperCase()} EN ${opLabel}*`);
+    lines.push('');
+    if (zona) lines.push(`📍 Zona: ${zona}`);
+    if (pres)  lines.push(`💰 Presupuesto: ${pres}`);
+    if (area)  lines.push(`📐 Área: ${area}`);
+    if (dorms && dorms !== 'Indiferente') lines.push(`🛏️ ${dorms}`);
+    if (estac && estac !== 'Indiferente') lines.push(`🚗 Estacionamiento: ${estac}`);
+    if (caract) lines.push(`✅ Requiere: ${caract}`);
+    if (urg)   lines.push(`⏰ ${urg}`);
+    lines.push('');
+    lines.push('Si tienes o conoces algo que se ajuste, contáctanos 👇');
+    if (asesor && asesor !== 'Empresarios Inmobiliarios') lines.push(`👤 Asesor: ${asesor}`);
+    if (asesorTel) lines.push(`📲 WhatsApp: ${asesorTel}`);
+    lines.push('🏢 *Empresarios Inmobiliarios*');
+    lines.push('_Construimos Patrimonio con Conocimiento y Propósito_ 🏆');
+
+    const texto = lines.join('\n');
+
+    platLabel.textContent = '💬 REQUERIMIENTO LISTO — Copia y pega en WhatsApp';
+    out.style.fontFamily = 'inherit';
+    out.innerHTML = `
+      <textarea style="width:100%;min-height:260px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">${texto}</textarea>
+      <button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='✅ ¡Copiado!';setTimeout(()=>{this.textContent='📋 Copiar y Guardar';},2000)}).catch(()=>{ta.select();document.execCommand('copy');this.textContent='✅ ¡Copiado!';setTimeout(()=>{this.textContent='📋 Copiar y Guardar';},2000)});guardarReq();})()" 
+        style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+        📋 Copiar y Guardar
+      </button>`;
+    return;
+  }
+
+  // ── Otros (Facebook, Instagram, TikTok): prompt para Claude.ai ──
+  const prompt = prompts[plataforma];
+  platLabel.textContent = 'PROMPT — ' + nombres[plataforma] + ' — Listo para pegar en Claude.ai';
   out.style.fontFamily = "'DM Mono', monospace";
 
   const escapedPrompt = prompt.replace(/</g,'&lt;');
@@ -4001,12 +4036,29 @@ DATOS: ${base}`
     </div>
     <pre id="req-prompt-text" style="font-size:11px;color:var(--t2);line-height:1.65;white-space:pre-wrap;font-family:'DM Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto;">${escapedPrompt}</pre>`;
 
-  // Copiar automáticamente
   navigator.clipboard.writeText(prompt).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = prompt; ta.style.position='fixed'; ta.style.opacity='0';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy');
     document.body.removeChild(ta);
+  });
+}
+
+function guardarReq() {
+  const op   = document.getElementById('req-operacion').value;
+  const tipo = document.getElementById('req-tipo').value;
+  const zona = document.getElementById('req-zona').value;
+  const pres = document.getElementById('req-presupuesto').value;
+  const asesorEl = document.getElementById('req-asesor-select');
+  const asesorNombre = asesorEl ? asesorEl.options[asesorEl.selectedIndex]?.text : '—';
+  const asesorTel = document.getElementById('req-asesor-tel')?.value || '—';
+  dbAddCloud('reqs', {
+    tipo, operacion: op, zona: zona || '—',
+    presupuesto: pres || '—',
+    requisitos: document.getElementById('req-caract')?.value || '—',
+    asesor: asesorNombre !== 'Seleccionar asesor...' ? asesorNombre : '—',
+    wsp_asesor: asesorTel,
+    estado: 'Activo'
   });
 }
 
