@@ -266,7 +266,7 @@ td:first-child { color:var(--t1); font-weight:500; }
 .social-freq { font-size:12px; }
 
 /* PHOTO UPLOAD */
-.photo-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:18px; } .photo-grid > div:first-child { grid-column: 1 / -1; }
+.photo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
 .photo-slot {
   aspect-ratio:1; border:2px dashed var(--t3); border-radius:10px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -845,9 +845,7 @@ td:first-child { color:var(--t1); font-weight:500; }
         <div id="cap-red-desc" style="font-size:12px;color:var(--t3);margin-bottom:12px;padding:8px 12px;background:var(--s2);border-radius:6px;border-left:3px solid var(--r)">
           Post completo con descripción, beneficios y llamada a acción hacia WhatsApp.
         </div>
-        <button class="btn btn-primary" onclick="generarCopy()" style="width:100%">
-          📋 Copiar Prompt — Copy
-        </button>
+
     </div>
   
   <div style="margin-top:40px;padding:20px 0;border-top:1px solid var(--border);display:flex;justify-content:center;">
@@ -2007,8 +2005,8 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
               </select>
             </div>
             <div class="field">
-              <label>Distrito</label>
-              <select id="req-dist" onchange="onReqDist()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
+              <label>Distrito(s) <span style="font-size:10px;color:var(--t3);">Ctrl+clic para varios</span></label>
+              <select id="req-dist" onchange="onReqDist()" multiple style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;font-family:'DM Sans',sans-serif;min-height:90px;">
                 <option value="">Seleccionar distrito...</option>
               </select>
             </div>
@@ -2438,20 +2436,15 @@ function exportarPDF() {
   const orient     = document.getElementById('cap-orientacion').value || '';
   const antiguedad = document.getElementById('cap-antiguedad').value || '';
 
-  // ── FOTOS ──
+  // ── FOTOS — todas en grid uniforme (al fondo de la ficha) ──
   const photoImgs = photos.filter(p => p);
   let photosHTML = '';
   if (photoImgs.length) {
-    const portada = `<img src="${photoImgs[0]}" style="width:100%;max-height:260px;object-fit:cover;display:block;margin-bottom:5px;">`;
-    // Fotos 1-5 en grid de 3 columnas (hasta 2 filas)
-    const resto = photoImgs.slice(1, 6).map(src =>
-      `<div style="aspect-ratio:4/3;overflow:hidden;"><img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`
+    const cols = Math.min(photoImgs.length, 4);
+    const cells = photoImgs.map(src =>
+      `<div style="aspect-ratio:4/3;overflow:hidden;border-radius:4px;"><img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`
     ).join('');
-    const restoCols = Math.min(photoImgs.length - 1, 3);
-    const grid = photoImgs.length > 1
-      ? `<div style="display:grid;grid-template-columns:repeat(${restoCols},1fr);gap:4px;margin-bottom:16px;">${resto}</div>`
-      : '';
-    photosHTML = `<div style="margin-bottom:20px;">${portada}${grid}</div>`;
+    photosHTML = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:6px;">${cells}</div>`;
   }
 
   // ── STATS BAR ──
@@ -3390,19 +3383,19 @@ function exportarWord() {
   const photoImgsW = photos.filter(p => p);
   let fotosWordHTML = '';
   if (photoImgsW.length) {
-    // Mostrar en filas de 3 (hasta 2 filas = 6 fotos)
-    const colW = 155; // 3 columnas en ~500pt
+    // Grid de 4 columnas en Word
+    const colW = 115;
     let rows = '';
-    for (let r = 0; r < photoImgsW.length; r += 3) {
-      const rowImgs = photoImgsW.slice(r, r + 3);
+    for (let r = 0; r < photoImgsW.length; r += 4) {
+      const rowImgs = photoImgsW.slice(r, r + 4);
       const cells = rowImgs.map(src =>
-        `<td style="padding:4pt;text-align:center;vertical-align:top;">
-          <img src="${src}" width="${colW}" style="display:block;max-width:100%;height:auto;">
+        `<td style="padding:3pt;text-align:center;vertical-align:top;">
+          <img src="${src}" width="${colW}" style="display:block;max-width:100%;height:auto;border-radius:3pt;">
         </td>`
       ).join('');
       rows += `<tr>${cells}</tr>`;
     }
-    fotosWordHTML = `<table style="width:100%;border-collapse:collapse;margin-bottom:14pt;page-break-inside:avoid;">${rows}</table>`;
+    fotosWordHTML = `<table style="width:100%;border-collapse:collapse;page-break-inside:avoid;">${rows}</table>`;
   }
 
   const fichaHtml = fichaText.split('\n').map(line => {
@@ -4220,7 +4213,7 @@ function buscarDash() {
       </div>
       <button onclick="abrirPropiedadParaExportar(${r.id})"
         style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;">
-        📄 Ver y Exportar Ficha
+        👁️ Ver Ficha
       </button>
     </div>`).join('');
 }
@@ -5153,6 +5146,46 @@ function limpiarFormReq() {
   if (out) out.innerHTML = "<button class=\"btn btn-ghost copy-btn\" onclick=\"copiar('req-out')\">Copiar</button><div style=\"color:var(--t3);font-size:13px;padding:20px 0;text-align:center;\">Completa los datos y genera el post ↑</div>";
   // Reinicializar selectores de zona
   if (typeof inicializarSelectoresReq === 'function') inicializarSelectoresReq();
+}
+
+
+// ── Limpiar formulario de captación después de guardar ──
+function limpiarFormCaptacion() {
+  // Campos texto/número
+  ['cap-propietario','cap-area','cap-area-const','cap-precio','cap-orientacion',
+   'cap-antiguedad','cap-direccion','cap-caract','cap-dorms','cap-banos','cap-cocheras',
+   'cap-ubicacion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Selects
+  ['cap-tipo','cap-operacion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  // Resetear selectores de ubicación
+  const dep = document.getElementById('cap-departamento');
+  if (dep) { dep.value = 'Arequipa'; onChangeDep(); }
+  // Limpiar asesor
+  const selAsesor = document.getElementById('cap-asesor-select');
+  if (selAsesor) { selAsesor.selectedIndex = 0; seleccionarAsesorMod1(selAsesor); }
+  // Limpiar fotos
+  if (typeof photos !== 'undefined') { photos.fill(null); buildPhotoGrid(); }
+  // Limpiar textarea ficha
+  const fichaEl = document.getElementById('out-ficha');
+  if (fichaEl) {
+    fichaEl.value = '';
+    fichaEl.style.background = '';
+  }
+  const badge = document.getElementById('ficha-ready-badge');
+  if (badge) badge.style.display = 'none';
+  // Resetear botón guardar
+  const btnG = document.getElementById('btn-guardar-prop');
+  if (btnG) btnG.textContent = '💾 Guardar en Base de Datos';
+  const propBadge = document.getElementById('prop-guardada-badge');
+  if (propBadge) propBadge.style.display = 'none';
+  _editPropId = null;
+  window.scrollTo(0, 0);
 }
 
 </script>
