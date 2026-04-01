@@ -2531,12 +2531,20 @@ function exportarPDF() {
     </div>` : ''}
 
     <!-- FOOTER -->
-    <div style="background:#333;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="background:#333;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
       <div style="font-size:9px;color:#AAA;">
-        <strong style="color:#fff;">Empresarios Inmobiliarios</strong> · Arequipa, Perú ·
-        940 916 247 · contacto@empresariosinmobiliarios.com · IG: @empresarios.inmobiliarios
+        <strong style="color:#fff;">Empresarios Inmobiliarios</strong> · Perú ·
+        940 916 247 · contacto@empresariosinmobiliarios.com
       </div>
-      <div style="font-size:9px;color:#666;">Documento informativo</div>
+      <div style="font-size:9px;text-align:right;">
+        ${window._pdfAgenteLogueado ? 
+          '<span style=\"color:#fff;font-weight:700;\">' + window._pdfAgenteLogueado.nombre + '</span>' +
+          '<span style=\"color:#AAA;\"> · 📲 ' + window._pdfAgenteLogueado.tel + '</span>' +
+          '<br><span style=\"color:#666;font-size:8px;\">Cortesía de: ' + (window._pdfDuenoProp||'') + '</span>'
+          :
+          '<span style=\"color:#AAA;\">' + (propietario||'') + '</span>'
+        }
+      </div>
     </div>`;
 
   // ── Modal con iframe interno — sin abrir ventanas externas ──
@@ -2792,13 +2800,35 @@ function guardarPropiedadManual() {
   const btnG   = document.getElementById('btn-guardar-prop');
 
   if (_editPropId !== null) {
-    // MODO EDICIÓN — actualizar registro existente
-    const all = dbGet('props').map(r => r.id === _editPropId ? {...datos, id:r.id, fecha:r.fecha} : r);
-    dbSave('props', all);
+    // MODO EDICIÓN — actualizar en Supabase y localStorage
+    const editId = _editPropId;
+    const sbData = {
+      tipo: datos.tipo, operacion: datos.operacion, propietario: datos.propietario||'',
+      ubicacion: datos.ubicacion||'', direccion: datos.direccion||'',
+      area: datos.area||'', area_const: datos.areaConst||'', precio: datos.precio||'',
+      caract: datos.caract||'', orientacion: datos.orientacion||'',
+      antiguedad: datos.antiguedad||'', asesor: datos.asesor||'',
+      asesor_tel: datos.asesor_tel||'', ficha: datos.ficha||'', estado: datos.estado||'Activa'
+    };
+    sbFetch('ei_props?id=eq.' + editId, 'PATCH', sbData).then(() => {
+      // Actualizar caché local
+      const all = dbGet('props').map(r => r.id === editId ? {...datos, id:editId, fecha:r.fecha} : r);
+      dbSave('props', all);
+      // Subir fotos si las hay
+      if (datos.fotos && datos.fotos.length) {
+        subirFotosPropiedad(editId, datos.fotos).then(urls => {
+          if (urls.length) sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(urls) });
+        });
+      }
+      if (typeof buscarDash === 'function') buscarDash();
+    });
     badge.style.display = 'flex';
-    badge.textContent   = '✅ Propiedad actualizada correctamente';
+    badge.textContent   = '✅ Propiedad actualizada en la nube ☁️';
+    badge.style.background = 'rgba(0,160,64,.12)';
+    badge.style.color = '#007730';
     btnG.textContent    = '💾 Guardar en Base de Datos';
     _editPropId = null;
+    setTimeout(limpiarFormCaptacion, 1500);
   } else {
     // MODO NUEVO — agregar
     dbAddCloud('props', datos).then((saved) => {
@@ -4430,7 +4460,20 @@ function abrirPropiedadParaExportar(id) {
 
         <!-- Footer -->
         <div style="margin-top:20px;padding-top:12px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-          <div style="font-size:10px;color:#999;">Asesor: <strong style="color:#555;">${r.asesor||'—'}</strong>${r.asesor_tel && r.asesor_tel!=='—' ? ' · 📲 '+r.asesor_tel : ''}</div>
+          <div style="font-size:11px;color:#333;">
+            ${(()=>{
+              const ag = getAgenteActual();
+              const dueno = r.asesor && r.asesor!=='—' ? r.asesor : 'Empresarios Inmobiliarios';
+              const mismoAgente = ag && (ag.nombre === dueno || !dueno || dueno === 'Empresarios Inmobiliarios');
+              if (ag && !mismoAgente) {
+                return '<strong style="color:#333;">' + ag.nombre + '</strong> · 📲 ' + ag.tel +
+                       '<span style="font-size:9px;color:#999;display:block;margin-top:2px;">Cortesía de: ' + dueno + '</span>';
+              } else {
+                return '<strong style="color:#CE011F;">' + dueno + '</strong>' +
+                       (r.asesor_tel && r.asesor_tel!=='—' ? ' · 📲 ' + r.asesor_tel : ' · 📲 940 916 247');
+              }
+            })()}
+          </div>
           <div style="font-size:10px;color:#999;">940 916 247 · contacto@empresariosinmobiliarios.com</div>
         </div>
       </div>
@@ -5186,6 +5229,32 @@ function limpiarFormCaptacion() {
   if (propBadge) propBadge.style.display = 'none';
   _editPropId = null;
   window.scrollTo(0, 0);
+}
+
+
+const AGENTES_DATA = {
+  'alexis@ei.com':        { nombre: 'Alexis Valdivia',      tel: '921305393' },
+  'carmen@ei.com':        { nombre: 'Carmen Barrios',        tel: '965231636' },
+  'cecilia@ei.com':       { nombre: 'Cecilia Cayani',        tel: '958237709' },
+  'cinthia@ei.com':       { nombre: 'Cinthia Calizaya',      tel: '961094351' },
+  'claudio@ei.com':       { nombre: 'Claudio Condori',       tel: '959928860' },
+  'david@ei.com':         { nombre: 'David Rodriguez',       tel: '959798477' },
+  'evelyn@ei.com':        { nombre: 'Evelyn Rivera',         tel: '957488942' },
+  'fiorella@ei.com':      { nombre: 'Fiorella Heresi',       tel: '956702984' },
+  'joel@ei.com':          { nombre: 'Joel Cuadros',          tel: '969892569' },
+  'juanfernando@ei.com':  { nombre: 'Juan Fernando Fuentes', tel: '969000163' },
+  'lucy@ei.com':          { nombre: 'Lucy Arapa',            tel: '989403914' },
+  'marilyn@ei.com':       { nombre: 'Marilyn Benavente',     tel: '953769128' },
+  'milagros@ei.com':      { nombre: 'Milagros Rodriguez',    tel: '993266771' },
+  'paola@ei.com':         { nombre: 'Paola Herrera',         tel: '970267212' },
+  'veronica@ei.com':      { nombre: 'Veronica Chacón',       tel: '923071770' },
+  'ylka@ei.com':          { nombre: 'Ylka Stojkic',          tel: '992239361' },
+  'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
+};
+
+function getAgenteActual() {
+  if (!currentUser) return null;
+  return AGENTES_DATA[currentUser.email] || null;
 }
 
 </script>
