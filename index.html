@@ -761,7 +761,7 @@ td:first-child { color:var(--t1); font-weight:500; }
           <div class="card-icon">📸</div>
           <div>
             <div class="card-title">Fotos de la Propiedad</div>
-            <div class="card-sub">Sube hasta 6 fotos — se incluirán en el Word y PDF</div>
+            <div class="card-sub">Sube hasta 8 fotos — se incluirán en el Word y PDF</div>
           </div>
         </div>
         <div class="photo-grid" id="photo-grid">
@@ -3241,7 +3241,7 @@ function showPage(id, el) {
 }
 
 // ===================== PHOTOS =====================
-const photos = [null, null, null, null, null, null]; // base64 strings (6 fotos)
+const photos = [null, null, null, null, null, null, null, null]; // base64 strings (8 fotos)
 function buildPhotoGrid() {
   const grid = document.getElementById('photo-grid');
   grid.innerHTML = '';
@@ -3278,7 +3278,7 @@ function buildPhotoGrid() {
 }
 
 function handleMultiplePhotos(input) {
-  const files = Array.from(input.files).slice(0, 6);
+  const files = Array.from(input.files).slice(0, 8);
   if (!files.length) return;
 
   // Llenar slots vacíos en orden
