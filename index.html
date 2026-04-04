@@ -2271,14 +2271,23 @@ function toSbRow(key, record) {
 }
 
 function fromSbRow(key, r) {
-  if (key === 'props') return {
-    id:r.id, fecha:r.fecha, tipo:r.tipo, operacion:r.operacion,
-    propietario:r.propietario, ubicacion:r.ubicacion, direccion:r.direccion,
-    area:r.area, areaConst:r.area_const, precio:r.precio, caract:r.caract,
-    orientacion:r.orientacion, antiguedad:r.antiguedad,
-    asesor:r.asesor, asesor_tel:r.asesor_tel,
-    ficha:r.ficha||'', fotos:[], estado:r.estado
-  };
+  if (key === 'props') {
+    // Leer fotos_urls de Supabase Storage
+    let fotosUrls = [];
+    try {
+      if (r.fotos_urls) {
+        fotosUrls = typeof r.fotos_urls === 'string' ? JSON.parse(r.fotos_urls) : r.fotos_urls;
+      }
+    } catch(e) { fotosUrls = []; }
+    return {
+      id:r.id, fecha:r.fecha, tipo:r.tipo, operacion:r.operacion,
+      propietario:r.propietario, ubicacion:r.ubicacion, direccion:r.direccion,
+      area:r.area, areaConst:r.area_const, precio:r.precio, caract:r.caract,
+      orientacion:r.orientacion, antiguedad:r.antiguedad,
+      asesor:r.asesor, asesor_tel:r.asesor_tel,
+      ficha:r.ficha||'', fotos:fotosUrls, fotos_urls:fotosUrls, estado:r.estado
+    };
+  }
   if (key === 'kpis') return {
     id:r.id, fecha:r.fecha, captaciones:r.captaciones, fichas:r.fichas,
     leads:r.leads, visitas:r.visitas, ofertas:r.ofertas, contratos:r.contratos,
