@@ -4489,12 +4489,12 @@ function abrirPropiedadParaExportar(id) {
           ${r.caract && r.caract!=='—' ? `<div style="background:#f8f8f8;border:1px solid #eee;border-radius:6px;padding:8px 10px;text-align:center;"><div style="font-size:11px;font-weight:600;color:#333;">${r.caract}</div><div style="font-size:9px;color:#999;text-transform:uppercase;">Características</div></div>` : ''}
         </div>
 
-        <!-- Fotos -->
-        ${fotosHTML}
-
         <!-- Ficha técnica -->
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#CE011F;font-weight:700;border-bottom:1px solid #CE011F;padding-bottom:4px;margin-bottom:12px;">Ficha Técnica</div>
         ${fichaHTML}
+
+        <!-- Fotos AL FONDO -->
+        ${fotosHTML.includes('Las fotos se cargan') ? '' : `<div style="margin-top:16px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#CE011F;font-weight:700;border-bottom:1px solid #CE011F;padding-bottom:4px;margin-bottom:10px;">Galería de Fotos</div>${fotosHTML}</div>`}
 
         <!-- Footer -->
         <div style="margin-top:20px;padding-top:12px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
