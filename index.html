@@ -2834,11 +2834,12 @@ function guardarPropiedadManual() {
         });
       } else if (fotosUrls.length) {
         // Solo hay fotos ya en Storage — mantenerlas
-        await sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(fotosUrls) });
-        const cached = dbGet('props');
-        const idx = cached.findIndex(p => p.id === editId);
-        if (idx >= 0) { cached[idx].fotos_urls = fotosUrls; dbSave('props', cached); }
-        console.log('✅ URLs existentes mantenidas:', fotosUrls.length);
+        sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(fotosUrls) }).then(() => {
+          const cached = dbGet('props');
+          const idx = cached.findIndex(p => p.id === editId);
+          if (idx >= 0) { cached[idx].fotos_urls = fotosUrls; dbSave('props', cached); }
+          console.log('✅ URLs existentes mantenidas:', fotosUrls.length);
+        });
       }
       if (typeof buscarDash === 'function') buscarDash();
     });
