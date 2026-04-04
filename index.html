@@ -5279,36 +5279,7 @@ function getAgenteActual() {
 
 
 // ── Lookup de agentes por email ──
-const AGENTES_DATA = {
-  'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
-  'david@ei.com':         { nombre: 'David Rodriguez',        tel: '959798477' },
-  'marilyn@ei.com':       { nombre: 'Marilyn Benavente',      tel: '953769128' },
-  'cecilia@ei.com':       { nombre: 'Cecilia Cayani',         tel: '958237709' },
-  'alexis@ei.com':        { nombre: 'Alexis Valdivia',        tel: '921305393' },
-  'carmen@ei.com':        { nombre: 'Carmen Barrios',         tel: '965231636' },
-  'cinthia@ei.com':       { nombre: 'Cinthia Calizaya',       tel: '961094351' },
-  'claudio@ei.com':       { nombre: 'Claudio Condori',        tel: '959928860' },
-  'evelyn@ei.com':        { nombre: 'Evelyn Rivera',          tel: '957488942' },
-  'fiorella@ei.com':      { nombre: 'Fiorella Heresi',        tel: '956702984' },
-  'joel@ei.com':          { nombre: 'Joel Cuadros',           tel: '969892569' },
-  'juanfernando@ei.com':  { nombre: 'Juan Fernando Fuentes',  tel: '969000163' },
-  'lucy@ei.com':          { nombre: 'Lucy Arapa',             tel: '989403914' },
-  'milagros@ei.com':      { nombre: 'Milagros Rodriguez',     tel: '993266771' },
-  'paola@ei.com':         { nombre: 'Paola Herrera',          tel: '970267212' },
-  'veronica@ei.com':      { nombre: 'Veronica Chacon',        tel: '923071770' },
-  'ylka@ei.com':          { nombre: 'Ylka Stojkic',           tel: '992239361' },
-};
 
-function getAgenteActual() {
-  if (currentUser && currentUser.email) {
-    const data = AGENTES_DATA[currentUser.email];
-    if (data) return data;
-    // Si no está en la tabla, usar el nombre del email
-    const nombre = currentUser.email.split('@')[0];
-    return { nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1), tel: '940 916 247' };
-  }
-  return { nombre: 'Empresarios Inmobiliarios', tel: '940 916 247' };
-}
 
 </script>
 </body>
