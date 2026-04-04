@@ -2005,10 +2005,11 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
               </select>
             </div>
             <div class="field">
-              <label>Distrito(s) <span style="font-size:10px;color:var(--t3);">Ctrl+clic para varios</span></label>
-              <select id="req-dist" onchange="onReqDist()" multiple style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;font-family:'DM Sans',sans-serif;min-height:90px;">
+              <label>Distrito(s)</label>
+              <select id="req-dist" onchange="onReqDist()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;">
                 <option value="">Seleccionar distrito...</option>
               </select>
+              <div id="req-distritos-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
             </div>
           </div>
           <input type="hidden" id="req-zona">
@@ -3840,7 +3841,12 @@ Formato obligatorio con estas 5 partes:
 Sin asteriscos. Español natural peruano. Tono directo y aspiracional.`;
   else instruccion = 'Crea un mensaje de difusión WhatsApp (60-80 palabras). Tono personal como si fuera directamente del asesor, 2-3 emojis máximo, precio visible, datos de contacto al final. Sin hashtags.';
 
-  const prompt = `Eres asesor de Empresarios Inmobiliarios, Arequipa, Perú.
+  // Usar datos del agente logueado
+  const agenteRedes = getAgenteActual();
+  const nombreAsesor = agenteRedes.nombre;
+  const telAsesor = agenteRedes.tel;
+
+  const prompt = `Eres ${nombreAsesor}, asesor de Empresarios Inmobiliarios, Arequipa, Perú. Slogan: "Construimos Patrimonio con Conocimiento y Propósito".
 
 ${instruccion}
 
@@ -3849,6 +3855,7 @@ PROPIEDAD:
 - Precio: USD ${precio || 'A consultar'}
 - Características: ${caract || 'destacadas, ver detalles'}
 
+Datos de contacto al final: ${nombreAsesor} · WhatsApp: ${telAsesor}
 Posiciona a Empresarios Inmobiliarios como consultora de alto rendimiento. Tono aspiracional y experto. Sin asteriscos.`;
 
   mostrarPrompt('out-copy', 'out-copy-label', 'spin-copy', prompt, `PROMPT — Copy ${red}`);
@@ -5227,6 +5234,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Limpiar formulario de requerimientos ──
 function limpiarFormReq() {
+  reqDistritosSeleccionados = [];
+  renderReqDistTags();
   const ids = ['req-tipo','req-operacion','req-dep','req-prov','req-dist','req-zona',
                'req-presupuesto','req-requisitos','req-asesor-nombre','req-asesor-tel'];
   ids.forEach(id => {
@@ -5322,24 +5331,61 @@ function abrirCopyRedesDesdeModal(id) {
   const modal = document.getElementById('ei-prop-preview');
   if (modal) modal.remove();
 
-  // Cargar datos de la propiedad en los campos de Captación (silenciosamente)
+  // Cargar datos en campos de Captación
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
-  set('cap-tipo', r.tipo);
+  set('cap-tipo',      r.tipo);
   set('cap-operacion', r.operacion);
   set('cap-ubicacion', r.ubicacion);
-  set('cap-area', r.area);
-  set('cap-precio', r.precio);
+  set('cap-area',      r.area);
+  set('cap-precio',    r.precio);
   set('cap-orientacion', r.orientacion);
-  set('cap-antiguedad', r.antiguedad);
-  set('cap-caract', r.caract && r.caract !== '—' ? r.caract : '');
+  set('cap-antiguedad',  r.antiguedad);
+
+  // Parsear características para dorms/baños/cocheras
+  if (r.caract && r.caract !== '—') {
+    const partes = r.caract.split(',').map(s => s.trim());
+    let extras = [];
+    partes.forEach(p => {
+      const dorm = p.match(/(\d+)\s*dorm/i);
+      const bano = p.match(/(\d+)\s*ba[ñn]/i);
+      const coch = p.match(/(\d+)\s*cochera/i);
+      const sinCoch = p.match(/^sin cochera/i);
+      if (dorm) set('cap-dorms', dorm[1]);
+      else if (bano) set('cap-banos', bano[1]);
+      else if (coch) set('cap-cocheras', coch[1]);
+      else if (sinCoch) set('cap-cocheras', '0');
+      else extras.push(p);
+    });
+    set('cap-caract', extras.join(', '));
+  }
 
   // Cargar ficha si existe
   const fichaEl = document.getElementById('out-ficha');
   if (fichaEl && r.ficha) fichaEl.value = r.ficha;
 
   // Ir a Redes Sociales → pestaña Copy Propiedad
-  showPage('redes', document.querySelector('[onclick*="redes"]'));
+  showPage('redes', document.querySelector('[onclick*='redes']'));
   setTimeout(() => switchRedTab('propiedad'), 200);
+}
+
+
+function renderReqDistTags() {
+  const container = document.getElementById('req-distritos-tags');
+  if (!container) return;
+  container.innerHTML = reqDistritosSeleccionados.map(d => `
+    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(206,1,31,.1);color:var(--r);border:1px solid rgba(206,1,31,.2);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;">
+      ${d}
+      <button onclick="removeReqDist('${d}')" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:14px;line-height:1;padding:0;margin-left:2px;">×</button>
+    </span>`).join('');
+  // Actualizar req-zona
+  const zona = reqDistritosSeleccionados.join(', ');
+  const zonaEl = document.getElementById('req-zona');
+  if (zonaEl) zonaEl.value = zona;
+}
+
+function removeReqDist(dist) {
+  reqDistritosSeleccionados = reqDistritosSeleccionados.filter(d => d !== dist);
+  renderReqDistTags();
 }
 
 </script>
