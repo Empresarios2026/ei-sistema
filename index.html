@@ -4465,6 +4465,7 @@ function abrirPropiedadParaExportar(id) {
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="exportarFichaGuardadaPDF(${id})" style="background:#CE011F;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📑 Descargar PDF</button>
         <button onclick="exportarFichaGuardadaWord(${id})" style="background:#1a1a2e;color:#a8d4ff;border:1px solid rgba(126,179,255,.3);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 Descargar Word</button>
+        <button onclick="abrirCopyRedesDesdeModal(${id})" style="background:#2d6a4f;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📱 Copy Redes</button>
         <button onclick="cargarPropParaEditar(${id});document.getElementById('ei-prop-preview').remove();" style="background:#444;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;cursor:pointer;">✏️ Editar</button>
       </div>
       <button onclick="document.getElementById('ei-prop-preview').remove()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">× Cerrar</button>
@@ -5310,6 +5311,36 @@ function getAgenteActual() {
 
 // ── Lookup de agentes por email ──
 
+
+
+// ── Abrir Redes Sociales con datos de la propiedad del modal ──
+function abrirCopyRedesDesdeModal(id) {
+  const r = dbGet('props').find(p => p.id === id);
+  if (!r) return;
+
+  // Cerrar modal
+  const modal = document.getElementById('ei-prop-preview');
+  if (modal) modal.remove();
+
+  // Cargar datos de la propiedad en los campos de Captación (silenciosamente)
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('cap-tipo', r.tipo);
+  set('cap-operacion', r.operacion);
+  set('cap-ubicacion', r.ubicacion);
+  set('cap-area', r.area);
+  set('cap-precio', r.precio);
+  set('cap-orientacion', r.orientacion);
+  set('cap-antiguedad', r.antiguedad);
+  set('cap-caract', r.caract && r.caract !== '—' ? r.caract : '');
+
+  // Cargar ficha si existe
+  const fichaEl = document.getElementById('out-ficha');
+  if (fichaEl && r.ficha) fichaEl.value = r.ficha;
+
+  // Ir a Redes Sociales → pestaña Copy Propiedad
+  showPage('redes', document.querySelector('[onclick*="redes"]'));
+  setTimeout(() => switchRedTab('propiedad'), 200);
+}
 
 </script>
 </body>
