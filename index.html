@@ -2426,6 +2426,7 @@ function exportarPDF() {
     return;
   }
 
+  const agenteLogueado = getAgenteActual();
   const tipo       = document.getElementById('cap-tipo').value || 'Propiedad';
   const ubi        = document.getElementById('cap-ubicacion').value || '';
   const precio     = document.getElementById('cap-precio').value || '';
@@ -2816,8 +2817,15 @@ function guardarPropiedadManual() {
       dbSave('props', all);
       // Subir fotos si las hay
       if (datos.fotos && datos.fotos.length) {
-        subirFotosPropiedad(editId, datos.fotos).then(urls => {
-          if (urls.length) sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(urls) });
+        subirFotosPropiedad(editId, datos.fotos).then(async urls => {
+          if (urls.length) {
+            await sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(urls) });
+            // Actualizar caché local
+            const cached = dbGet('props');
+            const idx = cached.findIndex(p => p.id === editId);
+            if (idx >= 0) { cached[idx].fotos_urls = urls; dbSave('props', cached); }
+            console.log('✅ URLs guardadas en Supabase para prop', editId);
+          }
         });
       }
       if (typeof buscarDash === 'function') buscarDash();
@@ -4533,18 +4541,22 @@ function exportarFichaGuardadaWord(id) {
 // SUPABASE STORAGE — Fotos en la nube
 // ══════════════════════════════════════════
 async function subirFotoStorage(base64, nombreArchivo) {
-  // Convertir base64 a Blob
-  const arr  = base64.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  const blob = new Blob([u8arr], { type: mime });
-
-  // Subir a Supabase Storage
-  const url = `${SB_URL}/storage/v1/object/ei-fotos/${nombreArchivo}`;
   try {
+    // Convertir base64 a Blob
+    const arr  = base64.split(',');
+    if (arr.length < 2) { console.error('Base64 inválido'); return null; }
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+
+    // Subir a Supabase Storage
+    const url = `${SB_URL}/storage/v1/object/ei-fotos/${nombreArchivo}`;
+    console.log('Subiendo foto:', nombreArchivo, 'Tamaño:', blob.size, 'bytes');
+
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -4555,29 +4567,37 @@ async function subirFotoStorage(base64, nombreArchivo) {
       },
       body: blob
     });
+
+    const responseText = await res.text();
     if (res.ok) {
-      // Retornar URL pública
-      return `${SB_URL}/storage/v1/object/public/ei-fotos/${nombreArchivo}`;
+      const publicUrl = `${SB_URL}/storage/v1/object/public/ei-fotos/${nombreArchivo}`;
+      console.log('✅ Foto subida:', publicUrl);
+      return publicUrl;
     }
-    console.warn('Error subiendo foto:', await res.text());
+    console.error('❌ Error subiendo foto', res.status, responseText);
     return null;
   } catch(e) {
-    console.warn('Error storage:', e);
+    console.error('❌ Error storage:', e.message);
     return null;
   }
 }
 
 async function subirFotosPropiedad(propId, fotosBase64) {
+  if (!fotosBase64 || !fotosBase64.length) return [];
+  console.log('Subiendo', fotosBase64.length, 'fotos para propiedad', propId);
   const urls = [];
   for (let i = 0; i < fotosBase64.length; i++) {
     if (!fotosBase64[i]) continue;
-    const ext = fotosBase64[i].includes('png') ? 'png' : 'jpg';
-    const nombre = `prop_${propId}_foto${i+1}.${ext}`;
+    const ext = fotosBase64[i].startsWith('data:image/png') ? 'png' : 'jpg';
+    const nombre = `prop_${propId}_foto${i+1}_${Date.now()}.${ext}`;
     const url = await subirFotoStorage(fotosBase64[i], nombre);
     if (url) urls.push(url);
   }
+  console.log('Fotos subidas:', urls.length, 'de', fotosBase64.filter(f=>f).length);
   return urls;
 }
+
+
 
 async function guardarUrlsFotosEnSupabase(propId, urls) {
   if (!urls.length) return;
@@ -5255,6 +5275,39 @@ const AGENTES_DATA = {
 function getAgenteActual() {
   if (!currentUser) return null;
   return AGENTES_DATA[currentUser.email] || null;
+}
+
+
+// ── Lookup de agentes por email ──
+const AGENTES_DATA = {
+  'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
+  'david@ei.com':         { nombre: 'David Rodriguez',        tel: '959798477' },
+  'marilyn@ei.com':       { nombre: 'Marilyn Benavente',      tel: '953769128' },
+  'cecilia@ei.com':       { nombre: 'Cecilia Cayani',         tel: '958237709' },
+  'alexis@ei.com':        { nombre: 'Alexis Valdivia',        tel: '921305393' },
+  'carmen@ei.com':        { nombre: 'Carmen Barrios',         tel: '965231636' },
+  'cinthia@ei.com':       { nombre: 'Cinthia Calizaya',       tel: '961094351' },
+  'claudio@ei.com':       { nombre: 'Claudio Condori',        tel: '959928860' },
+  'evelyn@ei.com':        { nombre: 'Evelyn Rivera',          tel: '957488942' },
+  'fiorella@ei.com':      { nombre: 'Fiorella Heresi',        tel: '956702984' },
+  'joel@ei.com':          { nombre: 'Joel Cuadros',           tel: '969892569' },
+  'juanfernando@ei.com':  { nombre: 'Juan Fernando Fuentes',  tel: '969000163' },
+  'lucy@ei.com':          { nombre: 'Lucy Arapa',             tel: '989403914' },
+  'milagros@ei.com':      { nombre: 'Milagros Rodriguez',     tel: '993266771' },
+  'paola@ei.com':         { nombre: 'Paola Herrera',          tel: '970267212' },
+  'veronica@ei.com':      { nombre: 'Veronica Chacon',        tel: '923071770' },
+  'ylka@ei.com':          { nombre: 'Ylka Stojkic',           tel: '992239361' },
+};
+
+function getAgenteActual() {
+  if (currentUser && currentUser.email) {
+    const data = AGENTES_DATA[currentUser.email];
+    if (data) return data;
+    // Si no está en la tabla, usar el nombre del email
+    const nombre = currentUser.email.split('@')[0];
+    return { nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1), tel: '940 916 247' };
+  }
+  return { nombre: 'Empresarios Inmobiliarios', tel: '940 916 247' };
 }
 
 </script>
