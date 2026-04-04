@@ -2815,18 +2815,30 @@ function guardarPropiedadManual() {
       // Actualizar caché local
       const all = dbGet('props').map(r => r.id === editId ? {...datos, id:editId, fecha:r.fecha} : r);
       dbSave('props', all);
-      // Subir fotos si las hay
-      if (datos.fotos && datos.fotos.length) {
-        subirFotosPropiedad(editId, datos.fotos).then(async urls => {
-          if (urls.length) {
-            await sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(urls) });
-            // Actualizar caché local
+      // Subir fotos si las hay (solo base64, no URLs ya subidas)
+      const fotosNuevas = (datos.fotos || []).filter(f => f && f.startsWith('data:'));
+      const fotosUrls   = (datos.fotos || []).filter(f => f && f.startsWith('http'));
+      console.log('Fotos nuevas (base64):', fotosNuevas.length, '| Fotos ya en Storage:', fotosUrls.length);
+      
+      if (fotosNuevas.length) {
+        subirFotosPropiedad(editId, fotosNuevas).then(async urls => {
+          // Combinar URLs nuevas con las ya existentes
+          const todasUrls = [...fotosUrls, ...urls];
+          if (todasUrls.length) {
+            await sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(todasUrls) });
             const cached = dbGet('props');
             const idx = cached.findIndex(p => p.id === editId);
-            if (idx >= 0) { cached[idx].fotos_urls = urls; dbSave('props', cached); }
-            console.log('✅ URLs guardadas en Supabase para prop', editId);
+            if (idx >= 0) { cached[idx].fotos_urls = todasUrls; dbSave('props', cached); }
+            console.log('✅ URLs guardadas:', todasUrls);
           }
         });
+      } else if (fotosUrls.length) {
+        // Solo hay fotos ya en Storage — mantenerlas
+        await sbFetch('ei_props?id=eq.' + editId, 'PATCH', { fotos_urls: JSON.stringify(fotosUrls) });
+        const cached = dbGet('props');
+        const idx = cached.findIndex(p => p.id === editId);
+        if (idx >= 0) { cached[idx].fotos_urls = fotosUrls; dbSave('props', cached); }
+        console.log('✅ URLs existentes mantenidas:', fotosUrls.length);
       }
       if (typeof buscarDash === 'function') buscarDash();
     });
