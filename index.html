@@ -2193,9 +2193,13 @@ const SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
 
 async function sbFetch(table, method='GET', body=null, id=null) {
+  // Si table ya incluye '?' no agregar más parámetros
+  const hasQuery = table.includes('?');
   const url = id
-    ? `${SB_URL}/rest/v1/${table}?id=eq.${id}`
-    : `${SB_URL}/rest/v1/${table}?order=id.desc`;
+    ? `${SB_URL}/rest/v1/${table}${hasQuery ? '&' : '?'}id=eq.${id}`
+    : hasQuery
+      ? `${SB_URL}/rest/v1/${table}`
+      : `${SB_URL}/rest/v1/${table}?order=id.desc`;
   const opts = {
     method,
     headers: {
@@ -2313,13 +2317,16 @@ async function dbAddCloud(key, record) {
         try { localStorage.setItem('ei_fotos_' + sbId, JSON.stringify(record.fotos)); } catch(e) {}
       }
 
-      // Actualizar caché local con el registro recién guardado
+      // Actualizar caché local — evitar duplicados por ID
       const data = dbGet(key);
       const mapped = fromSbRow(key, result[0]);
       mapped.fotos = record.fotos || [];
       mapped.ficha = record.ficha || '';
-      data.unshift(mapped);
-      dbSave(key, data);
+      // Solo agregar si no existe ya ese ID
+      if (!data.find(r => r.id === mapped.id)) {
+        data.unshift(mapped);
+        dbSave(key, data);
+      }
     }
   }
   return record;
@@ -2349,6 +2356,7 @@ async function cargarDesdeSupabase() {
       if (Array.isArray(rows)) {
         const mapped = rows.map(r => fromSbRow(key, r));
         // Siempre reemplazar caché local completamente — evita duplicados
+        // Reemplazar completamente — evita duplicados
         localStorage.setItem(DB_KEYS[key], JSON.stringify(mapped));
         total += mapped.length;
       } else {
