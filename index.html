@@ -800,11 +800,11 @@ td:first-child { color:var(--t1); font-weight:500; }
         </div>
         <div style="margin-top:16px;">
           <div class="output-label" id="out-ficha-label" style="display:flex;margin-bottom:10px;">
-            <span>② PEGA AQUÍ EL RESULTADO DE CLAUDE.AI — luego exporta</span>
+            <span>② FICHA TÉCNICA — se genera automáticamente o pega el resultado de Claude.ai</span>
           </div>
           <div style="position:relative;">
             <textarea id="out-ficha"
-              placeholder="1. Copia el prompt de arriba&#10;2. Abre claude.ai y pégalo&#10;3. Copia la ficha que Claude generó&#10;4. Pégala aquí&#10;5. Haz clic en Exportar a Word o PDF"
+              placeholder="1. Completa los datos de arriba&#10;2. Haz clic en ✨ Generar Ficha con IA&#10;3. Espera unos segundos&#10;4. La ficha aparecerá aquí automáticamente&#10;5. Exporta a Word o PDF"
               style="width:100%;min-height:220px;background:var(--s2);border:1px solid rgba(206,1,31,.3);border-radius:10px;padding:14px 14px 14px 14px;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;"
               onfocus="this.style.borderColor='rgba(206,1,31,.7)'"
               onblur="this.style.borderColor='rgba(206,1,31,.3)'"
@@ -2523,7 +2523,7 @@ function exportarPDF() {
   const fichaEl = document.getElementById('out-ficha');
   const fichaText = (fichaEl.value || fichaEl.innerText || '').replace('Copiar','').trim();
   if (!fichaText || fichaText.length < 30) {
-    alert('Primero pega el resultado de Claude.ai en el campo de texto de la ficha.');
+    alert('Primero genera la ficha haciendo clic en ✨ Generar Ficha con IA');
     return;
   }
 
