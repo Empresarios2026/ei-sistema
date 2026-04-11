@@ -5097,7 +5097,17 @@ function onReqProv() {
   actualizarZonaReq();
 }
 
-function onReqDist() { actualizarZonaReq(); }
+function onReqDist() {
+  const sel = document.getElementById('req-dist');
+  const val = sel.value;
+  if (!val) return;
+  // Agregar si no está ya en la lista
+  if (!reqDistritosSeleccionados.includes(val)) {
+    reqDistritosSeleccionados.push(val);
+    renderReqDistTags();
+  }
+  sel.value = ''; // Reset selector para poder elegir otro
+}
 
 function actualizarZonaReq() {
   const dep  = document.getElementById('req-dep').value || '';
@@ -5365,7 +5375,11 @@ function abrirCopyRedesDesdeModal(id) {
   if (fichaEl && r.ficha) fichaEl.value = r.ficha;
 
   // Ir a Redes Sociales → pestaña Copy Propiedad
-  showPage('redes', document.querySelector('[onclick*="redes"]'));
+  // Encontrar el nav-item de Redes Sociales por texto
+  const navItems = document.querySelectorAll('.nav-item');
+  let redesNavItem = null;
+  navItems.forEach(item => { if (item.textContent.includes('Redes')) redesNavItem = item; });
+  showPage('redes', redesNavItem);
   setTimeout(() => switchRedTab('propiedad'), 200);
 }
 
