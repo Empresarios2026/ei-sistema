@@ -2886,8 +2886,9 @@ function guardarPropiedadManual() {
 function guardarPropiedad() { /* llamado legacy — ya no guarda automáticamente */ }
 
 function cargarPropParaEditar(id) {
-  const r = dbGet('props').find(p => p.id === id);
-  if (!r) return;
+  // Buscar por id como string o número
+  const r = dbGet('props').find(p => String(p.id) === String(id));
+  if (!r) { console.warn('Propiedad no encontrada para editar, id:', id); return; }
   _editPropId = id;
 
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
@@ -4420,9 +4421,27 @@ Tono: directo, aspiracional, sin exageraciones. Sin asteriscos. En español peru
 
 
 // ── Vista previa completa de propiedad con fotos y ficha ──
-function abrirPropiedadParaExportar(id) {
-  const r = dbGet('props').find(p => p.id === id);
+async function abrirPropiedadParaExportar(id) {
+  // Recargar datos frescos de Supabase para tener fotos_urls actualizado
+  let r = dbGet('props').find(p => p.id === id);
   if (!r) { alert('Propiedad no encontrada.'); return; }
+  
+  // Si no tiene fotos_urls, intentar cargar desde Supabase
+  if (!r.fotos_urls || !r.fotos_urls.length) {
+    try {
+      const rows = await sbFetch('ei_props?id=eq.' + id);
+      if (rows && rows[0]) {
+        const fresh = fromSbRow('props', rows[0]);
+        if (fresh.fotos_urls && fresh.fotos_urls.length) {
+          r = fresh;
+          // Actualizar caché local
+          const cached = dbGet('props');
+          const idx2 = cached.findIndex(p => p.id === id);
+          if (idx2 >= 0) { cached[idx2].fotos_urls = fresh.fotos_urls; cached[idx2].fotos = fresh.fotos; dbSave('props', cached); }
+        }
+      }
+    } catch(e) { console.warn('Error recargando fotos:', e); }
+  }
 
   // Fotos — primero URLs de Supabase Storage, luego localStorage como respaldo
   let fotosGuardadas = [];
@@ -4474,7 +4493,7 @@ function abrirPropiedadParaExportar(id) {
         <button onclick="exportarFichaGuardadaPDF(${id})" style="background:#CE011F;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📑 Descargar PDF</button>
         <button onclick="exportarFichaGuardadaWord(${id})" style="background:#1a1a2e;color:#a8d4ff;border:1px solid rgba(126,179,255,.3);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 Descargar Word</button>
         <button onclick="abrirCopyRedesDesdeModal(${id})" style="background:#2d6a4f;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📱 Copy Redes</button>
-        <button onclick="cargarPropParaEditar(${id});document.getElementById('ei-prop-preview').remove();" style="background:#444;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;cursor:pointer;">✏️ Editar</button>
+        <button onclick="document.getElementById('ei-prop-preview').remove();setTimeout(()=>cargarPropParaEditar(${id}),100);" style="background:#444;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;cursor:pointer;">✏️ Editar</button>
       </div>
       <button onclick="document.getElementById('ei-prop-preview').remove()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">× Cerrar</button>
     </div>
@@ -4548,7 +4567,8 @@ function guardarFotosPorId(id) {
 function exportarFichaGuardadaPDF(id) {
   const doc = document.getElementById('ei-prop-preview-doc');
   if (!doc) return;
-  const iframeContent = doc.outerHTML;
+  // Asegurar que las fotos de Storage se incluyan
+  let iframeContent = doc.outerHTML;
   const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial,sans-serif;}@media print{@page{size:A4;margin:1cm;}}</style></head><body>${iframeContent}<scr` + `ipt>window.onload=function(){setTimeout(function(){window.print();},400);}<\/scr` + `ipt></body></html>`;
   const blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
@@ -5344,45 +5364,26 @@ function abrirCopyRedesDesdeModal(id) {
 
   // Cargar datos en campos de Captación
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
-  set('cap-tipo',      r.tipo);
-  set('cap-operacion', r.operacion);
-  set('cap-ubicacion', r.ubicacion);
-  set('cap-area',      r.area);
-  set('cap-precio',    r.precio);
+  set('cap-tipo',        r.tipo);
+  set('cap-operacion',   r.operacion);
+  set('cap-ubicacion',   r.ubicacion);
+  set('cap-area',        r.area);
+  set('cap-precio',      r.precio);
   set('cap-orientacion', r.orientacion);
   set('cap-antiguedad',  r.antiguedad);
-
-  // Parsear características para dorms/baños/cocheras
-  if (r.caract && r.caract !== '—') {
-    const partes = r.caract.split(',').map(s => s.trim());
-    const extrasCaract = [];
-    partes.forEach(p => {
-      const dorm = p.match(/(\d+)\s*dorm/i);
-      const bano = p.match(/(\d+)\s*ba[ñn]/i);
-      const coch = p.match(/(\d+)\s*cochera/i);
-      const sinCoch = p.match(/^sin cochera/i);
-      if (dorm) set('cap-dorms', dorm[1]);
-      else if (bano) set('cap-banos', bano[1]);
-      else if (coch) set('cap-cocheras', coch[1]);
-      else if (sinCoch) set('cap-cocheras', '0');
-      else extras.push(p);
-    });
-    set('cap-caract', extras.join(', '));
-  }
+  set('cap-caract',      r.caract && r.caract !== '—' ? r.caract : '');
 
   // Cargar ficha si existe
   const fichaEl = document.getElementById('out-ficha');
   if (fichaEl && r.ficha) fichaEl.value = r.ficha;
 
   // Ir a Redes Sociales → pestaña Copy Propiedad
-  // Encontrar el nav-item de Redes Sociales por texto
   const navItems = document.querySelectorAll('.nav-item');
   let redesNavItem = null;
-  navItems.forEach(item => { if (item.textContent.includes('Redes')) redesNavItem = item; });
+  navItems.forEach(item => { if (item.textContent.trim().includes('Redes')) redesNavItem = item; });
   showPage('redes', redesNavItem);
-  setTimeout(() => switchRedTab('propiedad'), 200);
+  setTimeout(() => switchRedTab('propiedad'), 300);
 }
-
 
 function renderReqDistTags() {
   const container = document.getElementById('req-distritos-tags');
