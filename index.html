@@ -775,9 +775,12 @@ td:first-child { color:var(--t1); font-weight:500; }
           </div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="generarFicha()" id="btn-ficha" style="flex:1">
-            📋 Copiar Prompt — Ficha
+          <button class="btn btn-primary" onclick="generarFichaDirecto()" id="btn-ficha" style="flex:1;background:linear-gradient(135deg,#CE011F,#a00018);">
+            ✨ Generar Ficha con IA
           </button>
+          <div style="width:100%;text-align:center;margin-top:4px;">
+            <a href="#" onclick="generarFicha();return false;" style="font-size:11px;color:var(--t3);text-decoration:underline;">Generar prompt manual (emergencia)</a>
+          </div>
           <button class="btn btn-export" onclick="exportarWord()" id="btn-word" style="flex:1">
             📄 Exportar a Word
           </button>
@@ -1169,10 +1172,58 @@ Un asesor te atenderá muy pronto. 🏡</div>
       <div class="section-desc">Genera anuncios pagados y contenido orgánico optimizado para convertir leads en Arequipa.</div>
     </div>
 
-    <!-- TABS META ADS / ORGÁNICO -->
+    <!-- TABS -->
     <div style="display:flex;gap:8px;margin-bottom:24px;border-bottom:2px solid var(--border);padding-bottom:0;">
-      <button id="tab-meta" onclick="switchRedTab('meta')" style="padding:10px 20px;border:none;border-bottom:3px solid #CE011F;background:none;color:var(--r);font-weight:700;font-size:13px;cursor:pointer;">📢 Meta Ads</button>
+      <button id="tab-propiedad" onclick="switchRedTab('propiedad')" style="padding:10px 20px;border:none;border-bottom:3px solid #CE011F;background:none;color:var(--r);font-weight:700;font-size:13px;cursor:pointer;">🏠 Copy Propiedad</button>
+      <button id="tab-meta" onclick="switchRedTab('meta')" style="padding:10px 20px;border:none;border-bottom:3px solid transparent;background:none;color:var(--t3);font-weight:600;font-size:13px;cursor:pointer;">📢 Meta Ads</button>
       <button id="tab-organico" onclick="switchRedTab('organico')" style="padding:10px 20px;border:none;border-bottom:3px solid transparent;background:none;color:var(--t3);font-weight:600;font-size:13px;cursor:pointer;">✍️ Contenido Orgánico</button>
+    </div>
+
+    <!-- ═══ PANEL COPY PROPIEDAD ═══ -->
+    <div id="panel-propiedad" style="display:block;">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">🏠 Copy para esta Propiedad</div></div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--t3);margin-bottom:16px;">Abre <b>Ver Ficha</b> de cualquier propiedad y haz clic en <b>📱 Copy Redes</b> para cargar los datos aquí. O completa los campos manualmente.</p>
+          <div class="grid-2" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Tipo de propiedad</label>
+              <input type="text" id="rs-tipo" placeholder="Ej: Casa, Departamento..." style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;">
+            </div>
+            <div class="field">
+              <label>Plataforma</label>
+              <select id="rs-plataforma" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;">
+                <option value="Facebook">📘 Facebook</option>
+                <option value="Instagram">📸 Instagram</option>
+                <option value="WhatsApp">💬 WhatsApp</option>
+                <option value="TikTok">🎵 TikTok</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Ubicación</label>
+              <input type="text" id="rs-ubicacion" placeholder="Ej: Yanahuara, Arequipa" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;">
+            </div>
+            <div class="field">
+              <label>Precio (USD)</label>
+              <input type="text" id="rs-precio" placeholder="Ej: 85000" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Características principales</label>
+            <input type="text" id="rs-caract" placeholder="Ej: 3 dorms, 2 baños, cochera, vista panorámica" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;">
+          </div>
+          <button onclick="generarCopyPropiedadDirecto()" style="width:100%;background:var(--r);color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">
+            ✨ Generar Copy con IA
+          </button>
+          <div style="text-align:center;">
+            <a href="#" onclick="generarCopyManual();return false;" style="font-size:11px;color:var(--t3);text-decoration:underline;">Generar prompt manual (emergencia)</a>
+          </div>
+          <div id="spin-copy-prop" style="display:none;text-align:center;margin-top:10px;color:var(--r);font-size:13px;">⏳ Generando copy...</div>
+          <div id="out-copy-prop" style="margin-top:16px;"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ PANEL META ADS ═══ -->
@@ -4335,6 +4386,12 @@ function buscarDash() {
 // META ADS & REDES SOCIALES
 // ══════════════════════════════════════════
 function switchRedTab(tab) {
+  // Mostrar/ocultar panel propiedad
+  const panelProp = document.getElementById('panel-propiedad');
+  const tabProp   = document.getElementById('tab-propiedad');
+  if (panelProp) panelProp.style.display = tab === 'propiedad' ? 'block' : 'none';
+  if (tabProp) { tabProp.style.borderBottomColor = tab === 'propiedad' ? '#CE011F' : 'transparent'; tabProp.style.color = tab === 'propiedad' ? 'var(--r)' : 'var(--t3)'; tabProp.style.fontWeight = tab === 'propiedad' ? '700' : '600'; }
+  if (tab === 'propiedad') return;
   document.getElementById('panel-meta').style.display      = tab === 'meta'     ? 'block' : 'none';
   document.getElementById('panel-organico').style.display  = tab === 'organico' ? 'block' : 'none';
   document.getElementById('tab-meta').style.color          = tab === 'meta'     ? 'var(--r)' : 'var(--t3)';
@@ -5431,6 +5488,15 @@ function abrirCopyRedesDesdeModal(id) {
   const fichaEl = document.getElementById('out-ficha');
   if (fichaEl && r.ficha) fichaEl.value = r.ficha;
 
+  // Llenar campos rs-* del panel Copy Propiedad
+  const setRs = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  setRs('rs-tipo',      r.tipo);
+  setRs('rs-ubicacion', r.ubicacion);
+  setRs('rs-precio',    r.precio);
+  const caractParts = [];
+  if (r.caract && r.caract !== '—') caractParts.push(r.caract);
+  setRs('rs-caract', caractParts.join(', '));
+
   // Ir a Redes Sociales → pestaña Copy Propiedad
   const navItems = document.querySelectorAll('.nav-item');
   let redesNavItem = null;
@@ -5570,6 +5636,64 @@ Escribe en español, sin asteriscos ni markdown. No incluyas el número 940 916 
   } else {
     if (outEl) outEl.innerHTML = '<div style="padding:20px;text-align:center;color:#e55;">Error al conectar con la API. Usa el prompt manual.</div>';
   }
+}
+
+
+async function generarCopyPropiedadDirecto() {
+  const tipo      = document.getElementById('rs-tipo')?.value || document.getElementById('cap-tipo')?.value || '';
+  const ubi       = document.getElementById('rs-ubicacion')?.value || document.getElementById('cap-ubicacion')?.value || '';
+  const precio    = document.getElementById('rs-precio')?.value || document.getElementById('cap-precio')?.value || '';
+  const caract    = document.getElementById('rs-caract')?.value || document.getElementById('cap-caract')?.value || '';
+  const plat      = document.getElementById('rs-plataforma')?.value || 'Facebook';
+  const agente    = getAgenteActual();
+
+  if (!ubi && !tipo) { alert('Completa al menos la ubicación o el tipo de propiedad.'); return; }
+
+  const spin = document.getElementById('spin-copy-prop');
+  const out  = document.getElementById('out-copy-prop');
+  if (spin) spin.style.display = 'block';
+  if (out)  out.innerHTML = '';
+
+  let instruccion = '';
+  if (plat === 'Facebook') instruccion = `Post de Facebook (200-250 palabras). Gancho poderoso, descripción con puntos de valor, precio, CTA invitando a escribir por WhatsApp al ${agente.tel}. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces`;
+  else if (plat === 'Instagram') instruccion = `Caption para Instagram. Gancho visual primera línea, 3-4 oraciones atractivas, CTA WhatsApp ${agente.tel}, 20 hashtags relevantes para Arequipa inmobiliario.`;
+  else if (plat === 'WhatsApp') instruccion = `Mensaje corto para grupos de WhatsApp. Máximo 12 líneas, emojis, precio destacado, CTA WhatsApp ${agente.tel}. Asesor: ${agente.nombre} — Empresarios Inmobiliarios.`;
+  else if (plat === 'TikTok') instruccion = `1) Guión TikTok 30-45s (gancho 0-3s, desarrollo, CTA ${agente.tel}). 2) Caption con hashtags.`;
+
+  const fichaEl = document.getElementById('out-ficha');
+  const ficha = fichaEl ? fichaEl.value.substring(0, 500) : '';
+
+  const prompt = `Eres copywriter experto en bienes raíces de Arequipa, Perú para Empresarios Inmobiliarios. ${instruccion}
+
+PROPIEDAD: ${tipo} en ${ubi} | Precio: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'} | ${caract}
+${ficha ? 'FICHA: '+ficha : ''}
+
+Escribe en español, sin asteriscos ni markdown. No incluyas el número 940 916 247.`;
+
+  const resultado = await llamarClaude(prompt, 1000);
+  if (spin) spin.style.display = 'none';
+
+  if (resultado && out) {
+    out.innerHTML = `
+      <textarea style="width:100%;min-height:200px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">${resultado.replace(/`/g,"'")}</textarea>
+      <button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='✅ ¡Copiado!';setTimeout(()=>{this.textContent='📋 Copiar';},2000);})})()" 
+        style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+        📋 Copiar
+      </button>`;
+  } else if (out) {
+    out.innerHTML = '<p style="color:#e55;font-size:13px;">Error al conectar con la API. Usa el prompt manual.</p>';
+  }
+}
+
+function generarCopyManual() {
+  // Cargar datos en cap-red y llamar generarCopy original como respaldo
+  const plat = document.getElementById('rs-plataforma')?.value || 'Facebook';
+  const mapPlat = {'Facebook':'Facebook','Instagram':'Instagram','WhatsApp':'WhatsApp','TikTok':'TikTok'};
+  const capRed = document.getElementById('cap-red');
+  if (capRed) capRed.value = mapPlat[plat] || 'Facebook';
+  generarCopy();
+  const out = document.getElementById('out-prop');
+  if (out) document.getElementById('out-copy-prop').innerHTML = out.innerHTML;
 }
 
 </script>
