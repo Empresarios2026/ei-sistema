@@ -2934,7 +2934,7 @@ function cargarPropParaEditar(id) {
   // Parsear y cargar características (dorms, baños, cocheras, extras)
   if (r.caract && r.caract !== '—') {
     const partes = r.caract.split(',').map(s => s.trim());
-    let extras = [];
+    const extrasCaract2 = [];
     partes.forEach(p => {
       const dorm = p.match(/^(\d+)\s*dorm/i);
       const bano = p.match(/^(\d+)\s*ba[ñn]/i);
@@ -2944,9 +2944,9 @@ function cargarPropParaEditar(id) {
       else if (bano) set('cap-banos', bano[1]);
       else if (coch) set('cap-cocheras', coch[1]);
       else if (sinCoch) set('cap-cocheras', '0');
-      else extrasCaract.push(p);
+      else extrasCaract2.push(p);
     });
-    set('cap-caract', extrasCaract.join(', '));
+    set('cap-caract', extrasCaract2.join(', '));
   }
 
   // Cargar asesor
