@@ -2135,10 +2135,10 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
 
           <!-- Botones -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
-            <button class="btn btn-primary" onclick="generarReq('whatsapp')" style="width:100%;">💬 Prompt WhatsApp</button>
-            <button class="btn btn-primary" onclick="generarReq('facebook')" style="width:100%;">📘 Prompt Facebook</button>
-            <button class="btn btn-primary" onclick="generarReq('instagram')" style="width:100%;">📸 Prompt Instagram</button>
-            <button class="btn btn-primary" onclick="generarReq('tiktok')" style="width:100%;">🎵 Prompt TikTok</button>
+            <button class="btn btn-primary" onclick="generarReq('whatsapp')" style="width:100%;background:linear-gradient(135deg,#25D366,#128C7E);">💬 Generar WhatsApp</button>
+            <button class="btn btn-primary" onclick="generarReqConIA('facebook')" style="width:100%;">✨ Facebook con IA</button>
+            <button class="btn btn-primary" onclick="generarReqConIA('instagram')" style="width:100%;">✨ Instagram con IA</button>
+            <button class="btn btn-primary" onclick="generarReqConIA('tiktok')" style="width:100%;">✨ TikTok con IA</button>
           </div>
           <button onclick="guardarYLimpiarReq()" style="width:100%;margin-top:10px;background:linear-gradient(135deg,#00a040,#007730);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
             💾 Copiar y Guardar Requerimiento
@@ -2261,17 +2261,19 @@ async function llamarClaude(prompt, maxTokens=1200) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-haiku-4-5',
         max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await res.json();
     if (data.content && data.content[0]) return data.content[0].text;
-    console.error('API error:', data);
+    console.error('API error:', JSON.stringify(data));
+    alert('Error API: ' + (data.error?.message || JSON.stringify(data)));
     return null;
   } catch(e) {
     console.error('Error API Claude:', e);
+    alert('Error de conexión: ' + e.message);
     return null;
   }
 }
@@ -4096,7 +4098,9 @@ function generarReq(plataforma) {
   const caract= document.getElementById('req-caract').value;
   const urgMap= {urgente:'🔴 URGENTE — esta semana',pronto:'🟡 Este mes',flexible:'🟢 Flexible'};
   const urg   = urgMap[document.getElementById('req-urgencia').value];
-  const asesor= document.getElementById('req-asesor').value || 'Empresarios Inmobiliarios';
+  const asesorEl  = document.getElementById('req-asesor-select');
+  const asesor    = asesorEl ? asesorEl.options[asesorEl.selectedIndex]?.text : 'Empresarios Inmobiliarios';
+  const asesorTel = document.getElementById('req-asesor-tel')?.value || '940 916 247';
   if (!tipo || !zona) { alert('Completa al menos el tipo y la zona.'); return; }
 
   const base = `Operación: ${op} | Tipo: ${tipo} | Zona: ${zona} | Presupuesto: ${pres||'A consultar'} | Área: ${area||'N/D'} | ${dorms} ${estac} | Características: ${caract||'ninguna especial'} | Urgencia: ${urg} | Asesor: ${asesor}`;
@@ -4161,6 +4165,7 @@ DATOS: ${base}`
 
     const texto = lines.join('\n');
 
+    lbl.style.display = 'flex';
     platLabel.textContent = '💬 REQUERIMIENTO LISTO — Copia y pega en WhatsApp';
     out.style.fontFamily = 'inherit';
     out.innerHTML = `
@@ -5694,6 +5699,58 @@ function generarCopyManual() {
   generarCopy();
   const out = document.getElementById('out-prop');
   if (out) document.getElementById('out-copy-prop').innerHTML = out.innerHTML;
+}
+
+
+async function generarReqConIA(plataforma) {
+  const op    = document.getElementById('req-operacion').value;
+  const tipo  = document.getElementById('req-tipo').value;
+  const zona  = document.getElementById('req-zona').value || reqDistritosSeleccionados.join(', ');
+  const pres  = document.getElementById('req-presupuesto').value;
+  const area  = document.getElementById('req-area').value;
+  const dorms = document.getElementById('req-dormitorios').value;
+  const estac = document.getElementById('req-estac').value;
+  const caract= document.getElementById('req-caract').value;
+  const urgMap= {urgente:'URGENTE — esta semana', pronto:'Este mes', flexible:'Flexible'};
+  const urg   = urgMap[document.getElementById('req-urgencia').value] || '';
+  const asesorEl = document.getElementById('req-asesor-select');
+  const asesor = asesorEl ? asesorEl.options[asesorEl.selectedIndex]?.text : 'Empresarios Inmobiliarios';
+  const asesorTel = document.getElementById('req-asesor-tel')?.value || '940 916 247';
+
+  if (!tipo || !zona) { alert('Completa al menos el tipo y la zona.'); return; }
+
+  const base = `Operación: ${op} | Tipo: ${tipo} | Zona: ${zona} | Presupuesto: ${pres||'A consultar'} | Área: ${area||'N/D'} | ${dorms} dorms | ${estac} estac | Características: ${caract||'ninguna'} | Urgencia: ${urg} | Asesor: ${asesor} | Tel: ${asesorTel}`;
+
+  let instruccion = '';
+  if (plataforma === 'facebook') instruccion = `Post para grupos de Facebook buscando propiedad. Titular llamativo, descripción 3-4 oraciones, bullets de características, CTA con WhatsApp ${asesorTel}. Tono profesional. Máx 200 palabras.`;
+  else if (plataforma === 'instagram') instruccion = `Caption para Instagram buscando propiedad. Gancho, descripción 2-3 oraciones, CTA WhatsApp ${asesorTel}, 20 hashtags Arequipa inmobiliario.`;
+  else if (plataforma === 'tiktok') instruccion = `Guión TikTok 30-45s buscando propiedad + caption. Dinámico, directo, CTA WhatsApp ${asesorTel}.`;
+
+  const out = document.getElementById('req-out');
+  const lbl = document.getElementById('req-out-label');
+  const platLabel = document.getElementById('req-out-platform');
+  if (lbl) lbl.style.display = 'flex';
+  if (platLabel) platLabel.textContent = '⏳ Generando con IA...';
+  if (out) out.innerHTML = '<div style="padding:20px;text-align:center;color:var(--r);">⏳ Generando...</div>';
+
+  const prompt = `Eres asesor de Empresarios Inmobiliarios, Arequipa. ${instruccion}
+
+DATOS: ${base}
+
+Escribe en español, sin asteriscos ni markdown.`;
+  const resultado = await llamarClaude(prompt, 800);
+
+  if (resultado) {
+    if (platLabel) platLabel.textContent = `✅ ${plataforma.charAt(0).toUpperCase()+plataforma.slice(1)} generado`;
+    if (out) out.innerHTML = `
+      <textarea style="width:100%;min-height:200px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">${resultado.replace(/`/g,"'")}</textarea>
+      <button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='✅ ¡Copiado!';setTimeout(()=>{this.textContent='📋 Copiar';},2000);})})()" 
+        style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+        📋 Copiar
+      </button>`;
+  } else {
+    if (out) out.innerHTML = '<div style="padding:20px;color:#e55;font-size:13px;">Error al generar. Usa el prompt manual.</div>';
+  }
 }
 
 </script>
