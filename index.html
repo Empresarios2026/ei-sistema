@@ -2025,7 +2025,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
             <div class="field">
               <label>Operación</label>
               <select id="req-operacion">
-                <option value="Compra">🛒 Compra</option>
+                <option value="Venta">🏷️ Venta</option>
                 <option value="Alquiler">🔑 Alquiler</option>
                 <option value="Anticresis">🤝 Anticresis</option>
                 <option value="Venta o Alquiler">🔄 Venta o Alquiler</option>
@@ -2261,11 +2261,17 @@ async function llamarClaude(prompt, maxTokens=1200) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }]
       })
     });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('API HTTP error:', res.status, errText);
+      alert('Error API ' + res.status + ': ' + errText);
+      return null;
+    }
     const data = await res.json();
     if (data.content && data.content[0]) return data.content[0].text;
     console.error('API error:', JSON.stringify(data));
@@ -2531,7 +2537,10 @@ function exportarPDF() {
 
   const agenteLogueado = getAgenteActual();
   const tipo       = document.getElementById('cap-tipo').value || 'Propiedad';
-  const ubi        = document.getElementById('cap-ubicacion').value || '';
+  const ubiRaw     = document.getElementById('cap-ubicacion').value || '';
+  // Mostrar las últimas 2 partes (provincia, distrito) para diferenciar propiedades
+  const ubiPartes  = ubiRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const ubi        = ubiPartes.length >= 2 ? ubiPartes.slice(-2).join(', ') : ubiRaw;
   const precio     = document.getElementById('cap-precio').value || '';
   const propietario= document.getElementById('cap-propietario').value || '';
   const area       = document.getElementById('cap-area').value || '';
@@ -2667,7 +2676,11 @@ function exportarPDF() {
   @media print {
     body { margin:0; }
     @page { size:A4; margin:1.2cm; }
-    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+    [style*="background:#CE011F"], [style*="background:#333"] { 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
   }
 </style>
 </head><body>${docHTML}
@@ -4663,7 +4676,7 @@ function exportarFichaGuardadaPDF(id) {
   if (!doc) return;
   // Asegurar que las fotos de Storage se incluyan
   let iframeContent = doc.outerHTML;
-  const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial,sans-serif;}@media print{@page{size:A4;margin:1cm;}}</style></head><body>${iframeContent}<scr` + `ipt>window.onload=function(){setTimeout(function(){window.print();},400);}<\/scr` + `ipt></body></html>`;
+  const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial,sans-serif;}@media print{@page{size:A4;margin:1cm;}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}}</style></head><body>${iframeContent}<scr` + `ipt>window.onload=function(){setTimeout(function(){window.print();},400);}<\/scr` + `ipt></body></html>`;
   const blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -5713,18 +5726,20 @@ async function generarReqConIA(plataforma) {
   const caract= document.getElementById('req-caract').value;
   const urgMap= {urgente:'URGENTE — esta semana', pronto:'Este mes', flexible:'Flexible'};
   const urg   = urgMap[document.getElementById('req-urgencia').value] || '';
-  const asesorEl = document.getElementById('req-asesor-select');
-  const asesor = asesorEl ? asesorEl.options[asesorEl.selectedIndex]?.text : 'Empresarios Inmobiliarios';
+  const asesorEl  = document.getElementById('req-asesor-select');
+  const asesor    = asesorEl ? asesorEl.options[asesorEl.selectedIndex]?.text : 'Empresarios Inmobiliarios';
   const asesorTel = document.getElementById('req-asesor-tel')?.value || '940 916 247';
 
   if (!tipo || !zona) { alert('Completa al menos el tipo y la zona.'); return; }
 
   const base = `Operación: ${op} | Tipo: ${tipo} | Zona: ${zona} | Presupuesto: ${pres||'A consultar'} | Área: ${area||'N/D'} | ${dorms} dorms | ${estac} estac | Características: ${caract||'ninguna'} | Urgencia: ${urg} | Asesor: ${asesor} | Tel: ${asesorTel}`;
 
-  let instruccion = '';
-  if (plataforma === 'facebook') instruccion = `Post para grupos de Facebook buscando propiedad. Titular llamativo, descripción 3-4 oraciones, bullets de características, CTA con WhatsApp ${asesorTel}. Tono profesional. Máx 200 palabras.`;
-  else if (plataforma === 'instagram') instruccion = `Caption para Instagram buscando propiedad. Gancho, descripción 2-3 oraciones, CTA WhatsApp ${asesorTel}, 20 hashtags Arequipa inmobiliario.`;
-  else if (plataforma === 'tiktok') instruccion = `Guión TikTok 30-45s buscando propiedad + caption. Dinámico, directo, CTA WhatsApp ${asesorTel}.`;
+  // Prompts manuales como respaldo
+  const prompts_manuales = {
+    facebook: `Eres asesor de Empresarios Inmobiliarios, Arequipa. Genera un post PARA GRUPOS DE FACEBOOK buscando propiedad. Incluye: titular en mayúsculas llamativo, descripción del requerimiento en 3-4 oraciones, bullets de características clave (con emojis), llamada a acción con WhatsApp y nombre del asesor. Tono profesional y urgente. Máx 200 palabras. DATOS: ${base}`,
+    instagram: `Eres community manager de Empresarios Inmobiliarios, Arequipa. Genera un CAPTION PARA INSTAGRAM buscando propiedad. Incluye: 1 línea de gancho con emoji, descripción del requerimiento en 2-3 oraciones, bullets de lo que busca, CTA con WhatsApp del asesor, y al final 20 hashtags relevantes en español para Arequipa e inmobiliario. DATOS: ${base}`,
+    tiktok: `Eres creador de contenido de Empresarios Inmobiliarios, Arequipa. Genera para TikTok: 1) GUIÓN DE 30-45 SEGUNDOS con gancho (0-3s), desarrollo (4-30s), CTA final (31-45s). 2) CAPTION: 2 oraciones + hashtags. DATOS: ${base}`
+  };
 
   const out = document.getElementById('req-out');
   const lbl = document.getElementById('req-out-label');
@@ -5733,7 +5748,13 @@ async function generarReqConIA(plataforma) {
   if (platLabel) platLabel.textContent = '⏳ Generando con IA...';
   if (out) out.innerHTML = '<div style="padding:20px;text-align:center;color:var(--r);">⏳ Generando...</div>';
 
-  const prompt = `Eres asesor de Empresarios Inmobiliarios, Arequipa. ${instruccion}
+  const instrucciones = {
+    facebook: `Post para grupos de Facebook buscando propiedad. Titular llamativo en mayúsculas, descripción 3-4 oraciones, bullets con emojis, CTA WhatsApp ${asesorTel}. Máx 200 palabras.`,
+    instagram: `Caption Instagram buscando propiedad. Gancho primera línea, 2-3 oraciones, CTA WhatsApp ${asesorTel}, 20 hashtags Arequipa inmobiliario.`,
+    tiktok: `Guión TikTok 30-45s + caption. Gancho, desarrollo, CTA WhatsApp ${asesorTel}.`
+  };
+
+  const prompt = `Eres asesor de Empresarios Inmobiliarios, Arequipa. ${instrucciones[plataforma]}
 
 DATOS: ${base}
 
@@ -5741,7 +5762,8 @@ Escribe en español, sin asteriscos ni markdown.`;
   const resultado = await llamarClaude(prompt, 800);
 
   if (resultado) {
-    if (platLabel) platLabel.textContent = `✅ ${plataforma.charAt(0).toUpperCase()+plataforma.slice(1)} generado`;
+    const nombres = {facebook:'📘 Facebook', instagram:'📸 Instagram', tiktok:'🎵 TikTok'};
+    if (platLabel) platLabel.textContent = `✅ ${nombres[plataforma]} — Generado con IA`;
     if (out) out.innerHTML = `
       <textarea style="width:100%;min-height:200px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">${resultado.replace(/`/g,"'")}</textarea>
       <button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='✅ ¡Copiado!';setTimeout(()=>{this.textContent='📋 Copiar';},2000);})})()" 
@@ -5749,10 +5771,22 @@ Escribe en español, sin asteriscos ni markdown.`;
         📋 Copiar
       </button>`;
   } else {
-    if (out) out.innerHTML = '<div style="padding:20px;color:#e55;font-size:13px;">Error al generar. Usa el prompt manual.</div>';
+    // Mostrar prompt manual como respaldo
+    const pm = prompts_manuales[plataforma];
+    if (platLabel) platLabel.textContent = 'PROMPT MANUAL — Copia y pega en Claude.ai';
+    if (out) {
+      const escaped = pm.replace(/</g,'&lt;');
+      out.innerHTML = `
+        <div style="background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#b8860b;">
+          ⚠️ La IA no pudo conectar. Copia este prompt y pégalo en Claude.ai
+        </div>
+        <pre style="font-size:11px;color:var(--t2);line-height:1.65;white-space:pre-wrap;font-family:'DM Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto;">${escaped}</pre>
+        <button onclick="navigator.clipboard.writeText(\`${pm.replace(/`/g,"'")}\`).then(()=>{this.textContent='✅ Copiado';setTimeout(()=>this.textContent='📋 Copiar Prompt',2000)})"
+          style="margin-top:8px;width:100%;background:#666;color:#fff;border:none;padding:10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+          📋 Copiar Prompt
+        </button>`;
+    }
   }
 }
 
-</script>
-</body>
-</html>
+>
