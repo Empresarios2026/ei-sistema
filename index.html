@@ -5781,12 +5781,20 @@ Escribe en español, sin asteriscos ni markdown.`;
           ⚠️ La IA no pudo conectar. Copia este prompt y pégalo en Claude.ai
         </div>
         <pre style="font-size:11px;color:var(--t2);line-height:1.65;white-space:pre-wrap;font-family:'DM Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto;">${escaped}</pre>
-        <button onclick="navigator.clipboard.writeText(\`${pm.replace(/`/g,"'")}\`).then(()=>{this.textContent='✅ Copiado';setTimeout(()=>this.textContent='📋 Copiar Prompt',2000)})"
-          style="margin-top:8px;width:100%;background:#666;color:#fff;border:none;padding:10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        <button id="btn-copy-req-manual" style="margin-top:8px;width:100%;background:#666;color:#fff;border:none;padding:10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
           📋 Copiar Prompt
         </button>`;
+      // Agregar evento al botón después de insertar
+      setTimeout(() => {
+        const bcp = document.getElementById('btn-copy-req-manual');
+        if (bcp) bcp.onclick = () => {
+          navigator.clipboard.writeText(pm).then(() => {
+            bcp.textContent = '✅ Copiado';
+            setTimeout(() => bcp.textContent = '📋 Copiar Prompt', 2000);
+          });
+        };
+      }, 100);
     }
   }
 }
 
->
