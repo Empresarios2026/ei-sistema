@@ -545,6 +545,7 @@ td:first-child { color:var(--t1); font-weight:500; }
             <option>Milagros Rodriguez</option><option>Paola Herrera</option>
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
+            <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
           </select>
         </div>
       </div>
@@ -1871,6 +1872,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
             <option>Milagros Rodriguez</option><option>Paola Herrera</option>
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
+            <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
           </select>
         </div>
         <button onclick="limpiarFiltros()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--s3);color:var(--t2);font-size:12px;cursor:pointer;white-space:nowrap;">
@@ -2249,7 +2251,22 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 // ══════════════════════════════════════════
 // API ANTHROPIC — Generación directa
 // ══════════════════════════════════════════
-const ANTHROPIC_KEY = 'sk-ant-api03-ZOzMUzr4DKM8dEg7lGtIO-Y0DP011bacI0nA56giCuA0qC20jdWH7mX3_waSXZ_UWwAbPK-yebeQzAf2Qrx9fA-U8WWZgAA';
+let ANTHROPIC_KEY = '';
+
+async function cargarApiKey() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/ei_config?key=eq.anthropic_key&select=value', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    const data = await res.json();
+    if (data && data[0] && data[0].value) {
+      ANTHROPIC_KEY = data[0].value;
+      console.log('✅ API key cargada');
+    }
+  } catch(e) {
+    console.warn('No se pudo cargar API key:', e);
+  }
+}
 
 async function llamarClaude(prompt, maxTokens=1200) {
   try {
@@ -5449,6 +5466,9 @@ const AGENTES_DATA = {
   'veronica@ei.com':      { nombre: 'Veronica Chacón',       tel: '923071770' },
   'ylka@ei.com':          { nombre: 'Ylka Stojkic',          tel: '992239361' },
   'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
+  'norma@ei.com':         { nombre: 'Norma Ponce',           tel: '936802576' },
+  'vanessa@ei.com':       { nombre: 'Vanessa Chavez',        tel: '940236052' },
+  'zaida@ei.com':         { nombre: 'Zaida Riega',           tel: '935623304' },
 };
 
 function getAgenteActual() {
