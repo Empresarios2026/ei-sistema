@@ -2984,13 +2984,19 @@ function guardarPropiedadManual() {
       }
       if (typeof buscarDash === 'function') buscarDash();
     });
+    // Limpiar inmediatamente para evitar doble guardado
+    _editPropId = null;
+    btnG.textContent = '💾 Guardar en Base de Datos';
+    btnG.disabled = true;
     badge.style.display = 'flex';
-    badge.textContent   = '✅ Propiedad actualizada en la nube ☁️';
+    badge.textContent   = '✅ Propiedad actualizada ☁️ — Volviendo al Dashboard...';
     badge.style.background = 'rgba(0,160,64,.12)';
     badge.style.color = '#007730';
-    btnG.textContent    = '💾 Guardar en Base de Datos';
-    _editPropId = null;
-    setTimeout(limpiarFormCaptacion, 1500);
+    setTimeout(() => {
+      limpiarFormCaptacion();
+      btnG.disabled = false;
+      showPage('dashboard', document.querySelector('.nav-item'));
+    }, 1500);
   } else {
     // MODO NUEVO — agregar
     dbAddCloud('props', datos).then((saved) => {
