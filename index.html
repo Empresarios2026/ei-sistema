@@ -416,7 +416,7 @@ td:first-child { color:var(--t1); font-weight:500; }
 
   <div class="nav-section">
     <div class="nav-label">Contenido</div>
-    <div class="nav-item" onclick="showPage('redes', this)">
+    <div class="nav-item" onclick="showPage('redes', this)" style="display:none;">
       <div class="icon">📱</div> Redes Sociales
     </div>
     <div class="nav-item" onclick="showPage('requerimientos', this)">
@@ -1431,9 +1431,7 @@ Un asesor te atenderá muy pronto. 🏡</div>
           </div>
           <div style="margin-top:16px;">
             <div class="output-label" id="out-rs-label" style="display:none"><div class="spinner" id="spin-rs" style="display:none"></div><span>CONTENIDO GENERADO</span></div>
-            <div class="output-box" id="out-rs" style="position:relative;">
-              <button class="btn btn-ghost copy-btn" onclick="copiar('out-rs')">Copiar</button>
-            </div>
+            <div id="out-rs-contenido" style="margin-top:8px;"></div>
           </div>
         </div>
 
@@ -5915,10 +5913,10 @@ async function generarMetaAdIA() {
 
 async function generarContenidoIA() {
   const red    = document.getElementById('rs-red')?.value || 'Instagram';
-  const formato= document.getElementById('rs-formato')?.value || 'Post educativo';
+  const formato= document.getElementById('rs-tipo')?.value || 'propiedad';
   const tema   = document.getElementById('rs-tema')?.value || '';
   const agente = getAgenteActual();
-  const outEl  = document.getElementById('out-rs');
+  const outEl  = document.getElementById('out-rs-contenido');
   const lbl    = document.getElementById('out-rs-label');
   if (outEl) outEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--r);">Generando contenido...</div>';
   if (lbl) lbl.style.display = 'flex';
@@ -5928,7 +5926,7 @@ async function generarContenidoIA() {
     const orgSafeText = r.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     outEl.innerHTML = '<textarea style="width:100%;min-height:250px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">' + orgSafeText + '</textarea><button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent=\'Copiado\';setTimeout(()=>{this.textContent=\'Copiar\';},2000);})})()" style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Copiar</button>';
   } else if (outEl) {
-    outEl.innerHTML = '<div style="color:#e55;padding:10px;">Error. Usa prompt manual.</div>';
+    outEl.innerHTML = '<div style="color:#e55;padding:10px;">Error al generar. Usa el prompt manual.</div>';
   }
 }
 
