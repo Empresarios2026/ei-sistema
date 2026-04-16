@@ -5557,7 +5557,15 @@ function abrirCopyRedesDesdeModal(id) {
   let redesNavItem = null;
   navItems.forEach(item => { if (item.textContent.trim().includes('Redes')) redesNavItem = item; });
   showPage('redes', redesNavItem);
-  setTimeout(() => switchRedTab('propiedad'), 300);
+  setTimeout(() => {
+    switchRedTab('propiedad');
+    // Re-llenar los campos después de cambiar pestaña
+    const setRs2 = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setRs2('rs-tipo',      r.tipo);
+    setRs2('rs-ubicacion', r.ubicacion);
+    setRs2('rs-precio',    r.precio);
+    setRs2('rs-caract',    r.caract && r.caract !== '—' ? r.caract : '');
+  }, 400);
 }
 
 function renderReqDistTags() {
