@@ -1318,9 +1318,12 @@ Un asesor te atenderá muy pronto. 🏡</div>
             </select>
           </div>
 
-          <button class="btn btn-primary" onclick="generarMetaAd()" style="width:100%;margin-top:4px;">
-            📢 Generar Anuncio Meta Ads
+          <button class="btn btn-primary" onclick="generarMetaAdIA()" style="width:100%;margin-top:4px;background:linear-gradient(135deg,#CE011F,#a00018);">
+            ✨ Generar Anuncio con IA
           </button>
+          <div style="text-align:center;margin-top:6px;">
+            <a href="#" onclick="generarMetaAd();return false;" style="font-size:11px;color:var(--t3);text-decoration:underline;">Generar prompt manual (emergencia)</a>
+          </div>
           <div style="margin-top:16px;" id="meta-output-wrap" style="display:none;">
             <div id="meta-out-label" style="display:none;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--r);margin-bottom:10px;">✅ Anuncio generado — copia cada parte</div>
             <div id="meta-out"></div>
@@ -1420,9 +1423,12 @@ Un asesor te atenderá muy pronto. 🏡</div>
             <label>Tema o detalle adicional (opcional)</label>
             <textarea id="rs-tema" rows="3" placeholder="Ej: Tip sobre cómo evaluar una propiedad antes de comprar..."></textarea>
           </div>
-          <button class="btn btn-primary" onclick="generarContenido()" style="width:100%">
-            📱 Generar Contenido Orgánico
+          <button class="btn btn-primary" onclick="generarContenidoIA()" style="width:100%;background:linear-gradient(135deg,#CE011F,#a00018);">
+            ✨ Generar Contenido con IA
           </button>
+          <div style="text-align:center;margin-top:6px;">
+            <a href="#" onclick="generarContenido();return false;" style="font-size:11px;color:var(--t3);text-decoration:underline;">Generar prompt manual (emergencia)</a>
+          </div>
           <div style="margin-top:16px;">
             <div class="output-label" id="out-rs-label" style="display:none"><div class="spinner" id="spin-rs" style="display:none"></div><span>CONTENIDO GENERADO</span></div>
             <div class="output-box" id="out-rs" style="position:relative;">
@@ -4437,18 +4443,23 @@ function buscarDash() {
 // META ADS & REDES SOCIALES
 // ══════════════════════════════════════════
 function switchRedTab(tab) {
-  // Mostrar/ocultar panel propiedad
-  const panelProp = document.getElementById('panel-propiedad');
-  const tabProp   = document.getElementById('tab-propiedad');
-  if (panelProp) panelProp.style.display = tab === 'propiedad' ? 'block' : 'none';
-  if (tabProp) { tabProp.style.borderBottomColor = tab === 'propiedad' ? '#CE011F' : 'transparent'; tabProp.style.color = tab === 'propiedad' ? 'var(--r)' : 'var(--t3)'; tabProp.style.fontWeight = tab === 'propiedad' ? '700' : '600'; }
-  if (tab === 'propiedad') return;
-  document.getElementById('panel-meta').style.display      = tab === 'meta'     ? 'block' : 'none';
-  document.getElementById('panel-organico').style.display  = tab === 'organico' ? 'block' : 'none';
-  document.getElementById('tab-meta').style.color          = tab === 'meta'     ? 'var(--r)' : 'var(--t3)';
-  document.getElementById('tab-organico').style.color      = tab === 'organico' ? 'var(--r)' : 'var(--t3)';
-  document.getElementById('tab-meta').style.borderBottomColor      = tab === 'meta'     ? '#CE011F' : 'transparent';
-  document.getElementById('tab-organico').style.borderBottomColor  = tab === 'organico' ? '#CE011F' : 'transparent';
+  // Ocultar todos los paneles primero
+  ['panel-propiedad','panel-meta','panel-organico'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Mostrar el panel seleccionado
+  const panel = document.getElementById('panel-' + (tab === 'propiedad' ? 'propiedad' : tab));
+  if (panel) panel.style.display = 'block';
+  // Actualizar estilos de tabs
+  ['propiedad','meta','organico'].forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    if (!btn) return;
+    const active = t === tab;
+    btn.style.borderBottomColor = active ? '#CE011F' : 'transparent';
+    btn.style.color = active ? 'var(--r)' : 'var(--t3)';
+    btn.style.fontWeight = active ? '700' : '600';
+  });
 }
 
 function generarMetaAd() {
@@ -5543,14 +5554,45 @@ function abrirCopyRedesDesdeModal(id) {
   const fichaEl = document.getElementById('out-ficha');
   if (fichaEl && r.ficha) fichaEl.value = r.ficha;
 
-  // Llenar campos rs-* del panel Copy Propiedad
+  // Llenar campos de TODAS las pestañas de Redes Sociales
   const setRs = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  const caracFull = r.caract && r.caract !== '—' ? r.caract : '';
+  const precioFmt = r.precio ? 'USD ' + Number(r.precio).toLocaleString() : '';
+  const areaFmt   = r.area ? r.area + ' m2' : '';
+
+  // Copy Propiedad
   setRs('rs-tipo',      r.tipo);
   setRs('rs-ubicacion', r.ubicacion);
   setRs('rs-precio',    r.precio);
-  const caractParts = [];
-  if (r.caract && r.caract !== '—') caractParts.push(r.caract);
-  setRs('rs-caract', caractParts.join(', '));
+  setRs('rs-caract',    caracFull);
+
+  // Meta Ads
+  const metaTipo = document.getElementById('meta-tipo');
+  if (metaTipo) {
+    for (let i = 0; i < metaTipo.options.length; i++) {
+      if (metaTipo.options[i].value.toLowerCase() === (r.tipo||'').toLowerCase()) {
+        metaTipo.selectedIndex = i; break;
+      }
+    }
+  }
+  const metaOp = document.getElementById('meta-op');
+  if (metaOp) {
+    for (let i = 0; i < metaOp.options.length; i++) {
+      if (metaOp.options[i].value.toLowerCase() === (r.operacion||'').toLowerCase()) {
+        metaOp.selectedIndex = i; break;
+      }
+    }
+  }
+  setRs('meta-zona',   r.ubicacion);
+  setRs('meta-precio', precioFmt);
+  setRs('meta-area',   areaFmt);
+  setRs('meta-caract', caracFull);
+
+  // Contenido Organico - solo el tema si hay ficha
+  if (r.ficha) {
+    const temaEl = document.getElementById('rs-tema');
+    if (temaEl && !temaEl.value) temaEl.value = r.tipo + ' en ' + r.ubicacion;
+  }
 
   // Ir a Redes Sociales → pestaña Copy Propiedad
   const navItems = document.querySelectorAll('.nav-item');
@@ -5842,6 +5884,52 @@ Escribe en español, sin asteriscos ni markdown.`;
     }
   }
 }
+
+async function generarMetaAdIA() {
+  const tipo = document.getElementById('meta-tipo').value;
+  const op   = document.getElementById('meta-op').value;
+  const zona = document.getElementById('meta-zona').value;
+  const precio= document.getElementById('meta-precio').value;
+  const area = document.getElementById('meta-area').value;
+  const caract= document.getElementById('meta-caract').value;
+  const dif  = document.getElementById('meta-diferencial').value;
+  const plat = document.getElementById('meta-plat').value;
+  const publico = document.getElementById('meta-publico').value;
+  const agente = getAgenteActual();
+  if (!tipo || !zona) { alert('Completa Tipo y Zona.'); return; }
+  const out = document.getElementById('meta-out');
+  const lbl = document.getElementById('meta-out-label');
+  if (out) out.innerHTML = '<div style="padding:20px;text-align:center;color:var(--r);">Generando anuncio...</div>';
+  if (lbl) lbl.style.display = 'block';
+  const platMap = {facebook:'Facebook Feed',instagram:'Instagram Feed',ambas:'Facebook e Instagram',stories:'Stories'};
+  const pubMap = {familiar:'familias buscando vivienda',inversor:'inversores',joven:'jovenes profesionales 25-35',empresa:'empresas buscando local',mixto:'personas buscando propiedad'};
+  const prompt = `Experto en Meta Ads inmobiliario Peru. Genera anuncio pagado para: ${tipo} en ${op}, zona ${zona} Arequipa, precio ${precio||'a consultar'}, area ${area||'N/D'}, caracteristicas: ${caract||'N/D'}, diferencial: ${dif||'ubicacion privilegiada'}. Plataforma: ${platMap[plat]||plat}. Publico: ${pubMap[publico]||publico}. WhatsApp asesor: ${agente?agente.tel:'940916247'}. Genera: TEXTO PRINCIPAL, TITULAR (max 40 chars), DESCRIPCION (max 25 palabras), SUGERENCIA DE IMAGEN, SEGMENTACION recomendada. Sin asteriscos. Espanol peruano natural.`;
+  const r = await llamarClaude(prompt, 1200);
+  if (r && out) {
+    out.innerHTML = '<textarea style="width:100%;min-height:280px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">' + r.replace(/</g,'&lt;') + '</textarea><button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='Copiado';setTimeout(()=>{this.textContent='Copiar';},2000);})})()" style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Copiar</button>';
+  } else if (out) {
+    out.innerHTML = '<div style="color:#e55;padding:10px;">Error. Usa prompt manual.</div>';
+  }
+}
+
+async function generarContenidoIA() {
+  const red    = document.getElementById('rs-red')?.value || 'Instagram';
+  const formato= document.getElementById('rs-formato')?.value || 'Post educativo';
+  const tema   = document.getElementById('rs-tema')?.value || '';
+  const agente = getAgenteActual();
+  const outEl  = document.getElementById('out-rs');
+  const lbl    = document.getElementById('out-rs-label');
+  if (outEl) outEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--r);">Generando contenido...</div>';
+  if (lbl) lbl.style.display = 'flex';
+  const prompt = `Community manager experto en bienes raices Arequipa Peru para Empresarios Inmobiliarios. Genera contenido organico para ${red}. Formato: ${formato}. Tema: ${tema||'consejos inmobiliarios Arequipa'}. Asesor: ${agente?agente.nombre:'Empresarios Inmobiliarios'}, WhatsApp: ${agente?agente.tel:'940916247'}. Contenido completo listo para publicar. Sin asteriscos. Espanol profesional y cercano. Incluye emojis y hashtags Arequipa.`;
+  const r = await llamarClaude(prompt, 1000);
+  if (r && outEl) {
+    outEl.innerHTML = '<textarea style="width:100%;min-height:250px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);resize:vertical;font-family:inherit;">' + r.replace(/</g,'&lt;') + '</textarea><button onclick="(()=>{const ta=this.previousElementSibling;navigator.clipboard.writeText(ta.value).then(()=>{this.textContent='Copiado';setTimeout(()=>{this.textContent='Copiar';},2000);})})()" style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Copiar</button>';
+  } else if (outEl) {
+    outEl.innerHTML = '<div style="color:#e55;padding:10px;">Error. Usa prompt manual.</div>';
+  }
+}
+
 </script>
 </body>
 </html>
