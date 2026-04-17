@@ -2913,7 +2913,7 @@ function leerDatosProp() {
   const fichaTexto = fichaEl ? (fichaEl.value || fichaEl.innerText || '').replace('Copiar','').trim() : '';
   const fichaGuardar = (fichaTexto && fichaTexto.length > 30 && !fichaTexto.includes('Copia el prompt')) ? fichaTexto : '';
 
-  // Fotos en base64 (array de hasta 6)
+  // Fotos en base64 (array de hasta 8)
   const fotosGuardar = (typeof photos !== 'undefined') ? photos.filter(p => p) : [];
 
   return {
@@ -3013,8 +3013,17 @@ function guardarPropiedadManual() {
         guardarFotosPorId(saved.id);
       }
       badge.style.display = 'flex';
-      badge.textContent   = '✅ Propiedad guardada en la nube ☁️';
-      if (typeof buscarDash === 'function') buscarDash();
+      badge.textContent   = '✅ Guardando fotos en la nube... espera';
+      badge.style.background = 'rgba(0,120,200,.12)';
+      badge.style.color = '#0066cc';
+      // Esperar que las fotos terminen de subirse (máx 15 seg)
+      setTimeout(() => {
+        badge.textContent = '✅ Propiedad y fotos guardadas en la nube ☁️';
+        badge.style.background = 'rgba(0,160,64,.12)';
+        badge.style.color = '#007730';
+        if (typeof buscarDash === 'function') buscarDash();
+        setTimeout(limpiarFormCaptacion, 1000);
+      }, 8000);
     });
   }
   setTimeout(() => { badge.style.display = 'none'; }, 4000);
@@ -5681,9 +5690,10 @@ TITULO
 Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Escribe el titulo completamente EN MAYUSCULAS. Ej: "MODERNO DEPARTAMENTO CON VISTA PANORAMICA EN EL CORAZON DE CAYMA". Maximo 15 palabras.
 
 DESCRIPCION
-A) Introduccion emocional: vende el estilo de vida, usa verbos de accion (Imagina, Disfruta, Construye). 2-3 oraciones.
-B) Caracteristicas tecnicas en viñetas: distribucion, acabados, extras, ubicacion.
-C) Propuesta de valor: por que es una inversion inteligente o el hogar ideal. Menciona plusvalia de la zona.
+Estructura sin subtitulos:
+1. Escribe 2-3 oraciones emocionales directamente (sin ningun subtitulo), vendiendo el estilo de vida con verbos de accion.
+2. Agrega la seccion "CARACTERISTICAS TECNICAS" con viñetas.
+3. Cierra con 1-2 oraciones de propuesta de valor directamente (sin ningun subtitulo).
 
 CONDICIONES DE ${opLabel}
 ${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
