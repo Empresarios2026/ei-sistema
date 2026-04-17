@@ -669,7 +669,7 @@ td:first-child { color:var(--t1); font-weight:500; }
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>Área Total (m²)</label>
+            <label>Área del Terreno (m²)</label>
             <input type="number" id="cap-area" placeholder="120">
           </div>
           <div class="field">
@@ -5670,8 +5670,7 @@ CONDICIONES DE ${opLabel}
 ${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
 Incluye CTA directo: "${ctaLabel}"
 
-PALABRAS CLAVE SEO
-Integra naturalmente: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar", terminos de conveniencia segun la propiedad.
+Integra naturalmente en la descripcion los terminos: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar" y otros terminos de conveniencia segun la propiedad. No crear una seccion visible de palabras clave.
 
 DATOS DE LA PROPIEDAD:
 Tipo: ${tipo} | Operacion: ${op} | Ubicacion: ${ubi}${direccion ? ', '+direccion : ''}
