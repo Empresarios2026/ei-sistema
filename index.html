@@ -795,6 +795,9 @@ td:first-child { color:var(--t1); font-weight:500; }
           <button class="btn btn-export" onclick="exportarExcelProps()" style="flex:1;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#90ee90;border-color:rgba(144,238,144,.3);">
             📊 Exportar Excel
           </button>
+          <button class="btn btn-export" onclick="generarCatalogoVisual()" id="btn-catalogo" style="flex:1;background:linear-gradient(135deg,#CE011F,#8B0000);color:#fff;border-color:rgba(206,1,31,.5);">
+            📸 Catálogo Propiedad
+          </button>
         </div>
         <!-- GUARDAR EN BASE DE DATOS -->
         <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -2770,6 +2773,353 @@ function exportarPDF() {
 }
 
 
+// ===================== CATÁLOGO VISUAL =====================
+function generarCatalogoVisual() {
+  const fotosFiltradas = (typeof photos !== 'undefined') ? photos.filter(p => p) : [];
+  if (!fotosFiltradas.length) {
+    alert('Primero sube al menos una foto de la propiedad para generar el catálogo visual.');
+    return;
+  }
+
+  const tipo     = document.getElementById('cap-tipo').value || 'Propiedad';
+  const ubiRaw   = document.getElementById('cap-ubicacion').value || '';
+  const ubiPartes = ubiRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const ubi      = ubiPartes.length >= 2 ? ubiPartes.slice(-2).join(', ') : ubiRaw;
+  const precio   = document.getElementById('cap-precio').value || '';
+  const area     = document.getElementById('cap-area').value || '';
+  const areaConst = document.getElementById('cap-area-const').value || '';
+  const dorms    = document.getElementById('cap-dorms').value || '';
+  const banos    = document.getElementById('cap-banos').value || '';
+  const op       = document.getElementById('cap-operacion').value || 'Venta';
+  const fichaEl  = document.getElementById('out-ficha');
+  const fichaText= fichaEl ? (fichaEl.value || '').trim() : '';
+
+  // Extraer solo el titulo de la ficha (primera linea no vacia)
+  const tituloFicha = fichaText.split('\n').find(l => l.trim() && l.trim().length > 5) || (tipo + ' en ' + ubi);
+
+  const fotosJS = JSON.stringify(fotosFiltradas);
+  const stats = [
+    area ? area + ' m²' : null,
+    areaConst ? 'Const. ' + areaConst + ' m²' : null,
+    dorms ? dorms + ' dorm.' : null,
+    banos ? banos + ' baños' : null,
+  ].filter(Boolean);
+
+  const catalogoHTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${tipo} — ${ubi} | Empresarios Inmobiliarios</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rojo: #CE011F;
+    --negro: #111;
+    --gris1: #222;
+    --gris2: #666;
+    --gris3: #999;
+    --grisclaro: #f0f0f0;
+  }
+  html, body { height: 100%; background: #111; font-family: 'DM Sans', sans-serif; }
+
+  /* LAYOUT */
+  .catalogo { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: #111;
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--rojo);
+    flex-shrink: 0;
+  }
+  .logo-text { line-height: 1; }
+  .logo-text .nombre { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 900; color: #fff; letter-spacing: .02em; }
+  .logo-text .sub    { font-size: 9px; color: #888; letter-spacing: .18em; text-transform: uppercase; margin-top: 2px; }
+  .header-contacto   { text-align: right; }
+  .header-contacto p { font-size: 11px; color: #888; line-height: 1.6; }
+  .header-contacto strong { color: #ccc; }
+
+  /* SLIDER */
+  .slider-wrap {
+    position: relative;
+    flex: 1;
+    background: #000;
+    overflow: hidden;
+    min-height: 60vh;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide.active { opacity: 1; }
+  .slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* FLECHAS */
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #fff;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background .2s, border-color .2s;
+    user-select: none;
+  }
+  .arrow:hover { background: var(--rojo); border-color: var(--rojo); }
+  .arrow.left  { left: 16px; }
+  .arrow.right { right: 16px; }
+
+  /* CONTADOR */
+  .counter {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.6);
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: .08em;
+    z-index: 10;
+  }
+
+  /* DOTS */
+  .dots {
+    position: absolute;
+    bottom: 44px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.35);
+    cursor: pointer;
+    transition: background .2s, transform .2s;
+  }
+  .dot.active { background: var(--rojo); transform: scale(1.3); }
+
+  /* INFO BAR */
+  .info-bar {
+    background: #1a1a1a;
+    padding: 16px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-top: 1px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+  .info-main { flex: 1; min-width: 200px; }
+  .info-main .titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .info-main .ubicacion { font-size: 12px; color: #888; }
+  .info-precio {
+    text-align: right;
+  }
+  .precio-etiqueta { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: .1em; }
+  .precio-valor {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--rojo);
+    line-height: 1;
+  }
+  .precio-op { font-size: 11px; color: #666; margin-top: 2px; }
+
+  /* STATS */
+  .stats-bar {
+    background: #151515;
+    padding: 10px 28px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-top: 1px solid #222;
+    flex-shrink: 0;
+  }
+  .stat-item { display: flex; align-items: center; gap: 6px; }
+  .stat-item span { font-size: 12px; color: #777; }
+  .stat-item strong { font-size: 13px; color: #ccc; }
+
+  /* FOOTER */
+  .footer {
+    background: #0d0d0d;
+    padding: 10px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #1f1f1f;
+    flex-shrink: 0;
+  }
+  .footer p { font-size: 10px; color: #555; }
+  .footer .badge {
+    font-size: 9px;
+    color: #fff;
+    background: var(--rojo);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  /* TECLADO hint */
+  .key-hint {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 10px;
+    color: rgba(255,255,255,.25);
+    z-index: 10;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="catalogo">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-text">
+      <div class="nombre">EMPRESARIOS INMOBILIARIOS</div>
+      <div class="sub">Construimos Patrimonio con Conocimiento y Propósito</div>
+    </div>
+    <div class="header-contacto">
+      <p>📞 <strong>940 916 247</strong></p>
+      <p>contacto@empresariosinmobiliarios.com</p>
+    </div>
+  </div>
+
+  <!-- SLIDER -->
+  <div class="slider-wrap" id="slider">
+    <div class="key-hint">← → para navegar</div>
+    ${fotosFiltradas.map((src, i) => `
+    <div class="slide${i===0?' active':''}" id="slide-${i}">
+      <img src="${src}" alt="Foto ${i+1}">
+    </div>`).join('')}
+
+    <button class="arrow left" onclick="cambiarSlide(-1)">&#8592;</button>
+    <button class="arrow right" onclick="cambiarSlide(1)">&#8594;</button>
+
+    <div class="dots" id="dots">
+      ${fotosFiltradas.map((_, i) => `<div class="dot${i===0?' active':''}" onclick="irASlide(${i})"></div>`).join('')}
+    </div>
+    <div class="counter" id="counter">1 / ${fotosFiltradas.length}</div>
+  </div>
+
+  <!-- INFO -->
+  <div class="info-bar">
+    <div class="info-main">
+      <div class="titulo">${tituloFicha}</div>
+      <div class="ubicacion">📍 ${ubi}</div>
+    </div>
+    ${precio ? `<div class="info-precio">
+      <div class="precio-etiqueta">${op === 'Alquiler' ? 'Renta mensual' : op === 'Anticresis' ? 'Monto anticresis' : 'Precio'}</div>
+      <div class="precio-valor">USD ${Number(precio).toLocaleString()}</div>
+      <div class="precio-op">${op}</div>
+    </div>` : ''}
+  </div>
+
+  ${stats.length ? `<div class="stats-bar">
+    ${stats.map(s => `<div class="stat-item"><strong>${s}</strong></div>`).join('<span style="color:#333">|</span>')}
+  </div>` : ''}
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Empresarios Inmobiliarios · Arequipa, Perú · ${new Date().toLocaleDateString('es-PE')}</p>
+    <div class="badge">${op}</div>
+  </div>
+
+</div>
+
+<script>
+  let actual = 0;
+  const fotos = ${fotosJS};
+  const total = fotos.length;
+
+  function irASlide(n) {
+    document.querySelector('.slide.active').classList.remove('active');
+    document.querySelector('.dot.active').classList.remove('active');
+    actual = (n + total) % total;
+    document.getElementById('slide-' + actual).classList.add('active');
+    document.querySelectorAll('.dot')[actual].classList.add('active');
+    document.getElementById('counter').textContent = (actual + 1) + ' / ' + total;
+  }
+
+  function cambiarSlide(dir) { irASlide(actual + dir); }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft')  cambiarSlide(-1);
+    if (e.key === 'ArrowRight') cambiarSlide(1);
+  });
+
+  // Swipe touch
+  let touchX = 0;
+  document.getElementById('slider').addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.getElementById('slider').addEventListener('touchend',   e => {
+    const diff = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) cambiarSlide(diff > 0 ? 1 : -1);
+  });
+<\/script>
+</body>
+</html>`;
+
+  // Descargar directamente
+  const nombreArchivo = 'EI_Catalogo_' + (tipo + '_' + ubi).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 40);
+  const blob = new Blob([catalogoHTML], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = nombreArchivo + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+  // Confirmacion visual
+  const btn = document.getElementById('btn-catalogo');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Descargado';
+    btn.disabled = true;
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 3000);
+  }
+}
+
 // ===================== DATABASE =====================
 const DB_KEYS = { kpis:'ei_db_kpis', props:'ei_db_props', leads:'ei_db_leads', docs:'ei_db_docs', reqs:'ei_db_reqs' };
 
@@ -2913,7 +3263,7 @@ function leerDatosProp() {
   const fichaTexto = fichaEl ? (fichaEl.value || fichaEl.innerText || '').replace('Copiar','').trim() : '';
   const fichaGuardar = (fichaTexto && fichaTexto.length > 30 && !fichaTexto.includes('Copia el prompt')) ? fichaTexto : '';
 
-  // Fotos en base64 (array de hasta 8)
+  // Fotos en base64 (array de hasta 6)
   const fotosGuardar = (typeof photos !== 'undefined') ? photos.filter(p => p) : [];
 
   return {
@@ -2988,24 +3338,19 @@ function guardarPropiedadManual() {
       }
       if (typeof buscarDash === 'function') buscarDash();
     });
-    // Ir al Dashboard INMEDIATAMENTE para evitar doble guardado
+    // Limpiar inmediatamente para evitar doble guardado
     _editPropId = null;
+    btnG.textContent = '💾 Guardar en Base de Datos';
     btnG.disabled = true;
-    btnG.textContent = '✅ Actualizado';
-    // Ir al dashboard de inmediato sin esperar
-    limpiarFormCaptacion();
-    showPage('dashboard', document.querySelector('.nav-item'));
-    // Mostrar aviso breve
     badge.style.display = 'flex';
-    badge.textContent = '✅ Propiedad actualizada en la nube ☁️';
+    badge.textContent   = '✅ Propiedad actualizada ☁️ — Volviendo al Dashboard...';
     badge.style.background = 'rgba(0,160,64,.12)';
     badge.style.color = '#007730';
     setTimeout(() => {
-      badge.style.display = 'none';
+      limpiarFormCaptacion();
       btnG.disabled = false;
-      btnG.textContent = '💾 Guardar en Base de Datos';
-      btnG.style.background = '';
-    }, 3000);
+      showPage('dashboard', document.querySelector('.nav-item'));
+    }, 1500);
   } else {
     // MODO NUEVO — agregar
     dbAddCloud('props', datos).then((saved) => {
@@ -3013,17 +3358,8 @@ function guardarPropiedadManual() {
         guardarFotosPorId(saved.id);
       }
       badge.style.display = 'flex';
-      badge.textContent   = '✅ Guardando fotos en la nube... espera';
-      badge.style.background = 'rgba(0,120,200,.12)';
-      badge.style.color = '#0066cc';
-      // Esperar que las fotos terminen de subirse (máx 15 seg)
-      setTimeout(() => {
-        badge.textContent = '✅ Propiedad y fotos guardadas en la nube ☁️';
-        badge.style.background = 'rgba(0,160,64,.12)';
-        badge.style.color = '#007730';
-        if (typeof buscarDash === 'function') buscarDash();
-        setTimeout(limpiarFormCaptacion, 1000);
-      }, 8000);
+      badge.textContent   = '✅ Propiedad guardada en la nube ☁️';
+      if (typeof buscarDash === 'function') buscarDash();
     });
   }
   setTimeout(() => { badge.style.display = 'none'; }, 4000);
@@ -3035,20 +3371,6 @@ function cargarPropParaEditar(id) {
   // Buscar por id como string o número
   const r = dbGet('props').find(p => String(p.id) === String(id));
   if (!r) { console.warn('Propiedad no encontrada para editar, id:', id); return; }
-
-  // Verificar permisos — solo el asesor dueño o admins pueden editar
-  const admins = ['zulema@ei.com','david@ei.com','marilyn@ei.com','cecilia@ei.com'];
-  const esAdmin = currentUser && admins.includes(currentUser.email);
-  if (!esAdmin) {
-    const agenteActual = getAgenteActual();
-    const nombreActual = agenteActual ? agenteActual.nombre.toLowerCase() : '';
-    const asesorProp   = (r.asesor || '').toLowerCase();
-    if (!asesorProp.includes(nombreActual) && nombreActual) {
-      alert('Solo puedes editar tus propias propiedades.');
-      return;
-    }
-  }
-
   _editPropId = id;
 
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
@@ -3476,7 +3798,7 @@ function handleMultiplePhotos(input) {
 
   // Llenar slots vacíos en orden
   const emptySlots = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     if (!photos[i]) emptySlots.push(i);
   }
 
@@ -5687,13 +6009,12 @@ async function generarFichaDirecto() {
   const prompt = `Eres experto en bienes raíces de Arequipa, Peru, con conocimiento en Feng Shui y analisis de plusvalia. Genera una ficha tecnica profesional para esta propiedad en ${opLabel}. Usa esta estructura exacta:
 
 TITULO
-Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Escribe el titulo completamente EN MAYUSCULAS. Ej: "MODERNO DEPARTAMENTO CON VISTA PANORAMICA EN EL CORAZON DE CAYMA". Maximo 15 palabras.
+Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Ej: "Moderno departamento con vista panoramica en el corazon de Cayma." Maximo 15 palabras.
 
 DESCRIPCION
-Estructura sin subtitulos:
-1. Escribe 2-3 oraciones emocionales directamente (sin ningun subtitulo), vendiendo el estilo de vida con verbos de accion.
-2. Agrega la seccion "CARACTERISTICAS TECNICAS" con viñetas.
-3. Cierra con 1-2 oraciones de propuesta de valor directamente (sin ningun subtitulo).
+A) Introduccion emocional: vende el estilo de vida, usa verbos de accion (Imagina, Disfruta, Construye). 2-3 oraciones.
+B) Caracteristicas tecnicas en viñetas: distribucion, acabados, extras, ubicacion.
+C) Propuesta de valor: por que es una inversion inteligente o el hogar ideal. Menciona plusvalia de la zona.
 
 CONDICIONES DE ${opLabel}
 ${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
