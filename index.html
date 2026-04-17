@@ -5652,19 +5652,37 @@ async function generarFichaDirecto() {
   if (btnG) { btnG.disabled = true; btnG.textContent = '⏳ Generando...'; }
   if (spin) spin.style.display = 'block';
 
-  const prompt = `Eres un experto en bienes raíces de Arequipa, Perú, con conocimiento en Feng Shui y análisis de plusvalía. Genera una ficha técnica profesional y persuasiva para la siguiente propiedad. Usa estas secciones en MAYÚSCULAS: TITULO, DESCRIPCIÓN, ESPECIFICACIONES TÉCNICAS, ANÁLISIS DE UBICACIÓN Y PLUSVALÍA, PUNTOS DE VALOR DIFERENCIAL, DIAGNÓSTICO BIO-AMBIENTAL (si hay orientación), CONDICIONES DE ${op === 'Alquiler' ? 'ALQUILER' : op === 'Anticresis' ? 'ANTICRESIS' : 'VENTA'}.
+  const opLabel = op === 'Alquiler' ? 'ALQUILER' : op === 'Anticresis' ? 'ANTICRESIS' : 'VENTA';
+  const precioLabel = op === 'Alquiler' ? 'Renta mensual' : op === 'Anticresis' ? 'Monto anticresis' : 'Precio de venta';
+  const ctaLabel = op === 'Alquiler' ? 'Agenda una visita y asegura tu alquiler hoy mismo.' : op === 'Anticresis' ? 'Consulta las condiciones de anticresis y agenda tu visita.' : 'Agenda una visita personalizada hoy mismo y descubre tu próximo hogar.';
 
-DATOS:
-- Tipo: ${tipo} en ${op}
-- Ubicación: ${ubi}${direccion ? ', '+direccion : ''}
-- Área total: ${area || 'N/D'} m²${areaConst ? ' | Área construida: '+areaConst+' m²' : ''}
-- Precio: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
-- Dormitorios: ${dorms || 'N/D'} | Baños: ${banos || 'N/D'} | Cocheras: ${cocheras || 'N/D'}
-- Antigüedad: ${antig || 'N/D'} años
-- Orientación: ${orient || 'N/D'}
-- Características: ${caract || 'N/D'}
+  const prompt = `Eres experto en bienes raíces de Arequipa, Peru, con conocimiento en Feng Shui y analisis de plusvalia. Genera una ficha tecnica profesional para esta propiedad en ${opLabel}. Usa esta estructura exacta:
 
-Escribe en español, tono profesional y aspiracional. Sin asteriscos ni markdown.`;
+TITULO
+Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Ej: "Moderno departamento con vista panoramica en el corazon de Cayma." Maximo 15 palabras.
+
+DESCRIPCION
+A) Introduccion emocional: vende el estilo de vida, usa verbos de accion (Imagina, Disfruta, Construye). 2-3 oraciones.
+B) Caracteristicas tecnicas en viñetas: distribucion, acabados, extras, ubicacion.
+C) Propuesta de valor: por que es una inversion inteligente o el hogar ideal. Menciona plusvalia de la zona.
+
+CONDICIONES DE ${opLabel}
+${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
+Incluye CTA directo: "${ctaLabel}"
+
+PALABRAS CLAVE SEO
+Integra naturalmente: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar", terminos de conveniencia segun la propiedad.
+
+DATOS DE LA PROPIEDAD:
+Tipo: ${tipo} | Operacion: ${op} | Ubicacion: ${ubi}${direccion ? ', '+direccion : ''}
+Area total: ${area || 'N/D'} m2${areaConst ? ' | Area construida: '+areaConst+' m2' : ''}
+Dormitorios: ${dorms || 'N/D'} | Banos: ${banos || 'N/D'} | Cocheras: ${cocheras || 'N/D'}
+Antiguedad: ${antig || 'N/D'} anos | Orientacion: ${orient || 'N/D'}
+Caracteristicas adicionales: ${caract || 'ninguna especificada'}
+
+${orient ? 'DIAGNOSTICO BIO-AMBIENTAL: Incluye analisis Feng Shui de la orientacion '+orient+'.' : ''}
+
+Escribe en espanol profesional. Sin asteriscos ni markdown. Texto fluido y escaneable.`;
 
   const resultado = await llamarClaude(prompt, 1500);
 
