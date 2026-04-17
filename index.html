@@ -669,7 +669,7 @@ td:first-child { color:var(--t1); font-weight:500; }
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>Área del Terreno (m²)</label>
+            <label>Área Total (m²)</label>
             <input type="number" id="cap-area" placeholder="120">
           </div>
           <div class="field">
@@ -2988,19 +2988,25 @@ function guardarPropiedadManual() {
       }
       if (typeof buscarDash === 'function') buscarDash();
     });
-    // Limpiar inmediatamente para evitar doble guardado
+    // Bloquear botón inmediatamente para evitar doble guardado
     _editPropId = null;
-    btnG.textContent = '💾 Guardar en Base de Datos';
     btnG.disabled = true;
+    btnG.textContent = '✅ Actualizando...';
+    btnG.style.background = 'rgba(0,160,64,.8)';
     badge.style.display = 'flex';
-    badge.textContent   = '✅ Propiedad actualizada ☁️ — Volviendo al Dashboard...';
+    badge.textContent   = '✅ Propiedad actualizada ☁️';
     badge.style.background = 'rgba(0,160,64,.12)';
     badge.style.color = '#007730';
     setTimeout(() => {
       limpiarFormCaptacion();
-      btnG.disabled = false;
       showPage('dashboard', document.querySelector('.nav-item'));
-    }, 1500);
+      // Resetear botón solo después de ir al dashboard
+      setTimeout(() => {
+        btnG.disabled = false;
+        btnG.textContent = '💾 Guardar en Base de Datos';
+        btnG.style.background = '';
+      }, 500);
+    }, 1200);
   } else {
     // MODO NUEVO — agregar
     dbAddCloud('props', datos).then((saved) => {
@@ -5670,7 +5676,8 @@ CONDICIONES DE ${opLabel}
 ${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
 Incluye CTA directo: "${ctaLabel}"
 
-Integra naturalmente en la descripcion los terminos: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar" y otros terminos de conveniencia segun la propiedad. No crear una seccion visible de palabras clave.
+PALABRAS CLAVE SEO
+Integra naturalmente: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar", terminos de conveniencia segun la propiedad.
 
 DATOS DE LA PROPIEDAD:
 Tipo: ${tipo} | Operacion: ${op} | Ubicacion: ${ubi}${direccion ? ', '+direccion : ''}
