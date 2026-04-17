@@ -3467,7 +3467,7 @@ function handleMultiplePhotos(input) {
 
   // Llenar slots vacíos en orden
   const emptySlots = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     if (!photos[i]) emptySlots.push(i);
   }
 
@@ -5678,7 +5678,7 @@ async function generarFichaDirecto() {
   const prompt = `Eres experto en bienes raíces de Arequipa, Peru, con conocimiento en Feng Shui y analisis de plusvalia. Genera una ficha tecnica profesional para esta propiedad en ${opLabel}. Usa esta estructura exacta:
 
 TITULO
-Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Ej: "Moderno departamento con vista panoramica en el corazon de Cayma." Maximo 15 palabras.
+Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Escribe el titulo completamente EN MAYUSCULAS. Ej: "MODERNO DEPARTAMENTO CON VISTA PANORAMICA EN EL CORAZON DE CAYMA". Maximo 15 palabras.
 
 DESCRIPCION
 A) Introduccion emocional: vende el estilo de vida, usa verbos de accion (Imagina, Disfruta, Construye). 2-3 oraciones.
