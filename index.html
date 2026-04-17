@@ -3026,6 +3026,20 @@ function cargarPropParaEditar(id) {
   // Buscar por id como string o número
   const r = dbGet('props').find(p => String(p.id) === String(id));
   if (!r) { console.warn('Propiedad no encontrada para editar, id:', id); return; }
+
+  // Verificar permisos — solo el asesor dueño o admins pueden editar
+  const admins = ['zulema@ei.com','david@ei.com','marilyn@ei.com','cecilia@ei.com'];
+  const esAdmin = currentUser && admins.includes(currentUser.email);
+  if (!esAdmin) {
+    const agenteActual = getAgenteActual();
+    const nombreActual = agenteActual ? agenteActual.nombre.toLowerCase() : '';
+    const asesorProp   = (r.asesor || '').toLowerCase();
+    if (!asesorProp.includes(nombreActual) && nombreActual) {
+      alert('Solo puedes editar tus propias propiedades.');
+      return;
+    }
+  }
+
   _editPropId = id;
 
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
