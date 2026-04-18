@@ -5684,34 +5684,29 @@ async function generarFichaDirecto() {
   const precioLabel = op === 'Alquiler' ? 'Renta mensual' : op === 'Anticresis' ? 'Monto anticresis' : 'Precio de venta';
   const ctaLabel = op === 'Alquiler' ? 'Agenda una visita y asegura tu alquiler hoy mismo.' : op === 'Anticresis' ? 'Consulta las condiciones de anticresis y agenda tu visita.' : 'Agenda una visita personalizada hoy mismo y descubre tu próximo hogar.';
 
-  const prompt = `Eres experto en bienes raíces de Arequipa, Peru, con conocimiento en Feng Shui y analisis de plusvalia. Genera una ficha tecnica profesional para esta propiedad en ${opLabel}. Usa esta estructura exacta:
+  const prompt = `Eres experto en bienes raices de Arequipa Peru con conocimiento en Feng Shui y analisis de plusvalia. Genera una ficha tecnica profesional para esta propiedad en ${opLabel}. Sigue EXACTAMENTE esta estructura:
 
 TITULO
-Aplica formula: [Tipo] + [Atributo estrella] + [Ubicacion]. Escribe el titulo completamente EN MAYUSCULAS. Ej: "MODERNO DEPARTAMENTO CON VISTA PANORAMICA EN EL CORAZON DE CAYMA". Maximo 15 palabras.
+Formula: [Tipo] + [Atributo estrella] + [Ubicacion]. ESCRIBE SOLO EL TITULO EN MAYUSCULAS COMPLETAS. Maximo 15 palabras. No pongas la palabra TITULO, solo escribe el titulo.
 
 DESCRIPCION
-Estructura sin subtitulos:
-1. Escribe 2-3 oraciones emocionales directamente (sin ningun subtitulo), vendiendo el estilo de vida con verbos de accion.
-2. Agrega la seccion "CARACTERISTICAS TECNICAS" con viñetas.
-3. Cierra con 1-2 oraciones de propuesta de valor directamente (sin ningun subtitulo).
+Escribe directamente sin ningun subtitulo ni letra de clasificacion:
+- 2-3 oraciones emocionales vendiendo el estilo de vida (verbos: Imagina, Disfruta, Construye).
+
+CARACTERISTICAS TECNICAS
+- Viñetas con distribucion, acabados, extras y ubicacion. Integra palabras clave SEO de forma natural en estas viñetas (no como seccion separada).
+
+2 oraciones finales de propuesta de valor o plusvalia. Sin subtitulo.
 
 CONDICIONES DE ${opLabel}
 ${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
-Incluye CTA directo: "${ctaLabel}"
+${ctaLabel}
 
-PALABRAS CLAVE SEO
-Integra naturalmente: "${op} de ${tipo} en ${ubi}", "zona residencial", "listo para habitar", terminos de conveniencia segun la propiedad.
+${orient ? 'DIAGNOSTICO BIO-AMBIENTAL\nAnalisis Feng Shui de orientacion '+orient+'.' : ''}
 
-DATOS DE LA PROPIEDAD:
-Tipo: ${tipo} | Operacion: ${op} | Ubicacion: ${ubi}${direccion ? ', '+direccion : ''}
-Area total: ${area || 'N/D'} m2${areaConst ? ' | Area construida: '+areaConst+' m2' : ''}
-Dormitorios: ${dorms || 'N/D'} | Banos: ${banos || 'N/D'} | Cocheras: ${cocheras || 'N/D'}
-Antiguedad: ${antig || 'N/D'} anos | Orientacion: ${orient || 'N/D'}
-Caracteristicas adicionales: ${caract || 'ninguna especificada'}
+DATOS: ${tipo} en ${op} | ${ubi}${direccion ? ', '+direccion : ''} | Area: ${area||'N/D'} m2${areaConst ? ' construida: '+areaConst+' m2' : ''} | ${dorms||'N/D'} dorms | ${banos||'N/D'} banos | ${cocheras||'N/D'} cocheras | Antiguedad: ${antig||'N/D'} | Orientacion: ${orient||'N/D'} | ${caract||''}
 
-${orient ? 'DIAGNOSTICO BIO-AMBIENTAL: Incluye analisis Feng Shui de la orientacion '+orient+'.' : ''}
-
-Escribe en espanol profesional. Sin asteriscos ni markdown. Texto fluido y escaneable.`;
+IMPORTANTE: NO incluyas seccion de Palabras Clave SEO. Integralas naturalmente en el texto. Sin asteriscos ni markdown.`;
 
   const resultado = await llamarClaude(prompt, 1500);
 
