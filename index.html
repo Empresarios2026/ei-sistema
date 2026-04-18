@@ -3012,17 +3012,21 @@ function guardarPropiedadManual() {
       if (saved && saved.id) {
         guardarFotosPorId(saved.id);
       }
+      // Mostrar en Dashboard INMEDIATAMENTE
+      if (typeof buscarDash === 'function') buscarDash();
+      showPage('dashboard', document.querySelector('.nav-item'));
       badge.style.display = 'flex';
-      badge.textContent   = '✅ Guardando fotos en la nube... espera';
+      badge.textContent   = '✅ Propiedad guardada — subiendo fotos...';
       badge.style.background = 'rgba(0,120,200,.12)';
       badge.style.color = '#0066cc';
-      // Esperar que las fotos terminen de subirse (máx 15 seg)
+      // Actualizar dashboard de nuevo cuando fotos terminen
       setTimeout(() => {
         badge.textContent = '✅ Propiedad y fotos guardadas en la nube ☁️';
         badge.style.background = 'rgba(0,160,64,.12)';
         badge.style.color = '#007730';
         if (typeof buscarDash === 'function') buscarDash();
-        setTimeout(limpiarFormCaptacion, 1000);
+        limpiarFormCaptacion();
+        setTimeout(() => { badge.style.display = 'none'; }, 3000);
       }, 20000);
     });
   }
