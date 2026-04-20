@@ -4676,6 +4676,8 @@ async function abrirPropiedadParaExportar(id) {
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="exportarFichaGuardadaPDF(${id})" style="background:#CE011F;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📑 Descargar PDF</button>
         <button onclick="exportarFichaGuardadaWord(${id})" style="background:#1a1a2e;color:#a8d4ff;border:1px solid rgba(126,179,255,.3);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 Descargar Word</button>
+        <button onclick="abrirCatalogoDesdeModal(${id})" style="background:linear-gradient(135deg,#CE011F,#a00018);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📖 Ver Catálogo</button>
+        <button onclick="abrirCatalogoDesdeModal(${id})" style="background:linear-gradient(135deg,#CE011F,#a00018);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📖 Catálogo</button>
         <button onclick="abrirCopyRedesDesdeModal(${id})" style="background:#2d6a4f;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📱 Copy Redes</button>
         <button onclick="document.getElementById('ei-prop-preview').remove();setTimeout(()=>cargarPropParaEditar(${id}),100);" style="background:#444;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:12px;cursor:pointer;">✏️ Editar</button>
       </div>
@@ -6299,6 +6301,242 @@ document.addEventListener('keydown', e => {
   a.download = 'Catalogo_EI_' + (tipo + '_' + ubi).replace(/[^a-zA-Z0-9]/g,'_').substring(0,30) + '.html';
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+
+async function abrirCatalogoDesdeModal(id) {
+  let r = dbGet('props').find(p => String(p.id) === String(id));
+  if (!r) return;
+
+  // Recargar fotos desde Supabase si no las tiene
+  if (!r.fotos_urls || !r.fotos_urls.length) {
+    const rows = await sbFetch('ei_props?id=eq.' + id);
+    if (rows && rows[0]) r = fromSbRow('props', rows[0]);
+  }
+
+  const fotosList = (r.fotos_urls && r.fotos_urls.length) ? r.fotos_urls : (r.fotos || []);
+  if (!fotosList.length) { alert('Esta propiedad no tiene fotos guardadas en la nube.'); return; }
+
+  // Llenar variables para el catálogo
+  const tipo    = r.tipo || 'Propiedad';
+  const op      = r.operacion || '';
+  const ubi     = r.ubicacion || '';
+  const precio  = r.precio || '';
+  const area    = r.area || '';
+  const ficha   = r.ficha || '';
+  const caract  = r.caract || '';
+
+  // Parsear dorms/baños/cocheras de caract
+  let dorms = '', banos = '', cocheras = '';
+  if (caract) {
+    const dm = caract.match(/(\d+)\s*dorm/i); if (dm) dorms = dm[1];
+    const bm = caract.match(/(\d+)\s*ba[ñn]/i); if (bm) banos = bm[1];
+    const cm = caract.match(/(\d+)\s*cochera/i); if (cm) cocheras = cm[1];
+  }
+
+  const descripcion = ficha
+    ? ficha.split('\n').filter(l => l.trim()).slice(0, 6).join(' ').substring(0, 300)
+    : tipo + ' en ' + op + ' — ' + ubi + (precio ? ' — USD ' + Number(precio).toLocaleString() : '');
+
+  // Cerrar modal actual
+  const modal = document.getElementById('ei-prop-preview');
+  if (modal) modal.remove();
+
+  // Crear overlay del catálogo
+  const existing = document.getElementById('ei-catalogo-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'ei-catalogo-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#f2f3f5;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+
+  const totalSlides = 1 + fotosList.length;
+  let currentSlide = 0;
+
+  function crearPortadaModal() {
+    const foto1v = fotosList[0] || '';
+    return `<div style="width:100%;height:100%;display:flex;flex-direction:column;background:#fff;">
+      <div style="background:#CE011F;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <div style="font-size:11px;color:#fff;font-weight:700;letter-spacing:1px;text-transform:uppercase;">EMPRESARIOS INMOBILIARIOS</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.8);font-style:italic;">Construimos Patrimonio</div>
+      </div>
+      <div style="flex:1;display:flex;overflow:hidden;">
+        ${foto1v ? '<div style="width:50%;flex-shrink:0;overflow:hidden;"><img src="' + foto1v + '" style="width:100%;height:100%;object-fit:cover;"></div>' : ''}
+        <div style="flex:1;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto;">
+          <div>
+            <div style="display:inline-block;background:rgba(206,1,31,.1);color:#CE011F;border:1px solid rgba(206,1,31,.2);border-radius:20px;padding:3px 12px;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:8px;">${op||'En Venta'}</div>
+            <div style="font-size:18px;font-weight:900;color:#1a1a1a;line-height:1.2;margin-bottom:8px;">${tipo}${ubi ? '<br><span style=font-size:14px;color:#555>' + ubi + '</span>' : ''}</div>
+            ${precio ? '<div style="font-size:20px;font-weight:700;color:#CE011F;margin-bottom:12px;">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              ${area ? '<div style="background:#f2f3f5;border:1px solid #e0e0e0;border-radius:8px;padding:6px 10px;text-align:center;"><div style="font-size:15px;font-weight:700;color:#1a1a1a;">' + area + ' m²</div><div style="font-size:8px;color:#999;text-transform:uppercase;">ÁREA</div></div>' : ''}
+              ${dorms ? '<div style="background:#f2f3f5;border:1px solid #e0e0e0;border-radius:8px;padding:6px 10px;text-align:center;"><div style="font-size:15px;font-weight:700;color:#1a1a1a;">' + dorms + '</div><div style="font-size:8px;color:#999;text-transform:uppercase;">DORMS</div></div>' : ''}
+              ${banos ? '<div style="background:#f2f3f5;border:1px solid #e0e0e0;border-radius:8px;padding:6px 10px;text-align:center;"><div style="font-size:15px;font-weight:700;color:#1a1a1a;">' + banos + '</div><div style="font-size:8px;color:#999;text-transform:uppercase;">BAÑOS</div></div>' : ''}
+            </div>
+            <p style="color:#555;font-size:12px;line-height:1.6;">${descripcion}</p>
+          </div>
+          <div style="border-top:1px solid #eee;padding-top:10px;">
+            <div style="font-size:12px;font-weight:700;color:#1a1a1a;">Empresarios Inmobiliarios</div>
+            <div style="font-size:11px;color:#999;">📲 940 916 247</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function crearFotoModal(src, num) {
+    return `<div style="width:100%;height:100%;position:relative;background:#1a1a1a;display:flex;align-items:center;justify-content:center;">
+      <img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain;">
+      <div style="position:absolute;bottom:60px;right:12px;background:rgba(0,0,0,.55);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#fff;">
+        <span style="color:#CE011F;">●</span> Empresarios Inmobiliarios
+      </div>
+      <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border-radius:20px;padding:4px 10px;font-size:11px;color:#fff;">📷 ${num} / ${fotosList.length}</div>
+    </div>`;
+  }
+
+  overlay.innerHTML = `
+    <div style="position:relative;width:100%;max-width:480px;height:100vh;display:flex;flex-direction:column;">
+      <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.5),transparent);">
+        <div style="font-size:12px;color:#fff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.5);">${tipo} — ${ubi}</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="descargarCatalogoDesdeModal('${id}')" style="background:#CE011F;border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">⬇ Descargar</button>
+          <button onclick="document.getElementById('ei-catalogo-overlay').remove()" style="background:rgba(0,0,0,.4);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+        </div>
+      </div>
+      <div id="cat-slide-modal" style="flex:1;overflow:hidden;position:relative;"></div>
+      <button id="cat-prev-m" onclick="catNavM(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;z-index:10;">‹</button>
+      <button id="cat-next-m" onclick="catNavM(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;z-index:10;">›</button>
+      <div id="cat-dots-m" style="position:absolute;bottom:16px;left:0;right:0;display:flex;justify-content:center;gap:6px;align-items:center;z-index:10;"></div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const sc = document.getElementById('cat-slide-modal');
+  const dotsC = document.getElementById('cat-dots-m');
+
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = 'height:8px;border-radius:4px;background:rgba(255,255,255,.3);transition:all .3s;cursor:pointer;width:8px;';
+    dot.onclick = () => { currentSlide = i; renderM(); };
+    dotsC.appendChild(dot);
+  }
+
+  function renderM() {
+    sc.innerHTML = currentSlide === 0 ? crearPortadaModal() : crearFotoModal(fotosList[currentSlide-1], currentSlide);
+    Array.from(dotsC.children).forEach((d,i) => {
+      d.style.background = i === currentSlide ? '#CE011F' : 'rgba(255,255,255,.3)';
+      d.style.width = i === currentSlide ? '24px' : '8px';
+    });
+  }
+
+  window.catNavM = (dir) => {
+    const n = currentSlide + dir;
+    if (n >= 0 && n < totalSlides) { currentSlide = n; renderM(); }
+  };
+
+  let tx2 = 0;
+  overlay.addEventListener('touchstart', e => tx2 = e.touches[0].clientX);
+  overlay.addEventListener('touchend', e => {
+    const d = tx2 - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 50) catNavM(d > 0 ? 1 : -1);
+  });
+
+  // Función para descargar desde modal
+  window.descargarCatalogoDesdeModal = (propId) => {
+    const fotosTemp = fotosList;
+    const tipoT = tipo, opT = op, ubiT = ubi, precioT = precio, areaT = area;
+    const dormsT = dorms, banosT = banos, cocherasT = cocheras, descT = descripcion;
+    
+    let fotoSlides = '';
+    fotosTemp.forEach((src, i) => {
+      fotoSlides += '<div class="slide"><div class="photo-slide"><img src="' + src + '" alt="Foto ' + (i+1) + '"><div class="watermark">EI &middot; Empresarios Inmobiliarios</div><div class="foto-num">&#128247; ' + (i+1) + ' / ' + fotosTemp.length + '</div></div></div>';
+    });
+    
+    let dotsH = '<div class="dot active" onclick="goTo(0)"></div>';
+    fotosTemp.forEach((_, i) => { dotsH += '<div class="dot" onclick="goTo(' + (i+1) + ')"></div>'; });
+    
+    let statsH = '';
+    if (areaT) statsH += '<div class="stat"><div class="stat-v">' + areaT + ' m&sup2;</div><div class="stat-l">AREA</div></div>';
+    if (dormsT) statsH += '<div class="stat"><div class="stat-v">' + dormsT + '</div><div class="stat-l">DORMS</div></div>';
+    if (banosT) statsH += '<div class="stat"><div class="stat-v">' + banosT + '</div><div class="stat-l">BANOS</div></div>';
+    
+    const fotoPortada = fotosTemp[0] ? '<div class="cover-img"><img src="' + fotosTemp[0] + '"></div>' : '';
+    const precioH = precioT ? '<div class="cover-price">USD ' + Number(precioT).toLocaleString() + '</div>' : '';
+    
+    const css = '*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f3f5;font-family:Arial,sans-serif;height:100vh;overflow:hidden;user-select:none}.slider{width:100%;height:100vh;position:relative}.slide{display:none;width:100%;height:100vh}.slide.active{display:flex}.cover{width:100%;display:flex;flex-direction:column;background:#fff}.cover-bar{background:#CE011F;padding:10px 20px;display:flex;justify-content:space-between;align-items:center}.cover-bar-t{font-size:11px;color:#fff;font-weight:700;letter-spacing:1px;text-transform:uppercase}.cover-bar-s{font-size:9px;color:rgba(255,255,255,.8);font-style:italic}.cover-split{flex:1;display:flex;overflow:hidden}.cover-img{width:50%;flex-shrink:0;overflow:hidden}.cover-img img{width:100%;height:100%;object-fit:cover}.cover-info{flex:1;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}.cover-tag{display:inline-block;background:rgba(206,1,31,.1);color:#CE011F;border:1px solid rgba(206,1,31,.2);border-radius:20px;padding:3px 12px;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:8px}.cover-title{font-size:18px;font-weight:900;color:#1a1a1a;line-height:1.2;margin-bottom:8px}.cover-price{font-size:20px;font-weight:700;color:#CE011F;margin-bottom:12px}.cover-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.stat{background:#f2f3f5;border:1px solid #e0e0e0;border-radius:8px;padding:6px 10px;text-align:center}.stat-v{font-size:15px;font-weight:700;color:#1a1a1a}.stat-l{font-size:8px;color:#999;text-transform:uppercase;margin-top:1px}.cover-desc{color:#555;font-size:12px;line-height:1.6;flex:1;margin-bottom:12px}.cover-foot{border-top:1px solid #eee;padding-top:10px}.cover-brand{font-size:12px;font-weight:700;color:#1a1a1a}.cover-contact{font-size:11px;color:#999}.photo-slide{width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;background:#1a1a1a}.photo-slide img{max-width:100%;max-height:100%;object-fit:contain}.watermark{position:absolute;bottom:60px;right:12px;background:rgba(0,0,0,.55);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#fff}.foto-num{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border-radius:20px;padding:4px 10px;font-size:11px;color:#fff}.btn-p,.btn-n{position:fixed;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;width:42px;height:42px;border-radius:50%;font-size:22px;cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center}.btn-p{left:8px}.btn-n{right:8px}.dots{position:fixed;bottom:16px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:100}.dot{width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s}.dot.active{width:24px;background:#CE011F}';
+    
+    const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"><title>Catalogo EI</title><style>' + css + '</style></head><body>'
+      + '<div class="slider">'
+      + '<div class="slide active"><div class="cover"><div class="cover-bar"><div class="cover-bar-t">EMPRESARIOS INMOBILIARIOS</div><div class="cover-bar-s">Construimos Patrimonio</div></div>'
+      + '<div class="cover-split">' + fotoPortada + '<div class="cover-info"><div class="cover-tag">' + (opT||'En Venta') + '</div>'
+      + '<div class="cover-title">' + tipoT + (ubiT ? '<br><small style="color:#555">' + ubiT + '</small>' : '') + '</div>'
+      + precioH + '<div class="cover-stats">' + statsH + '</div>'
+      + '<p class="cover-desc">' + descT + '</p>'
+      + '<div class="cover-foot"><div class="cover-brand">Empresarios Inmobiliarios</div><div class="cover-contact">&#128242; 940 916 247</div></div>'
+      + '</div></div></div></div>'
+      + fotoSlides
+      + '</div>'
+      + '<button class="btn-p" onclick="goTo(current-1)">&#8249;</button>'
+      + '<button class="btn-n" onclick="goTo(current+1)">&#8250;</button>'
+      + '<div class="dots">' + dotsH + '</div>'
+      + '<script>let current=0;const slides=document.querySelectorAll(".slide"),dots=document.querySelectorAll(".dot");function goTo(n){if(n<0||n>=slides.length)return;slides[current].classList.remove("active");dots[current].classList.remove("active");current=n;slides[current].classList.add("active");dots[current].classList.add("active");}let tx=0;document.addEventListener("touchstart",e=>tx=e.touches[0].clientX);document.addEventListener("touchend",e=>{const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50)goTo(d>0?current+1:current-1);});document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")goTo(current+1);if(e.key==="ArrowLeft")goTo(current-1);});<' + '/script></body></html>';
+    
+    const blob = new Blob([html], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Catalogo_EI_' + (tipoT + '_' + ubiT).replace(/[^a-zA-Z0-9]/g,'_').substring(0,30) + '.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  renderM();
+}
+
+
+async function abrirCatalogoDesdeModal(id) {
+  let r = dbGet('props').find(p => String(p.id) === String(id));
+  if (!r) return;
+
+  // Recargar fotos desde Supabase si no las tiene
+  if (!r.fotos_urls || !r.fotos_urls.length) {
+    try {
+      const rows = await sbFetch('ei_props?id=eq.' + id);
+      if (rows && rows[0]) r = fromSbRow('props', rows[0]);
+    } catch(e) {}
+  }
+
+  const fotosList = (r.fotos_urls && r.fotos_urls.length) ? r.fotos_urls : (r.fotos || []);
+  if (!fotosList.length) { alert('Esta propiedad no tiene fotos cargadas.'); return; }
+
+  // Cargar datos en campos de captación temporalmente para usar abrirCatalogo
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('cap-tipo', r.tipo); set('cap-operacion', r.operacion);
+  set('cap-ubicacion', r.ubicacion); set('cap-precio', r.precio);
+  set('cap-area', r.area); set('cap-dorms', ''); set('cap-banos', ''); set('cap-cocheras', '');
+
+  // Parsear características
+  if (r.caract && r.caract !== '—') {
+    r.caract.split(',').forEach(p => {
+      const dorm = p.match(/(\d+)\s*dorm/i);
+      const bano = p.match(/(\d+)\s*ba[ñn]/i);
+      const coch = p.match(/(\d+)\s*cochera/i);
+      if (dorm) set('cap-dorms', dorm[1]);
+      else if (bano) set('cap-banos', bano[1]);
+      else if (coch) set('cap-cocheras', coch[1]);
+    });
+  }
+
+  const fichaEl = document.getElementById('out-ficha');
+  if (fichaEl) fichaEl.value = r.ficha || '';
+
+  // Poner fotos en el array global photos
+  if (typeof photos !== 'undefined') {
+    photos.fill(null);
+    fotosList.forEach((f, i) => { if (i < photos.length) photos[i] = f; });
+  }
+
+  // Cerrar modal y abrir catálogo
+  const modal = document.getElementById('ei-prop-preview');
+  if (modal) modal.remove();
+  abrirCatalogo();
 }
 
 </script>
