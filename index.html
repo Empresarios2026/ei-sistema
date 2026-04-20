@@ -792,6 +792,9 @@ td:first-child { color:var(--t1); font-weight:500; }
           <button class="btn btn-export" onclick="exportarPDF()" id="btn-pdf" style="flex:1;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#ff8fa3;border-color:rgba(255,143,163,.3);">
             📑 Exportar a PDF
           </button>
+          <button class="btn btn-export" onclick="abrirCatalogo()" style="flex:1;background:linear-gradient(135deg,#CE011F,#a00018);color:#fff;border-color:rgba(206,1,31,.4);">
+            📖 Ver Catálogo
+          </button>
           <button class="btn btn-export" onclick="exportarExcelProps()" style="flex:1;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#90ee90;border-color:rgba(144,238,144,.3);">
             📊 Exportar Excel
           </button>
@@ -5979,6 +5982,318 @@ async function generarContenidoIA() {
   } else if (outEl) {
     outEl.innerHTML = '<div style="color:#e55;padding:10px;">Error al generar. Usa el prompt manual.</div>';
   }
+}
+
+
+// ══════════════════════════════════════════
+// CATÁLOGO — Visor de fotos para WhatsApp
+// ══════════════════════════════════════════
+function abrirCatalogo() {
+  const tipo       = document.getElementById('cap-tipo').value || 'Propiedad';
+  const op         = document.getElementById('cap-operacion').value || '';
+  const ubi        = document.getElementById('cap-ubicacion').value || '';
+  const precio     = document.getElementById('cap-precio').value || '';
+  const area       = document.getElementById('cap-area').value || '';
+  const dorms      = document.getElementById('cap-dorms').value || '';
+  const banos      = document.getElementById('cap-banos').value || '';
+  const cocheras   = document.getElementById('cap-cocheras').value || '';
+  const caract     = document.getElementById('cap-caract').value || '';
+  const fichaEl    = document.getElementById('out-ficha');
+  const ficha      = fichaEl ? fichaEl.value.trim() : '';
+  const fotosList  = photos.filter(p => p);
+
+  if (!fotosList.length) {
+    alert('Carga al menos una foto para generar el catálogo.');
+    return;
+  }
+
+  // Obtener descripción corta de la ficha (primeras 3 líneas)
+  const fichaLineas = ficha ? ficha.split('\n').filter(l => l.trim()).slice(0, 6) : [];
+  const descripcion = fichaLineas.length ? fichaLineas.join(' ').substring(0, 300) : 
+    `${tipo} en ${op} — ${ubi}${precio ? ' — USD ' + Number(precio).toLocaleString() : ''}`;
+
+  // Crear overlay del catálogo
+  const existing = document.getElementById('ei-catalogo-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'ei-catalogo-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+
+  // Total de slides: 1 portada + 1 por foto
+  const totalSlides = 1 + fotosList.length;
+  let currentSlide = 0;
+
+  // Logo EI en base64 (texto como marca de agua)
+  function crearSlidePortada() {
+    return `
+      <div style="width:100%;height:100%;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a1a,#2d2d2d);position:relative;">
+        <div style="background:#CE011F;padding:20px 28px;">
+          <div style="font-size:11px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">EMPRESARIOS INMOBILIARIOS</div>
+          <div style="font-size:22px;font-weight:900;color:#fff;font-family:Georgia,serif;">${tipo}${ubi ? ' — ' + ubi : ''}</div>
+          ${op ? '<div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:4px;">' + op + '</div>' : ''}
+          ${precio ? '<div style="font-size:18px;font-weight:700;color:#fff;margin-top:6px;">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
+        </div>
+        <div style="flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            ${area || dorms || banos ? `<div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+              ${area ? '<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fff;">' + area + ' m²</div><div style="font-size:10px;color:#999;">ÁREA</div></div>' : ''}
+              ${dorms ? '<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fff;">' + dorms + '</div><div style="font-size:10px;color:#999;">DORMS</div></div>' : ''}
+              ${banos ? '<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fff;">' + banos + '</div><div style="font-size:10px;color:#999;">BAÑOS</div></div>' : ''}
+              ${cocheras ? '<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fff;">' + cocheras + '</div><div style="font-size:10px;color:#999;">COCHERAS</div></div>' : ''}
+            </div>` : ''}
+            <p style="color:#ccc;font-size:14px;line-height:1.7;">${descripcion}</p>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;">Empresarios Inmobiliarios</div>
+              <div style="font-size:11px;color:#999;">📲 940 916 247</div>
+            </div>
+            <div style="font-size:11px;color:#CE011F;font-style:italic;">Construimos Patrimonio</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function crearSlideConFoto(src, numero) {
+    return `
+      <div style="width:100%;height:100%;position:relative;background:#000;display:flex;align-items:center;justify-content:center;">
+        <img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;">
+        <div style="position:absolute;bottom:16px;right:16px;background:rgba(0,0,0,.55);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:#CE011F;letter-spacing:1px;">EI</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.8);">Empresarios Inmobiliarios</span>
+        </div>
+        <div style="position:absolute;top:12px;right:16px;background:rgba(0,0,0,.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#fff;">
+          📷 ${numero} / ${fotosList.length}
+        </div>
+      </div>`;
+  }
+
+  function renderSlide() {
+    slideContainer.innerHTML = currentSlide === 0 
+      ? crearSlidePortada()
+      : crearSlideConFoto(fotosList[currentSlide - 1], currentSlide);
+    
+    // Actualizar indicadores
+    dots.forEach((d, i) => {
+      d.style.background = i === currentSlide ? '#CE011F' : 'rgba(255,255,255,.3)';
+      d.style.width = i === currentSlide ? '24px' : '8px';
+    });
+    prevBtn.style.opacity = currentSlide === 0 ? '0.3' : '1';
+    nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.3' : '1';
+  }
+
+  overlay.innerHTML = `
+    <div style="position:relative;width:100%;max-width:480px;height:100vh;display:flex;flex-direction:column;">
+      <!-- Header -->
+      <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);">
+        <div style="font-size:12px;color:#fff;font-weight:600;">${tipo} — ${ubi}</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="descargarCatalogo()" style="background:#CE011F;border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">⬇ Descargar</button>
+          <button onclick="document.getElementById('ei-catalogo-overlay').remove()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>
+      </div>
+
+      <!-- Slide container -->
+      <div id="cat-slide" style="flex:1;overflow:hidden;position:relative;"></div>
+
+      <!-- Flechas -->
+      <button id="cat-prev" onclick="catNavegar(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;">‹</button>
+      <button id="cat-next" onclick="catNavegar(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;">›</button>
+
+      <!-- Dots indicadores -->
+      <div id="cat-dots" style="position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:6px;align-items:center;z-index:10;"></div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const slideContainer = document.getElementById('cat-slide');
+  const prevBtn = document.getElementById('cat-prev');
+  const nextBtn = document.getElementById('cat-next');
+  const dotsContainer = document.getElementById('cat-dots');
+
+  // Crear dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = 'height:8px;border-radius:4px;background:rgba(255,255,255,.3);transition:all .3s;cursor:pointer;';
+    dot.onclick = () => { currentSlide = i; renderSlide(); };
+    dotsContainer.appendChild(dot);
+  }
+  const dots = Array.from(dotsContainer.children);
+
+  // Navegación con flechas
+  window.catNavegar = (dir) => {
+    const nuevo = currentSlide + dir;
+    if (nuevo >= 0 && nuevo < totalSlides) {
+      currentSlide = nuevo;
+      renderSlide();
+    }
+  };
+
+  // Swipe táctil
+  let touchStartX = 0;
+  overlay.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  overlay.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) catNavegar(diff > 0 ? 1 : -1);
+  });
+
+  // Teclado
+  const keyHandler = (e) => {
+    if (e.key === 'ArrowRight') catNavegar(1);
+    if (e.key === 'ArrowLeft') catNavegar(-1);
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', keyHandler); }
+  };
+  document.addEventListener('keydown', keyHandler);
+
+  renderSlide();
+}
+
+
+function descargarCatalogo() {
+  const tipo    = document.getElementById('cap-tipo').value || 'Propiedad';
+  const op      = document.getElementById('cap-operacion').value || '';
+  const ubi     = document.getElementById('cap-ubicacion').value || '';
+  const precio  = document.getElementById('cap-precio').value || '';
+  const area    = document.getElementById('cap-area').value || '';
+  const dorms   = document.getElementById('cap-dorms').value || '';
+  const banos   = document.getElementById('cap-banos').value || '';
+  const cocheras= document.getElementById('cap-cocheras').value || '';
+  const fichaEl = document.getElementById('out-ficha');
+  const ficha   = fichaEl ? fichaEl.value.trim() : '';
+  const fotosList = photos.filter(p => p);
+  if (!fotosList.length) { alert('No hay fotos para descargar.'); return; }
+
+  const descripcion = ficha 
+    ? ficha.split('\n').filter(l => l.trim()).slice(0, 6).join(' ').substring(0, 300)
+    : tipo + ' en ' + op + ' — ' + ubi + (precio ? ' — USD ' + Number(precio).toLocaleString() : '');
+
+  // Generar slides HTML
+  const portada = `
+    <div class="slide active" data-slide="0">
+      <div class="cover">
+        <div class="cover-header">
+          <div class="cover-eyebrow">EMPRESARIOS INMOBILIARIOS</div>
+          <div class="cover-title">${tipo}${ubi ? ' — ' + ubi : ''}</div>
+          ${op ? '<div class="cover-op">' + op + '</div>' : ''}
+          ${precio ? '<div class="cover-price">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
+        </div>
+        <div class="cover-body">
+          <div class="cover-stats">
+            ${area ? '<div class="stat"><div class="stat-val">' + area + ' m²</div><div class="stat-lbl">ÁREA</div></div>' : ''}
+            ${dorms ? '<div class="stat"><div class="stat-val">' + dorms + '</div><div class="stat-lbl">DORMS</div></div>' : ''}
+            ${banos ? '<div class="stat"><div class="stat-val">' + banos + '</div><div class="stat-lbl">BAÑOS</div></div>' : ''}
+            ${cocheras ? '<div class="stat"><div class="stat-val">' + cocheras + '</div><div class="stat-lbl">COCHERAS</div></div>' : ''}
+          </div>
+          <p class="cover-desc">${descripcion}</p>
+          <div class="cover-footer">
+            <div>
+              <div class="cover-brand">Empresarios Inmobiliarios</div>
+              <div class="cover-contact">📲 940 916 247</div>
+            </div>
+            <div class="cover-slogan">Construimos Patrimonio</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const fotoSlides = fotosList.map((src, i) => `
+    <div class="slide" data-slide="${i+1}">
+      <div class="photo-slide">
+        <img src="${src}" alt="Foto ${i+1}">
+        <div class="watermark">EI · Empresarios Inmobiliarios</div>
+        <div class="foto-num">📷 ${i+1} / ${fotosList.length}</div>
+      </div>
+    </div>`).join('');
+
+  const dotsHTML = Array.from({length: fotosList.length + 1}, (_, i) => 
+    `<div class="dot${i===0?' active':''}" onclick="goTo(${i})"></div>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Catálogo — ${tipo} ${ubi}</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#000; font-family:'Arial',sans-serif; height:100vh; overflow:hidden; user-select:none; }
+.slider { width:100%; height:100vh; position:relative; }
+.slide { display:none; width:100%; height:100vh; }
+.slide.active { display:flex; }
+/* PORTADA */
+.cover { width:100%; display:flex; flex-direction:column; background:linear-gradient(135deg,#1a1a1a,#2d2d2d); }
+.cover-header { background:#CE011F; padding:20px 24px; }
+.cover-eyebrow { font-size:10px; color:rgba(255,255,255,.7); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+.cover-title { font-size:22px; font-weight:900; color:#fff; line-height:1.2; margin-bottom:4px; }
+.cover-op { font-size:13px; color:rgba(255,255,255,.8); }
+.cover-price { font-size:20px; font-weight:700; color:#fff; margin-top:6px; }
+.cover-body { flex:1; padding:20px 24px; display:flex; flex-direction:column; justify-content:space-between; }
+.cover-stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.stat { background:rgba(255,255,255,.08); border-radius:8px; padding:8px 14px; text-align:center; }
+.stat-val { font-size:18px; font-weight:700; color:#fff; }
+.stat-lbl { font-size:9px; color:#999; text-transform:uppercase; margin-top:2px; }
+.cover-desc { color:#ccc; font-size:13px; line-height:1.7; flex:1; margin-bottom:16px; }
+.cover-footer { border-top:1px solid rgba(255,255,255,.1); padding-top:14px; display:flex; justify-content:space-between; align-items:center; }
+.cover-brand { font-size:13px; font-weight:700; color:#fff; }
+.cover-contact { font-size:11px; color:#999; }
+.cover-slogan { font-size:11px; color:#CE011F; font-style:italic; }
+/* FOTOS */
+.photo-slide { width:100%; height:100%; position:relative; display:flex; align-items:center; justify-content:center; background:#000; }
+.photo-slide img { max-width:100%; max-height:100%; object-fit:contain; }
+.watermark { position:absolute; bottom:60px; right:12px; background:rgba(0,0,0,.55); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:700; color:#fff; }
+.watermark::before { content:""; display:inline-block; width:8px; height:8px; background:#CE011F; border-radius:50%; margin-right:6px; vertical-align:middle; }
+.foto-num { position:absolute; top:12px; right:12px; background:rgba(0,0,0,.5); border-radius:20px; padding:4px 10px; font-size:11px; color:#fff; }
+/* CONTROLES */
+.btn-prev, .btn-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; color:#fff; width:42px; height:42px; border-radius:50%; font-size:22px; cursor:pointer; z-index:100; display:flex; align-items:center; justify-content:center; }
+.btn-prev { left:8px; }
+.btn-next { right:8px; }
+.dots { position:fixed; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:100; }
+.dot { width:8px; height:8px; border-radius:4px; background:rgba(255,255,255,.3); cursor:pointer; transition:all .3s; }
+.dot.active { width:24px; background:#CE011F; }
+</style>
+</head>
+<body>
+<div class="slider">
+  ${portada}
+  ${fotoSlides}
+</div>
+<button class="btn-prev" onclick="goTo(current-1)">‹</button>
+<button class="btn-next" onclick="goTo(current+1)">›</button>
+<div class="dots">${dotsHTML}</div>
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+function goTo(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+}
+// Swipe
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+document.addEventListener('touchend', e => {
+  const d = tx - e.changedTouches[0].clientX;
+  if (Math.abs(d) > 50) goTo(d > 0 ? current+1 : current-1);
+});
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight') goTo(current+1);
+  if (e.key==='ArrowLeft') goTo(current-1);
+});
+<\/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Catalogo_EI_' + (tipo + '_' + ubi).replace(/[^a-zA-Z0-9]/g,'_').substring(0,30) + '.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 </script>
