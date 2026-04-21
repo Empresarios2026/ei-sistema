@@ -6009,9 +6009,27 @@ function abrirCatalogo() {
   }
 
   // Obtener descripción corta de la ficha (primeras 3 líneas)
-  const fichaLineas = ficha ? ficha.split('\n').filter(l => l.trim()).slice(0, 6) : [];
-  const descripcion = fichaLineas.length ? fichaLineas.join(' ').substring(0, 300) : 
-    `${tipo} en ${op} — ${ubi}${precio ? ' — USD ' + Number(precio).toLocaleString() : ''}`;
+  // Extraer características técnicas de la ficha
+  function extraerCaract(fichaTexto, caractRaw) {
+    if (!fichaTexto) return caractRaw || '';
+    const lineas = fichaTexto.split('\n');
+    let enCaract = false;
+    const items = [];
+    for (const linea of lineas) {
+      const l = linea.trim();
+      if (!l) { if (enCaract && items.length) break; continue; }
+      if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
+      if (enCaract) {
+        if (l.toUpperCase() === l && l.length > 3) break; // nuevo título = terminar
+        items.push(l.replace(/^[•\-\*]\s*/, ''));
+      }
+    }
+    return items.length ? items : (caractRaw ? caractRaw.split(',').map(s => s.trim()) : []);
+  }
+  const caractItems = extraerCaract(ficha, caract);
+  const descripcion = Array.isArray(caractItems) && caractItems.length 
+    ? caractItems.join(' · ').substring(0, 400)
+    : `${tipo} en ${op} — ${ubi}${precio ? ' — USD ' + Number(precio).toLocaleString() : ''}`;
 
   // Crear overlay del catálogo
   const existing = document.getElementById('ei-catalogo-overlay');
@@ -6165,9 +6183,25 @@ function descargarCatalogo() {
   const fotosList = photos.filter(p => p);
   if (!fotosList.length) { alert('No hay fotos para descargar.'); return; }
 
-  const descripcion = ficha 
-    ? ficha.split('\n').filter(l => l.trim()).slice(0, 6).join(' ').substring(0, 300)
-    : tipo + ' en ' + op + ' — ' + ubi + (precio ? ' — USD ' + Number(precio).toLocaleString() : '');
+  // Extraer características técnicas de la ficha para el catálogo
+  function extraerCaractDesc(fichaTexto, caractRaw) {
+    if (!fichaTexto) return caractRaw || '';
+    const lineas = fichaTexto.split('\n');
+    let enCaract = false;
+    const items = [];
+    for (const linea of lineas) {
+      const l = linea.trim();
+      if (!l) { if (enCaract && items.length) break; continue; }
+      if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
+      if (enCaract) {
+        if (l.toUpperCase() === l && l.length > 3) break;
+        items.push(l.replace(/^[•\-\*]\s*/, '• '));
+      }
+    }
+    if (items.length) return items.join('\n');
+    return caractRaw ? caractRaw.split(',').map(s => '• ' + s.trim()).join('\n') : (tipo + ' en ' + op + ' — ' + ubi);
+  }
+  const descripcion = extraerCaractDesc(ficha, caract);
 
   // Generar slides HTML
   const foto1 = fotosList[0] || '';
@@ -6190,7 +6224,7 @@ function descargarCatalogo() {
               ${banos ? '<div class="stat"><div class="stat-val">' + banos + '</div><div class="stat-lbl">BAÑOS</div></div>' : ''}
               ${cocheras ? '<div class="stat"><div class="stat-val">' + cocheras + '</div><div class="stat-lbl">COCH</div></div>' : ''}
             </div>
-            <p class="cover-desc">${descripcion}</p>
+            <div class="cover-desc" style="white-space:pre-line;">${descripcion}</div>
             <div class="cover-footer">
               <div class="cover-brand">Empresarios Inmobiliarios</div>
               <div class="cover-contact">📲 940 916 247</div>
@@ -6204,8 +6238,9 @@ function descargarCatalogo() {
     <div class="slide" data-slide="${i+1}">
       <div class="photo-slide">
         <img src="${src}" alt="Foto ${i+1}">
-        <div class="watermark">EI · Empresarios Inmobiliarios</div>
-        <div class="foto-num">📷 ${i+1} / ${fotosList.length}</div>
+        <div class="foto-bar"></div>
+        <div class="watermark"><div class="watermark-dot"></div>Empresarios Inmobiliarios</div>
+        <div class="foto-num">${i+1} / ${fotosList.length}</div>
       </div>
     </div>`).join('');
 
@@ -6220,42 +6255,48 @@ function descargarCatalogo() {
 <title>Catálogo — ${tipo} ${ubi}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#f2f3f5; font-family:'Arial',sans-serif; height:100vh; overflow:hidden; user-select:none; }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#F5F0EB; font-family:'DM Sans',Arial,sans-serif; height:100vh; overflow:hidden; user-select:none; }
 .slider { width:100%; height:100vh; position:relative; }
 .slide { display:none; width:100%; height:100vh; }
 .slide.active { display:flex; }
-/* PORTADA */
-.cover { width:100%; display:flex; flex-direction:column; background:#fff; }
-.cover-top-bar { background:#CE011F; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
-.cover-eyebrow { font-size:11px; color:#fff; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
-.cover-slogan-top { font-size:9px; color:rgba(255,255,255,.8); font-style:italic; }
+/* PORTADA estilo Canva */
+.cover { width:100%; display:flex; flex-direction:column; background:#fff; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+.cover-top-bar { background:#CE011F; padding:12px 28px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.cover-eyebrow { font-size:11px; color:#fff; font-weight:600; letter-spacing:2px; text-transform:uppercase; }
+.cover-slogan-top { font-size:9px; color:rgba(255,255,255,.75); font-style:italic; letter-spacing:.5px; }
 .cover-split { flex:1; display:flex; overflow:hidden; }
-.cover-photo { width:50%; flex-shrink:0; overflow:hidden; }
+.cover-photo { width:55%; flex-shrink:0; overflow:hidden; position:relative; }
 .cover-photo img { width:100%; height:100%; object-fit:cover; }
-.cover-info { flex:1; padding:16px 18px; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto; }
-.cover-tag { display:inline-block; background:rgba(206,1,31,.1); color:#CE011F; border:1px solid rgba(206,1,31,.2); border-radius:20px; padding:3px 12px; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:8px; }
-.cover-title { font-size:18px; font-weight:900; color:#1a1a1a; line-height:1.2; margin-bottom:8px; }
-.cover-price { font-size:20px; font-weight:700; color:#CE011F; margin-bottom:12px; }
-.cover-stats { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-.stat { background:#f2f3f5; border:1px solid #e0e0e0; border-radius:8px; padding:6px 10px; text-align:center; }
-.stat-val { font-size:15px; font-weight:700; color:#1a1a1a; }
-.stat-lbl { font-size:8px; color:#999; text-transform:uppercase; margin-top:1px; }
-.cover-desc { color:#555; font-size:12px; line-height:1.6; flex:1; margin-bottom:12px; }
-.cover-footer { border-top:1px solid #eee; padding-top:10px; }
-.cover-brand { font-size:12px; font-weight:700; color:#1a1a1a; }
-.cover-contact { font-size:11px; color:#999; }
+.cover-photo::after { content:''; position:absolute; inset:0; background:linear-gradient(to right, transparent 70%, rgba(255,255,255,.3)); }
+.cover-info { flex:1; padding:28px 28px 20px; display:flex; flex-direction:column; justify-content:space-between; background:#fff; }
+.cover-tag { display:inline-block; background:#CE011F; color:#fff; border-radius:4px; padding:4px 14px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; }
+.cover-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#1a1a1a; line-height:1.25; margin-bottom:14px; }
+.cover-price { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:#CE011F; margin-bottom:18px; letter-spacing:-.5px; }
+.cover-divider { width:40px; height:3px; background:#CE011F; margin-bottom:16px; }
+.cover-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+.stat { background:#F5F0EB; border-radius:6px; padding:8px 12px; text-align:center; min-width:52px; }
+.stat-val { font-size:16px; font-weight:700; color:#1a1a1a; line-height:1; }
+.stat-lbl { font-size:8px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-top:3px; }
+.cover-desc { color:#555; font-size:11.5px; line-height:1.7; flex:1; margin-bottom:14px; white-space:pre-line; }
+.cover-footer { border-top:1px solid #eee; padding-top:12px; display:flex; justify-content:space-between; align-items:flex-end; }
+.cover-brand { font-size:11px; font-weight:700; color:#1a1a1a; letter-spacing:.3px; }
+.cover-contact { font-size:10px; color:#888; margin-top:2px; }
+.cover-slogan-bottom { font-size:9px; color:#CE011F; font-style:italic; text-align:right; }
 /* FOTOS */
 .photo-slide { width:100%; height:100%; position:relative; display:flex; align-items:center; justify-content:center; background:#1a1a1a; }
 .photo-slide img { max-width:100%; max-height:100%; object-fit:contain; }
 .watermark { position:absolute; bottom:60px; right:12px; background:rgba(0,0,0,.55); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:700; color:#fff; }
 .watermark::before { content:""; display:inline-block; width:8px; height:8px; background:#CE011F; border-radius:50%; margin-right:6px; vertical-align:middle; }
 .foto-num { position:absolute; top:12px; right:12px; background:rgba(0,0,0,.5); border-radius:20px; padding:4px 10px; font-size:11px; color:#fff; }
-/* CONTROLES */
-.btn-prev, .btn-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; color:#fff; width:42px; height:42px; border-radius:50%; font-size:22px; cursor:pointer; z-index:100; display:flex; align-items:center; justify-content:center; }
-.btn-prev { left:8px; }
-.btn-next { right:8px; }
-.dots { position:fixed; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:100; }
-.dot { width:8px; height:8px; border-radius:4px; background:rgba(255,255,255,.3); cursor:pointer; transition:all .3s; }
+/* CONTROLES estilo Canva */
+.btn-prev, .btn-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.9); border:none; color:#1a1a1a; width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer; z-index:100; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px rgba(0,0,0,.15); transition:all .2s; }
+.btn-prev:hover, .btn-next:hover { background:#fff; transform:translateY(-50%) scale(1.05); }
+.btn-prev { left:12px; }
+.btn-next { right:12px; }
+.dots { position:fixed; bottom:20px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:100; }
+.dot { width:8px; height:8px; border-radius:4px; background:rgba(255,255,255,.4); cursor:pointer; transition:all .3s; }
 .dot.active { width:24px; background:#CE011F; }
 </style>
 </head>
