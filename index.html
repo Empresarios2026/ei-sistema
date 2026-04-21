@@ -6320,12 +6320,12 @@ let current = 0;
 const slides = document.querySelectorAll('.slide');
 const dots = document.querySelectorAll('.dot');
 
-// Tamaño fijo tipo presentación 4:3 adaptado a la pantalla
+// Tamaño fijo 16:9 horizontal — igual que las fotos
 function resizeSlide() {
   const wrap = document.querySelector('.slide-wrap');
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = 4/3;
+  const ratio = 16/9;
   let w, h;
   if (vw / vh > ratio) {
     h = vh * 0.96;
