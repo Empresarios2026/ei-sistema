@@ -5989,6 +5989,8 @@ async function generarContenidoIA() {
 // ══════════════════════════════════════════
 // CATÁLOGO — Visor de fotos para WhatsApp
 // ══════════════════════════════════════════
+let _catalogoData = null; // datos actuales del catálogo
+
 function abrirCatalogo() {
   const tipo       = document.getElementById('cap-tipo').value || 'Propiedad';
   const op         = document.getElementById('cap-operacion').value || '';
@@ -6007,6 +6009,9 @@ function abrirCatalogo() {
     alert('Carga al menos una foto para generar el catálogo.');
     return;
   }
+
+  // Guardar datos para descarga
+  _catalogoData = { tipo, op, ubi, precio, area, dorms, banos, cocheras, caract, ficha, fotosList };
 
   // Obtener descripción corta de la ficha (primeras 3 líneas)
   // Extraer características técnicas de la ficha
@@ -6170,18 +6175,25 @@ function abrirCatalogo() {
 
 
 function descargarCatalogo() {
-  const tipo    = document.getElementById('cap-tipo').value || 'Propiedad';
-  const op      = document.getElementById('cap-operacion').value || '';
-  const ubi     = document.getElementById('cap-ubicacion').value || '';
-  const precio  = document.getElementById('cap-precio').value || '';
-  const area    = document.getElementById('cap-area').value || '';
-  const dorms   = document.getElementById('cap-dorms').value || '';
-  const banos   = document.getElementById('cap-banos').value || '';
-  const cocheras= document.getElementById('cap-cocheras').value || '';
-  const fichaEl = document.getElementById('out-ficha');
-  const ficha   = fichaEl ? fichaEl.value.trim() : '';
-  const fotosList = photos.filter(p => p);
-  if (!fotosList.length) { alert('No hay fotos para descargar.'); return; }
+  // Usar datos guardados del catálogo actual si existen
+  let tipo, op, ubi, precio, area, dorms, banos, cocheras, ficha, fotosList, caract;
+  if (_catalogoData) {
+    ({ tipo, op, ubi, precio, area, dorms, banos, cocheras, ficha, fotosList, caract } = _catalogoData);
+  } else {
+    tipo     = document.getElementById('cap-tipo')?.value || 'Propiedad';
+    op       = document.getElementById('cap-operacion')?.value || '';
+    ubi      = document.getElementById('cap-ubicacion')?.value || '';
+    precio   = document.getElementById('cap-precio')?.value || '';
+    area     = document.getElementById('cap-area')?.value || '';
+    dorms    = document.getElementById('cap-dorms')?.value || '';
+    banos    = document.getElementById('cap-banos')?.value || '';
+    cocheras = document.getElementById('cap-cocheras')?.value || '';
+    caract   = document.getElementById('cap-caract')?.value || '';
+    const fichaEl = document.getElementById('out-ficha');
+    ficha    = fichaEl ? fichaEl.value.trim() : '';
+    fotosList = photos.filter(p => p);
+  }
+  if (!fotosList || !fotosList.length) { alert('No hay fotos para descargar.'); return; }
 
   // Extraer características técnicas de la ficha para el catálogo
   function extraerCaractDesc(fichaTexto, caractRaw) {
@@ -6389,6 +6401,19 @@ async function abrirCatalogoDesdeModal(id) {
   // Cerrar modal y abrir catálogo
   const modal = document.getElementById('ei-prop-preview');
   if (modal) modal.remove();
+  // Guardar datos para descarga
+  _catalogoData = { 
+    tipo: r.tipo, op: r.operacion, ubi: r.ubicacion, 
+    precio: r.precio, area: r.area, dorms: '', banos: '', cocheras: '',
+    caract: r.caract, ficha: r.ficha || '', fotosList 
+  };
+  // Parsear dorms/banos/cocheras de caract
+  if (r.caract) {
+    r.caract.split(',').forEach(p => {
+      const d = p.match(/(\d+)\s*dorm/i); const b = p.match(/(\d+)\s*ba[ñn]/i); const c = p.match(/(\d+)\s*cochera/i);
+      if (d) _catalogoData.dorms = d[1]; else if (b) _catalogoData.banos = b[1]; else if (c) _catalogoData.cocheras = c[1];
+    });
+  }
   abrirCatalogo();
 }
 
