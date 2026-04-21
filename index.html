@@ -6003,7 +6003,12 @@ function abrirCatalogo() {
   const caract     = document.getElementById('cap-caract').value || '';
   const fichaEl    = document.getElementById('out-ficha');
   const ficha      = fichaEl ? fichaEl.value.trim() : '';
-  const fotosList  = photos.filter(p => p);
+  // Preferir URLs de Supabase Storage (funcionan en iOS) sobre base64
+  let fotosList = photos.filter(p => p);
+  // Si hay un _catalogoData con URLs de Supabase, usarlas
+  if (_catalogoData && _catalogoData.fotosUrls && _catalogoData.fotosUrls.length) {
+    fotosList = _catalogoData.fotosUrls;
+  }
 
   if (!fotosList.length) {
     alert('Carga al menos una foto para generar el catálogo.');
@@ -6192,6 +6197,10 @@ function descargarCatalogo() {
     const fichaEl = document.getElementById('out-ficha');
     ficha    = fichaEl ? fichaEl.value.trim() : '';
     fotosList = photos.filter(p => p);
+  }
+  // Preferir URLs de Supabase Storage para compatibilidad con iOS
+  if (_catalogoData && _catalogoData.fotosUrls && _catalogoData.fotosUrls.length) {
+    fotosList = _catalogoData.fotosUrls;
   }
   if (!fotosList || !fotosList.length) { alert('No hay fotos para descargar.'); return; }
 
@@ -6388,7 +6397,10 @@ async function abrirCatalogoDesdeModal(id) {
     } catch(e) {}
   }
 
-  const fotosList = (r.fotos_urls && r.fotos_urls.length) ? r.fotos_urls : (r.fotos || []);
+  // Usar siempre URLs de Supabase Storage para compatibilidad con iOS
+  const fotosUrls = (r.fotos_urls && r.fotos_urls.length) ? r.fotos_urls : [];
+  const fotosBase64 = (r.fotos || []).filter(f => f && f.startsWith('data:'));
+  const fotosList = fotosUrls.length ? fotosUrls : fotosBase64;
   if (!fotosList.length) { alert('Esta propiedad no tiene fotos cargadas.'); return; }
 
   // Cargar datos en campos de captación temporalmente para usar abrirCatalogo
@@ -6421,11 +6433,12 @@ async function abrirCatalogoDesdeModal(id) {
   // Cerrar modal y abrir catálogo
   const modal = document.getElementById('ei-prop-preview');
   if (modal) modal.remove();
-  // Guardar datos para descarga
+  // Guardar datos para descarga — incluir URLs de Supabase
   _catalogoData = { 
     tipo: r.tipo, op: r.operacion, ubi: r.ubicacion, 
     precio: r.precio, area: r.area, dorms: '', banos: '', cocheras: '',
-    caract: r.caract, ficha: r.ficha || '', fotosList 
+    caract: r.caract, ficha: r.ficha || '', fotosList,
+    fotosUrls: fotosUrls
   };
   // Parsear dorms/banos/cocheras de caract
   if (r.caract) {
