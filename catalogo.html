@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Catálogo — Empresarios Inmobiliarios</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; overflow:hidden; background:#111; font-family:'Arial',sans-serif; }
+
+/* LOADING */
+#loading { position:fixed; inset:0; background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999; }
+.load-dot { width:10px; height:10px; background:#CE011F; border-radius:50%; animation:pulse 1s infinite; }
+.load-text { color:#666; font-size:12px; margin-top:16px; letter-spacing:1px; text-transform:uppercase; }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} }
+
+/* SLIDER */
+#slider { position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+.slide-wrap { position:relative; overflow:hidden; background:#fff; box-shadow:0 8px 40px rgba(0,0,0,.5); transition:none; }
+.slide { display:none; width:100%; height:100%; position:absolute; top:0; left:0; }
+.slide.active { display:flex; }
+
+/* PORTADA */
+.cover { width:100%; height:100%; display:flex; flex-direction:column; background:#fff; }
+.cover-bar { background:#CE011F; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.cover-bar-brand { font-size:11px; color:#fff; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.cover-bar-slogan { font-size:9px; color:rgba(255,255,255,.75); font-style:italic; }
+.cover-body { flex:1; display:flex; overflow:hidden; }
+.cover-img { width:55%; flex-shrink:0; overflow:hidden; }
+.cover-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.cover-info { flex:1; padding:16px 18px; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
+.cover-op { display:inline-block; background:rgba(206,1,31,.1); color:#CE011F; border:1px solid rgba(206,1,31,.25); border-radius:20px; padding:3px 12px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.cover-titulo { font-size:17px; font-weight:900; color:#1a1a1a; line-height:1.25; margin-bottom:6px; }
+.cover-precio { font-size:22px; font-weight:700; color:#CE011F; margin-bottom:12px; }
+.cover-stats { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.stat { background:#f5f5f5; border-radius:6px; padding:6px 10px; text-align:center; }
+.stat-val { font-size:14px; font-weight:700; color:#1a1a1a; line-height:1; }
+.stat-lbl { font-size:7px; color:#999; text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+.cover-desc { color:#555; font-size:11px; line-height:1.65; flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; }
+.cover-footer { border-top:1px solid #eee; padding-top:10px; margin-top:8px; }
+.cover-asesor { font-size:12px; font-weight:700; color:#1a1a1a; }
+.cover-tel { font-size:11px; color:#888; margin-top:2px; }
+
+/* FOTO SLIDES */
+.foto-slide { width:100%; height:100%; position:relative; background:#111; display:flex; align-items:center; justify-content:center; }
+.foto-slide img { width:100%; height:100%; object-fit:cover; display:block; }
+.watermark { position:absolute; bottom:50px; right:12px; background:rgba(0,0,0,.6); border-radius:6px; padding:5px 10px; font-size:10px; font-weight:700; color:#fff; display:flex; align-items:center; gap:5px; }
+.wm-dot { width:7px; height:7px; background:#CE011F; border-radius:50%; flex-shrink:0; }
+.foto-counter { position:absolute; top:12px; right:12px; background:rgba(0,0,0,.55); border-radius:20px; padding:4px 10px; font-size:10px; color:#fff; font-weight:600; }
+
+/* CONTROLES */
+.btn-nav { position:fixed; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.9); border:none; font-size:22px; color:#1a1a1a; cursor:pointer; z-index:100; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px rgba(0,0,0,.2); -webkit-appearance:none; outline:none; }
+.btn-nav:active { background:#fff; transform:translateY(-50%) scale(.95); }
+#btn-prev { left:10px; }
+#btn-next { right:10px; }
+
+/* DOTS */
+#dots { position:fixed; bottom:14px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:100; }
+.dot { width:8px; height:8px; border-radius:4px; background:rgba(255,255,255,.35); cursor:pointer; transition:all .25s; border:none; padding:0; -webkit-appearance:none; }
+.dot.active { width:22px; background:#CE011F; }
+
+/* ERROR */
+#error { position:fixed; inset:0; background:#111; display:none; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center; padding:40px; }
+#error h2 { font-size:18px; margin-bottom:10px; }
+#error p { font-size:13px; color:#888; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-dot"></div>
+  <div class="load-text">Cargando catálogo...</div>
+</div>
+
+<div id="slider" style="display:none;">
+  <div class="slide-wrap" id="wrap"></div>
+</div>
+
+<button class="btn-nav" id="btn-prev">&#8249;</button>
+<button class="btn-nav" id="btn-next">&#8250;</button>
+<div id="dots"></div>
+
+<div id="error">
+  <h2>Catálogo no encontrado</h2>
+  <p>Este catálogo puede haber expirado o el enlace es incorrecto.<br>Contacta al asesor para obtener un nuevo enlace.</p>
+</div>
+
+<script>
+var SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwNjk0NDQsImV4cCI6MjA1NzY0NTQ0NH0.tTaSQ-VnEGoRHFiGCaRJLH-W8cxGTCCHGVwsClf8lLg';
+
+var cur = 0;
+var slides = [];
+var dotsEl = [];
+
+function resize() {
+  var wrap = document.getElementById('wrap');
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+  var ratio = 16/9;
+  var w, h;
+  if (vw/vh > ratio) { h = vh * 0.94; w = h * ratio; }
+  else { w = vw * 0.98; h = w / ratio; }
+  wrap.style.width = Math.round(w) + 'px';
+  wrap.style.height = Math.round(h) + 'px';
+}
+
+function goTo(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[cur].classList.remove('active');
+  if (dotsEl[cur]) dotsEl[cur].classList.remove('active');
+  cur = n;
+  slides[cur].classList.add('active');
+  if (dotsEl[cur]) dotsEl[cur].classList.add('active');
+}
+
+function initControls() {
+  document.getElementById('btn-prev').addEventListener('click', function() { goTo(cur - 1); });
+  document.getElementById('btn-next').addEventListener('click', function() { goTo(cur + 1); });
+
+  var tx = 0;
+  document.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var d = tx - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 40) goTo(d > 0 ? cur + 1 : cur - 1);
+  }, { passive: true });
+}
+
+function buildDots(total) {
+  var container = document.getElementById('dots');
+  container.innerHTML = '';
+  dotsEl = [];
+  for (var i = 0; i < total; i++) {
+    var btn = document.createElement('button');
+    btn.className = 'dot' + (i === 0 ? ' active' : '');
+    (function(idx) { btn.addEventListener('click', function() { goTo(idx); }); })(i);
+    container.appendChild(btn);
+    dotsEl.push(btn);
+  }
+}
+
+function buildCatalogo(data) {
+  var wrap = document.getElementById('wrap');
+  wrap.innerHTML = '';
+  slides = [];
+
+  var fotos = data.fotos_urls || [];
+  var foto1 = fotos.length ? fotos[0] : '';
+
+  // SLIDE 0 — Portada
+  var portada = document.createElement('div');
+  portada.className = 'slide active';
+  portada.innerHTML = '<div class="cover">' +
+    '<div class="cover-bar">' +
+      '<div class="cover-bar-brand">Empresarios Inmobiliarios</div>' +
+      '<div class="cover-bar-slogan">Construimos Patrimonio</div>' +
+    '</div>' +
+    '<div class="cover-body">' +
+      (foto1 ? '<div class="cover-img"><img src="' + foto1 + '" alt="Foto principal" crossorigin="anonymous"></div>' : '') +
+      '<div class="cover-info">' +
+        '<div>' +
+          '<div class="cover-op">' + (data.operacion || 'En Venta') + '</div>' +
+          '<div class="cover-titulo">' + (data.tipo || '') + (data.ubicacion ? '<br><span style="font-size:13px;font-weight:400;color:#888;">' + data.ubicacion + '</span>' : '') + '</div>' +
+          (data.precio ? '<div class="cover-precio">USD ' + Number(data.precio).toLocaleString() + '</div>' : '') +
+          '<div class="cover-stats">' +
+            (data.area ? '<div class="stat"><div class="stat-val">' + data.area + '</div><div class="stat-lbl">m² Área</div></div>' : '') +
+            (data.dorms ? '<div class="stat"><div class="stat-val">' + data.dorms + '</div><div class="stat-lbl">Dorms</div></div>' : '') +
+            (data.banos ? '<div class="stat"><div class="stat-val">' + data.banos + '</div><div class="stat-lbl">Baños</div></div>' : '') +
+            (data.cocheras ? '<div class="stat"><div class="stat-val">' + data.cocheras + '</div><div class="stat-lbl">Cocheras</div></div>' : '') +
+          '</div>' +
+          (data.descripcion ? '<div class="cover-desc">' + data.descripcion + '</div>' : '') +
+        '</div>' +
+        '<div class="cover-footer">' +
+          '<div class="cover-asesor">' + (data.asesor || 'Empresarios Inmobiliarios') + '</div>' +
+          '<div class="cover-tel">📲 ' + (data.asesor_tel || '940 916 247') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+  wrap.appendChild(portada);
+  slides.push(portada);
+
+  // SLIDES de fotos
+  for (var i = 0; i < fotos.length; i++) {
+    var slide = document.createElement('div');
+    slide.className = 'slide';
+    slide.innerHTML = '<div class="foto-slide">' +
+      '<img src="' + fotos[i] + '" alt="Foto ' + (i+1) + '" crossorigin="anonymous">' +
+      '<div class="watermark"><div class="wm-dot"></div>Empresarios Inmobiliarios</div>' +
+      '<div class="foto-counter">' + (i+1) + ' / ' + fotos.length + '</div>' +
+    '</div>';
+    wrap.appendChild(slide);
+    slides.push(slide);
+  }
+
+  buildDots(slides.length);
+  resize();
+  window.addEventListener('resize', resize);
+  initControls();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('slider').style.display = 'flex';
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error').style.display = 'flex';
+}
+
+// Leer ID de la URL
+function getParam(name) {
+  var search = window.location.search.substring(1);
+  var parts = search.split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split('=');
+    if (decodeURIComponent(kv[0]) === name) return decodeURIComponent(kv[1] || '');
+  }
+  return null;
+}
+
+var catId = getParam('id');
+if (!catId) {
+  showError();
+} else {
+  fetch(SB_URL + '/rest/v1/ei_catalogos?id=eq.' + catId + '&select=*', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data || !data.length) { showError(); return; }
+    var cat = data[0];
+    if (cat.fotos_urls && typeof cat.fotos_urls === 'string') {
+      cat.fotos_urls = JSON.parse(cat.fotos_urls);
+    }
+    buildCatalogo(cat);
+  })
+  .catch(function() { showError(); });
+}
+</script>
+</body>
+</html>
