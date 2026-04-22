@@ -6056,7 +6056,7 @@ function abrirCatalogo() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#f2f3f5;display:flex;flex-direction:column;align-items:center;justify-content:center;';
 
   // Total de slides: 1 portada + 1 por foto
-  const totalSlides = 2 + fotosList.length; // portada + descripcion + fotos
+  const totalSlides = 1 + fotosList.length; // portada + fotos
   let currentSlide = 0;
 
   // Logo EI en base64 (texto como marca de agua)
@@ -6293,29 +6293,10 @@ function descargarCatalogo() {
       </div>
     </div>`;
 
-  // Slide 2 — Descripción/Características
-  const itemsDesc = descripcion ? descripcion.split('\n').filter(l=>l.trim()) : [];
-  const itemsHTML = itemsDesc.length 
-    ? itemsDesc.map(i => '<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f0f0f0;"><span style=color:#CE011F;font-size:14px;flex-shrink:0;>•</span><span style=font-size:12px;color:#333;line-height:1.5;>' + i.replace(/^•\s*/,'') + '</span></div>').join('')
-    : '<p style=color:#888;font-size:12px;>Sin descripción disponible.</p>';
-  const slideDesc = `
-    <div class="slide" data-slide="1">
-      <div style="width:100%;height:100%;display:flex;flex-direction:column;background:#fff;">
-        <div style="background:#CE011F;padding:10px 20px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-size:11px;color:#fff;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Características de la Propiedad</div>
-          <div style="font-size:9px;color:rgba(255,255,255,.75);">${tipo} · ${ubi}</div>
-        </div>
-        <div style="flex:1;padding:20px 24px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;">
-          <div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:16px 20px;">
-            ${itemsHTML}
-          </div>
-          ${precio ? '<div style="margin-top:14px;text-align:center;font-size:22px;font-weight:700;color:#CE011F;">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
-        </div>
-      </div>
-    </div>`;
+  const slideDesc = '';
 
   const fotoSlides = fotosList.map((src, i) => `
-    <div class="slide" data-slide="${i+2}">
+    <div class="slide" data-slide="${i+1}">
       <div class="photo-slide">
         <img src="${src}" alt="Foto ${i+1}">
         <div class="watermark">EI · Empresarios Inmobiliarios</div>
@@ -6323,7 +6304,7 @@ function descargarCatalogo() {
       </div>
     </div>`).join('');
 
-  const dotsHTML = Array.from({length: fotosList.length + 2}, (_, i) => 
+  const dotsHTML = Array.from({length: fotosList.length + 1}, (_, i) => 
     `<div class="dot${i===0?' active':''}" onclick="goTo(${i})"></div>`).join('');
 
   const html = `<!DOCTYPE html>
