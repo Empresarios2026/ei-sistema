@@ -2258,7 +2258,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
 // SUPABASE — Base de datos en la nube
 // ══════════════════════════════════════════
 const SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
+const SB_KEY = 'sb_publishable_04XlLXI2KxzGPq8Wp1kxmg_ccFAzvEg';
 
 
 // ══════════════════════════════════════════
@@ -6022,27 +6022,30 @@ function abrirCatalogo() {
   _catalogoData = { tipo, op, ubi, precio, area, dorms, banos, cocheras, caract, ficha, fotosList };
 
   // Obtener descripción corta de la ficha (primeras 3 líneas)
-  // Extraer características técnicas de la ficha
+  // Extraer características técnicas de la ficha o usar caract directo
   function extraerCaract(fichaTexto, caractRaw) {
-    if (!fichaTexto) return caractRaw || '';
-    const lineas = fichaTexto.split('\n');
-    let enCaract = false;
-    const items = [];
-    for (const linea of lineas) {
-      const l = linea.trim();
-      if (!l) { if (enCaract && items.length) break; continue; }
-      if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
-      if (enCaract) {
-        if (l.toUpperCase() === l && l.length > 3) break; // nuevo título = terminar
-        items.push(l.replace(/^[•\-\*]\s*/, ''));
+    if (fichaTexto) {
+      const lineas = fichaTexto.split('\n');
+      let enCaract = false;
+      const items = [];
+      for (const linea of lineas) {
+        const l = linea.trim();
+        if (!l) { if (enCaract && items.length) break; continue; }
+        if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
+        if (enCaract) {
+          if (l.toUpperCase() === l && l.length > 3) break;
+          items.push(l.replace(/^[•\-\*]\s*/, ''));
+        }
       }
+      if (items.length) return items;
     }
-    return items.length ? items : (caractRaw ? caractRaw.split(',').map(s => s.trim()) : []);
+    if (caractRaw && caractRaw !== '—') return caractRaw.split(',').map(s => s.trim()).filter(s => s);
+    return [];
   }
   const caractItems = extraerCaract(ficha, caract);
-  const descripcion = Array.isArray(caractItems) && caractItems.length 
+  const descripcion = caractItems.length
     ? caractItems.join(' · ').substring(0, 400)
-    : `${tipo} en ${op} — ${ubi}${precio ? ' — USD ' + Number(precio).toLocaleString() : ''}`;
+    : (caract && caract !== '—' ? caract : tipo + ' en ' + op + (ubi ? ' — ' + ubi : ''));
 
   // Crear overlay del catálogo
   const existing = document.getElementById('ei-catalogo-overlay');
@@ -6215,21 +6218,23 @@ function descargarCatalogo() {
 
   // Extraer características técnicas de la ficha para el catálogo
   function extraerCaractDesc(fichaTexto, caractRaw) {
-    if (!fichaTexto) return caractRaw || '';
-    const lineas = fichaTexto.split('\n');
-    let enCaract = false;
-    const items = [];
-    for (const linea of lineas) {
-      const l = linea.trim();
-      if (!l) { if (enCaract && items.length) break; continue; }
-      if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
-      if (enCaract) {
-        if (l.toUpperCase() === l && l.length > 3) break;
-        items.push(l.replace(/^[•\-\*]\s*/, '• '));
+    if (fichaTexto) {
+      const lineas = fichaTexto.split('\n');
+      let enCaract = false;
+      const items = [];
+      for (const linea of lineas) {
+        const l = linea.trim();
+        if (!l) { if (enCaract && items.length) break; continue; }
+        if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
+        if (enCaract) {
+          if (l.toUpperCase() === l && l.length > 3) break;
+          items.push('• ' + l.replace(/^[•\-\*]\s*/, ''));
+        }
       }
+      if (items.length) return items.join('\n');
     }
-    if (items.length) return items.join('\n');
-    return caractRaw ? caractRaw.split(',').map(s => '• ' + s.trim()).join('\n') : (tipo + ' en ' + op + ' — ' + ubi);
+    if (caractRaw && caractRaw !== '—') return caractRaw.split(',').map(s => '• ' + s.trim()).join('\n');
+    return tipo + ' en ' + op + (ubi ? ' — ' + ubi : '');
   }
   const descripcion = extraerCaractDesc(ficha, caract);
 
@@ -6426,19 +6431,22 @@ async function abrirCatalogoDesdeModal(id) {
   const modal = document.getElementById('ei-prop-preview');
   if (modal) modal.remove();
   // Guardar datos para descarga — incluir URLs de Supabase
-  _catalogoData = { 
-    tipo: r.tipo, op: r.operacion, ubi: r.ubicacion, 
-    precio: r.precio, area: r.area, dorms: '', banos: '', cocheras: '',
-    caract: r.caract, ficha: r.ficha || '', fotosList,
-    fotosUrls: fotosUrls
-  };
   // Parsear dorms/banos/cocheras de caract
-  if (r.caract) {
+  let catDorms = '', catBanos = '', catCocheras = '';
+  if (r.caract && r.caract !== '—') {
     r.caract.split(',').forEach(p => {
       const d = p.match(/(\d+)\s*dorm/i); const b = p.match(/(\d+)\s*ba[ñn]/i); const c = p.match(/(\d+)\s*cochera/i);
-      if (d) _catalogoData.dorms = d[1]; else if (b) _catalogoData.banos = b[1]; else if (c) _catalogoData.cocheras = c[1];
+      if (d) catDorms = d[1]; else if (b) catBanos = b[1]; else if (c) catCocheras = c[1];
     });
   }
+
+  _catalogoData = { 
+    tipo: r.tipo, op: r.operacion, ubi: r.ubicacion, 
+    precio: r.precio, area: r.area, 
+    dorms: catDorms, banos: catBanos, cocheras: catCocheras,
+    caract: r.caract || '', ficha: r.ficha || '', fotosList,
+    fotosUrls: fotosUrls
+  };
   abrirCatalogo();
 }
 
@@ -6485,14 +6493,15 @@ async function compartirCatalogo() {
   try {
     const sbData = {
       tipo, operacion: op, ubicacion: ubi, precio,
-      area, dorms, banos, cocheras,
+      area: _catalogoData.area || area,
+      dorms: _catalogoData.dorms || dorms,
+      banos: _catalogoData.banos || banos,
+      cocheras: _catalogoData.cocheras || cocheras,
       descripcion, fotos_urls: JSON.stringify(fotos),
       asesor: asesorNombre, asesor_tel: asesorTel
     };
 
     const res = await sbFetch('ei_catalogos', 'POST', sbData);
-    // DEBUG temporal
-    alert('Respuesta Supabase: ' + JSON.stringify(res));
     if (res && res[0] && res[0].id) {
       const link = 'https://empresarios2026.github.io/ei-sistema/catalogo.html?id=' + res[0].id;
       try { await navigator.clipboard.writeText(link); } catch(e) {}
