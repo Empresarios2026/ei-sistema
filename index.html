@@ -2258,7 +2258,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
 // SUPABASE — Base de datos en la nube
 // ══════════════════════════════════════════
 const SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
-const SB_KEY = 'sb_publishable_04XlLXI2KxzGPq8Wp1kxmg_ccFAzvEg';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
 
 
 // ══════════════════════════════════════════
@@ -6284,7 +6284,6 @@ function descargarCatalogo() {
               ${banos ? '<div class="stat"><div class="stat-val">' + banos + '</div><div class="stat-lbl">BAÑOS</div></div>' : ''}
               ${cocheras ? '<div class="stat"><div class="stat-val">' + cocheras + '</div><div class="stat-lbl">COCH</div></div>' : ''}
             </div>
-            <div class="cover-desc" style="white-space:pre-line;">${descripcion}</div>
             <div class="cover-footer">
               <div class="cover-brand">${asesorNombre}</div>
               <div class="cover-contact">📲 ${asesorTel}</div>
@@ -6424,8 +6423,10 @@ body { background:#222; font-family:'Arial',sans-serif; height:100vh; overflow:h
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'Catalogo_EI_' + (tipo + '_' + ubi).replace(/[^a-zA-Z0-9]/g,'_').substring(0,30) + '.html';
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
 }
 
 
