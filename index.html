@@ -6690,7 +6690,7 @@ function generarHTMLVolante(r) {
     </div>
   </div>
 </div>
-<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 500); }<\/script>
+<script>/* listo para imprimir */<\/script>
 </body>
 </html>`;
 
@@ -6757,7 +6757,9 @@ async function descargarVolante(id) {
       } catch(e) {}
     }
   }
-  const html = generarHTMLVolante(r);
+  let html = generarHTMLVolante(r);
+  // Agregar auto-print solo en la versión descargada
+  html = html.replace('<script>/* listo para imprimir */<\/script>', '<script>window.onload=function(){setTimeout(function(){window.print();},500);}<\/script>');
   const blob = new Blob([html], {type:'text/html'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
