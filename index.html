@@ -2318,11 +2318,14 @@ async function llamarClaude(prompt, maxTokens=1200) {
 async function sbFetch(table, method='GET', body=null, id=null) {
   // Si table ya incluye '?' no agregar más parámetros
   const hasQuery = table.includes('?');
+  const isWrite = method === 'POST' || method === 'PATCH' || method === 'DELETE';
   const url = id
     ? `${SB_URL}/rest/v1/${table}${hasQuery ? '&' : '?'}id=eq.${id}`
     : hasQuery
       ? `${SB_URL}/rest/v1/${table}`
-      : `${SB_URL}/rest/v1/${table}?order=id.desc`;
+      : isWrite
+        ? `${SB_URL}/rest/v1/${table}`
+        : `${SB_URL}/rest/v1/${table}?order=id.desc`;
   const opts = {
     method,
     headers: {
