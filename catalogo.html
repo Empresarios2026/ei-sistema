@@ -129,6 +129,7 @@ function buildCatalogo(data) {
           (data.cocheras ? '<div class="stat"><div class="stat-val">' + data.cocheras + '</div><div class="stat-lbl">Cocheras</div></div>' : '') +
         '</div>' +
       '</div>' +
+      (data.descripcion ? '<div style="font-size:10px;color:#555;line-height:1.6;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;">' + data.descripcion.replace(/\n/g,' · ').replace(/^[•\-]\s*/gm,'') + '</div>' : '') +
       '<div class="cover-footer"><div class="cover-asesor">' + (data.asesor || 'Empresarios Inmobiliarios') + '</div><div class="cover-tel">Tel: ' + (data.asesor_tel || '940 916 247') + '</div></div>' +
       '</div></div></div>';
   wrap.appendChild(p);
