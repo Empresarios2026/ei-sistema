@@ -6491,13 +6491,15 @@ async function compartirCatalogo() {
     };
 
     const res = await sbFetch('ei_catalogos', 'POST', sbData);
+    // DEBUG temporal
+    alert('Respuesta Supabase: ' + JSON.stringify(res));
     if (res && res[0] && res[0].id) {
       const link = 'https://empresarios2026.github.io/ei-sistema/catalogo.html?id=' + res[0].id;
-      await navigator.clipboard.writeText(link);
+      try { await navigator.clipboard.writeText(link); } catch(e) {}
       if (shareBtn) { shareBtn.textContent = '✅ Link copiado!'; setTimeout(() => { shareBtn.textContent = '🔗 Compartir'; shareBtn.disabled = false; }, 3000); }
       alert('¡Link copiado! Pégalo en WhatsApp:\n\n' + link);
     } else {
-      throw new Error('No se pudo guardar');
+      throw new Error('No se pudo guardar. Respuesta: ' + JSON.stringify(res));
     }
   } catch(e) {
     if (shareBtn) { shareBtn.textContent = '🔗 Compartir'; shareBtn.disabled = false; }
