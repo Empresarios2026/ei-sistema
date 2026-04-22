@@ -6258,10 +6258,10 @@ function descargarCatalogo() {
       }
       if (items.length) return items.join('\n');
     }
-    if (caractRaw && caractRaw !== '—') return caractRaw.split(',').map(s => '• ' + s.trim()).join('\n');
-    return tipo + ' en ' + op + (ubi ? ' — ' + ubi : '');
+    if (caractRaw && caractRaw !== '—') return caractRaw.split(',').map(s => '• ' + s.trim()).filter(s => s.length > 2).join('\n');
+    return (tipo || '') + ' en ' + (op || '') + (ubi ? ' — ' + ubi : '');
   }
-  const descripcion = extraerCaractDesc(ficha, caract);
+  const descripcion = extraerCaractDesc(ficha, caract) || ((tipo||'') + ' en ' + (op||'') + (ubi ? ' — ' + ubi : ''));
 
   // Generar slides HTML
   const foto1 = fotosList[0] || '';

@@ -136,40 +136,8 @@ function buildCatalogo(data) {
   slides.push(p);
 
   // Slide 2 - Caracteristicas
-  var d2 = document.createElement('div');
-  d2.className = 'slide';
-  var desc = data.descripcion || '';
-  var items = [];
-  if (desc) {
-    var lines = desc.split('\n');
-    for (var li = 0; li < lines.length; li++) {
-      var l = lines[li].replace(/^[•\-\*]\s*/, '').trim();
-      if (l) items.push(l);
-    }
-  }
-  var iHTML = '';
-  if (items.length) {
-    for (var ii = 0; ii < items.length; ii++) {
-      iHTML += '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;">' +
-        '<span style="color:#CE011F;flex-shrink:0;font-size:14px;">&#8226;</span>' +
-        '<span style="font-size:12px;color:#333;line-height:1.5;">' + items[ii] + '</span></div>';
-    }
-  } else {
-    iHTML = '<p style="color:#888;font-size:12px;text-align:center;">Sin descripcion disponible.</p>';
-  }
-  d2.innerHTML = '<div style="width:100%;height:100%;display:flex;flex-direction:column;background:#fff;">' +
-    '<div style="background:#CE011F;padding:10px 20px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">' +
-      '<div style="font-size:11px;color:#fff;font-weight:700;text-transform:uppercase;">Caracteristicas</div>' +
-      '<div style="font-size:9px;color:rgba(255,255,255,.75);">' + (data.tipo || '') + '</div>' +
-    '</div>' +
-    '<div style="flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;">' +
-      '<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:16px 20px;overflow-y:auto;max-height:100%;">' + iHTML + '</div>' +
-      (data.precio ? '<div style="margin-top:14px;text-align:center;font-size:22px;font-weight:700;color:#CE011F;">USD ' + Number(data.precio).toLocaleString() + '</div>' : '') +
-    '</div></div>';
-  wrap.appendChild(d2);
-  slides.push(d2);
-
   // Slides de fotos
+
   for (var i = 0; i < fotos.length; i++) {
     var s = document.createElement('div');
     s.className = 'slide';
