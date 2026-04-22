@@ -133,16 +133,17 @@ function buildCatalogo(data) {
         var lines = data.descripcion.split('\n').filter(function(l){return l.trim();});
         var html = '';
         for(var li=0;li<lines.length;li++){
-          var isCaract = lines[li].indexOf('•') >= 0 || lines[li].indexOf('-') === 0;
-          var txt = lines[li].replace(/^[•\-\*]\s*/,'').trim();
+          var line = lines[li];
+          var isBullet = line.indexOf('•') >= 0;
+          var txt = line.replace(/^[•]\s*/,'').trim();
           if(!txt) continue;
-          if(isCaract || (li > 0 && lines.length > 2)){
-            html += '<div style="display:flex;gap:6px;margin-bottom:3px;"><span style="color:#CE011F;flex-shrink:0;">•</span><span style="font-size:10px;color:#333;line-height:1.5;">'+txt+'</span></div>';
+          if(isBullet){
+            html += '<div style="display:flex;gap:6px;margin-bottom:4px;align-items:flex-start;"><span style="color:#CE011F;flex-shrink:0;margin-top:1px;">•</span><span style="font-size:10px;color:#333;line-height:1.5;">'+txt+'</span></div>';
           } else {
-            html += '<p style="font-size:10px;color:#555;line-height:1.6;margin-bottom:6px;">'+txt+'</p>';
+            html += '<p style="font-size:10px;color:#555;line-height:1.6;margin-bottom:8px;font-style:italic;">'+txt+'</p>';
           }
         }
-        return '<div style="margin-bottom:8px;overflow:hidden;max-height:160px;">'+html+'</div>';
+        return '<div style="margin-bottom:8px;">'+html+'</div>';
       })() : '') +
       '<div class="cover-footer"><div class="cover-asesor">' + (data.asesor || 'Empresarios Inmobiliarios') + '</div><div class="cover-tel">Tel: ' + (data.asesor_tel || '940 916 247') + '</div></div>' +
       '</div></div></div>';

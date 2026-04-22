@@ -6246,17 +6246,20 @@ function descargarCatalogo() {
     if (fichaTexto) {
       const lineas = fichaTexto.split('\n');
       let enCaract = false;
+      let intro = '';
       const items = [];
       for (const linea of lineas) {
         const l = linea.trim();
-        if (!l) { if (enCaract && items.length) break; continue; }
+        if (!l) continue;
         if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
         if (enCaract) {
-          if (l.toUpperCase() === l && l.length > 3) break;
+          if (l.toUpperCase() === l && l.length > 3 && items.length) break;
           items.push('• ' + l.replace(/^[•\-\*]\s*/, ''));
+        } else if (!intro && l.length > 20) {
+          intro = l; // primera línea larga = introducción
         }
       }
-      if (items.length) return items.join('\n');
+      if (items.length) return (intro ? intro + '\n' : '') + items.join('\n');
     }
     if (caractRaw && caractRaw !== '—') return caractRaw.split(',').map(s => '• ' + s.trim()).filter(s => s.length > 2).join('\n');
     return (tipo || '') + ' en ' + (op || '') + (ubi ? ' — ' + ubi : '');
