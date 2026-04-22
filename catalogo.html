@@ -250,12 +250,36 @@ if (!catId) {
   .then(function(data) {
     if (!data || !data.length) { showError(); return; }
     var cat = data[0];
-    if (cat.fotos_urls && typeof cat.fotos_urls === 'string') {
-      cat.fotos_urls = JSON.parse(cat.fotos_urls);
+    try {
+      if (cat.fotos_urls && typeof cat.fotos_urls === 'string') {
+        cat.fotos_urls = JSON.parse(cat.fotos_urls);
+      }
+      if (!cat.fotos_urls || !cat.fotos_urls.length) {
+        document.querySelector('.load-text').textContent = 'Sin fotos disponibles';
+        setTimeout(showError, 2000);
+        return;
+      }
+      buildCatalogo(cat);
+    } catch(e) {
+      console.error('Error buildCatalogo:', e);
+      showError();
     }
-    buildCatalogo(cat);
   })
-  .catch(function() { showError(); });
+  .catch(function(e) { console.error('Fetch error:', e); showError(); });
+
+// Timeout 15 seg
+setTimeout(function() {
+  if (document.getElementById('loading') && document.getElementById('loading').style.display !== 'none') {
+    showError();
+  }
+}, 15000);
+
+// Timeout — si en 15 seg no carga, mostrar error
+setTimeout(function() {
+  if (document.getElementById('loading').style.display !== 'none') {
+    showError();
+  }
+}, 15000);
 }
 </script>
 </body>
