@@ -6284,7 +6284,16 @@ function descargarCatalogo() {
               ${banos ? '<div class="stat"><div class="stat-val">' + banos + '</div><div class="stat-lbl">BAÑOS</div></div>' : ''}
               ${cocheras ? '<div class="stat"><div class="stat-val">' + cocheras + '</div><div class="stat-lbl">COCH</div></div>' : ''}
             </div>
-            <div class="cover-desc" style="white-space:pre-line;font-size:11px;color:#555;line-height:1.6;margin-bottom:10px;">${descripcion}</div>
+            <div style="margin-bottom:10px;overflow:hidden;max-height:150px;">${
+              descripcion.split('\n').filter(l=>l.trim()).map(l=>{
+                const isViñeta = l.includes('•') || l.startsWith('-');
+                const txt = l.replace(/^[•\-\*]\s*/,'').trim();
+                if(!txt) return '';
+                return isViñeta 
+                  ? '<div style="display:flex;gap:6px;margin-bottom:3px;"><span style=\"color:#CE011F;flex-shrink:0;\">•</span><span style=\"font-size:11px;color:#333;line-height:1.5;\">' + txt + '</span></div>'
+                  : '<p style=\"font-size:11px;color:#555;line-height:1.6;margin-bottom:5px;\">' + txt + '</p>';
+              }).join('')
+            }</div>
             <div class="cover-footer">
               <div class="cover-brand">${asesorNombre}</div>
               <div class="cover-contact">📲 ${asesorTel}</div>
