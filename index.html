@@ -6118,7 +6118,8 @@ function abrirCatalogo() {
       <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);">
         <div style="font-size:12px;color:#fff;font-weight:600;">${tipo} — ${ubi}</div>
         <div style="display:flex;gap:8px;">
-          <button onclick="descargarCatalogo()" style="background:#CE011F;border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">⬇ Descargar</button>
+          <button onclick="compartirCatalogo()" style="background:#CE011F;border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">🔗 Compartir</button>
+          <button onclick="descargarCatalogo()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">⬇ Descargar</button>
           <button onclick="document.getElementById('ei-catalogo-overlay').remove()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
         </div>
       </div>
@@ -6432,6 +6433,70 @@ async function abrirCatalogoDesdeModal(id) {
     });
   }
   abrirCatalogo();
+}
+
+
+async function compartirCatalogo() {
+  const agente = getAgenteActual();
+  if (!_catalogoData) { alert('Abre el catálogo primero.'); return; }
+
+  const { tipo, op, ubi, precio, area, dorms, banos, cocheras, ficha, fotosList, fotosUrls, caract } = _catalogoData;
+  const fotos = (fotosUrls && fotosUrls.length) ? fotosUrls : fotosList.filter(f => f && f.startsWith('http'));
+
+  if (!fotos.length) {
+    alert('Esta propiedad no tiene fotos en la nube. Guarda la propiedad primero para subir las fotos.');
+    return;
+  }
+
+  // Extraer descripción de la ficha
+  function extraerDesc(fichaTexto, caractRaw) {
+    if (!fichaTexto) return caractRaw || '';
+    const lineas = fichaTexto.split('\n');
+    let enCaract = false;
+    const items = [];
+    for (const l of lineas) {
+      const t = l.trim();
+      if (!t) { if (enCaract && items.length) break; continue; }
+      if (t.toUpperCase().includes('CARACTERISTICAS') || t.toUpperCase().includes('CARACTERÍSTICAS')) { enCaract = true; continue; }
+      if (enCaract) {
+        if (t === t.toUpperCase() && t.length > 3) break;
+        items.push(t.replace(/^[•\-\*]\s*/, ''));
+      }
+    }
+    return items.length ? items.join(' · ') : (caractRaw || tipo + ' en ' + ubi);
+  }
+
+  const descripcion = extraerDesc(ficha, caract);
+  const asesorNombre = agente ? agente.nombre : 'Empresarios Inmobiliarios';
+  const asesorTel = agente ? agente.tel : '940 916 247';
+
+  // Mostrar aviso de cargando
+  const overlay = document.getElementById('ei-catalogo-overlay');
+  const shareBtn = overlay ? overlay.querySelector('button') : null;
+  if (shareBtn) { shareBtn.textContent = '⏳ Generando...'; shareBtn.disabled = true; }
+
+  try {
+    const sbData = {
+      tipo, operacion: op, ubicacion: ubi, precio,
+      area, dorms, banos, cocheras,
+      descripcion, fotos_urls: JSON.stringify(fotos),
+      asesor: asesorNombre, asesor_tel: asesorTel
+    };
+
+    const res = await sbFetch('ei_catalogos', 'POST', sbData, true);
+    if (res && res[0] && res[0].id) {
+      const link = 'https://empresarios2026.github.io/ei-sistema/catalogo.html?id=' + res[0].id;
+      await navigator.clipboard.writeText(link);
+      if (shareBtn) { shareBtn.textContent = '✅ Link copiado!'; setTimeout(() => { shareBtn.textContent = '🔗 Compartir'; shareBtn.disabled = false; }, 3000); }
+      alert('¡Link copiado! Pégalo en WhatsApp:\n\n' + link);
+    } else {
+      throw new Error('No se pudo guardar');
+    }
+  } catch(e) {
+    if (shareBtn) { shareBtn.textContent = '🔗 Compartir'; shareBtn.disabled = false; }
+    alert('Error al generar el link. Intenta de nuevo.');
+    console.error(e);
+  }
 }
 
 </script>
