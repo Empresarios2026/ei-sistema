@@ -6563,9 +6563,9 @@ async function compartirCatalogo() {
 
 function generarHTMLVolante(r) {
   const foto = (r.fotos_urls && r.fotos_urls[0]) || (r.fotos && r.fotos[0]) || '';
-  const agente = dbGet('users') ? dbGet('users').find(u => u.asesor === r.asesor) : null;
-  const asesorNombre = r.asesor || 'Empresarios Inmobiliarios';
-  const asesorTel = r.asesor_tel || '940 916 247';
+  const agenteLogueado = getAgenteActual();
+  const asesorNombre = agenteLogueado ? agenteLogueado.nombre : (r.asesor || 'Empresarios Inmobiliarios');
+  const asesorTel    = agenteLogueado ? agenteLogueado.tel    : (r.asesor_tel || '940 916 247');
 
   // Extraer características
   let caractsHTML = '';
