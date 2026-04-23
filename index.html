@@ -6779,12 +6779,20 @@ function imprimirVolante4(id) {
   if (!r) return;
   const volante = generarHTMLVolante(r);
 
-  // Extraer solo el body del volante
+  // Extraer solo el div.volante del body (sin scripts internos)
   const bodyMatch = volante.match(/<body>([\s\S]*?)<\/body>/);
-  const bodyContent = bodyMatch ? bodyMatch[1] : '';
-  // Extraer CSS
+  const bodyContent = bodyMatch
+    ? bodyMatch[1].replace(/<script[\s\S]*?<\/script>/gi, '').trim()
+    : '';
+
+  // Extraer CSS y eliminar reglas que conflictúan con el documento x4:
+  // @page, body{} y html{} del volante individual deben ser suprimidos
   const cssMatch = volante.match(/<style>([\s\S]*?)<\/style>/);
-  const css = cssMatch ? cssMatch[1] : '';
+  let css = cssMatch ? cssMatch[1] : '';
+  css = css.replace(/@page\s*\{[^}]*\}/g, '');          // elimina @page 105mm×148mm
+  css = css.replace(/\bhtml\s*,\s*body\s*\{[^}]*\}/g, ''); // elimina html,body{}
+  css = css.replace(/\bhtml\s*\{[^}]*\}/g, '');          // elimina html{}
+  css = css.replace(/\bbody\s*\{[^}]*\}/g, '');          // elimina body{} (incluye dentro de @media)
 
   const html = `<!DOCTYPE html>
 <html lang="es">
@@ -6792,15 +6800,26 @@ function imprimirVolante4(id) {
 <meta charset="UTF-8">
 <title>Volantes x4 — ${r.tipo} ${r.ubicacion}</title>
 <style>
-  @page { size: 210mm 297mm; margin: 0 !important; }
+  @page { size: 210mm 297mm; margin: 0; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:210mm; height:297mm; background:#fff; overflow:hidden; }
-  .pagina { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:148mm 148mm; page-break-inside:avoid; }
-  .celda { width:105mm; height:148mm; overflow:hidden; border:0.3px solid #ddd; }
-  .celda .volante { width:105mm !important; height:148mm !important; transform-origin:top left; }
+  html, body { width:210mm; height:297mm; background:#fff; overflow:hidden; font-family:'Arial',sans-serif; }
+  .pagina {
+    width:210mm; height:297mm;
+    display:grid;
+    grid-template-columns:105mm 105mm;
+    grid-template-rows:148mm 148mm;
+  }
+  .celda {
+    width:105mm; height:148mm;
+    overflow:hidden;
+    border:0.3px solid #ddd;
+  }
+  .celda .volante {
+    width:105mm !important;
+    height:148mm !important;
+  }
   ${css}
   @media print {
-    body { margin:0; }
     .pagina { page-break-inside:avoid; }
   }
 </style>
@@ -6812,7 +6831,7 @@ function imprimirVolante4(id) {
   <div class="celda">${bodyContent}</div>
   <div class="celda">${bodyContent}</div>
 </div>
-<script>window.onload=function(){setTimeout(function(){window.print();},600);}<\/script>
+<script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script>
 </body>
 </html>`;
 
