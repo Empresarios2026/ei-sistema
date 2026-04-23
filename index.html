@@ -6792,13 +6792,12 @@ function imprimirVolante4(id) {
 <meta charset="UTF-8">
 <title>Volantes x4 — ${r.tipo} ${r.ubicacion}</title>
 <style>
-  @page { size: A4 portrait; margin: 0; }
+  @page { size: 210mm 297mm; margin: 0 !important; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { width:210mm; height:297mm; background:#fff; }
-  .pagina { width:210mm; height:297mm; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
-  .celda { width:105mm; height:148mm; overflow:hidden; border:0.5px solid #eee; }
-  /* CSS del volante */
-  .celda .volante { width:105mm !important; height:148mm !important; }
+  html, body { width:210mm; height:297mm; background:#fff; overflow:hidden; }
+  .pagina { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:148mm 148mm; page-break-inside:avoid; }
+  .celda { width:105mm; height:148mm; overflow:hidden; border:0.3px solid #ddd; }
+  .celda .volante { width:105mm !important; height:148mm !important; transform-origin:top left; }
   ${css}
   @media print {
     body { margin:0; }
