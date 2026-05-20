@@ -208,6 +208,8 @@ td:first-child { color:var(--t1); font-weight:500; }
 .tag-red { background:rgba(206,1,31,.15); color:var(--r); }
 .tag-green { background:rgba(0,200,100,.1); color:#00c864; }
 .tag-gold { background:rgba(201,168,76,.1); color:var(--gold); }
+.tag-blue { background:rgba(0,120,255,.1); color:#0078ff; }
+.tag-gray { background:rgba(150,150,150,.1); color:#888; }
 
 /* TIMELINE */
 .timeline { display:flex; flex-direction:column; gap:0; }
@@ -723,11 +725,13 @@ td:first-child { color:var(--t1); font-weight:500; }
           <textarea id="cap-caract" rows="2" placeholder="Otras características: terraza, vistas panorámicas, remodelado 2023, piso de porcelanato..."></textarea>
         </div>
         <div class="field">
-          <label>Orientación Cardinal (Feng Shui)</label>
-          <select id="cap-orientacion">
-            <option value="">Seleccionar orientación</option>
-            <option>Norte</option><option>Sur</option><option>Este</option><option>Oeste</option>
-            <option>Noreste</option><option>Noroeste</option><option>Sureste</option><option>Suroeste</option>
+          <label>Estado de la Propiedad</label>
+          <select id="cap-estado">
+            <option value="Activa">Activa</option>
+            <option value="Desactivada">Desactivada</option>
+            <option value="Vendida">Vendida</option>
+            <option value="Alquilada">Alquilada</option>
+            <option value="Anticrétada">Anticrétada</option>
           </select>
         </div>
       </div>
@@ -1845,7 +1849,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
       </div>
 
       <!-- BUSCADOR -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
         <div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Tipo</div>
           <select id="filtro-tipo" onchange="filtrarProps()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
@@ -1883,6 +1887,17 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
             <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Estado</div>
+          <select id="filtro-estado" onchange="filtrarProps()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+            <option value="">Todos</option>
+            <option>Activa</option>
+            <option>Desactivada</option>
+            <option>Vendida</option>
+            <option>Alquilada</option>
+            <option>Anticrétada</option>
           </select>
         </div>
         <button onclick="limpiarFiltros()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--s3);color:var(--t2);font-size:12px;cursor:pointer;white-space:nowrap;">
@@ -2844,6 +2859,7 @@ function filtrarProps() {
   const zona   = document.getElementById('filtro-zona').value.toLowerCase().trim();
   const precio = parseFloat(document.getElementById('filtro-precio').value) || Infinity;
   const asesor = (document.getElementById('filtro-asesor')?.value||'').toLowerCase();
+  const estado = (document.getElementById('filtro-estado')?.value||'').toLowerCase();
   const all    = dbGet('props');
 
   const filtrados = all.filter(r => {
@@ -2852,11 +2868,12 @@ function filtrarProps() {
     const matchZona   = !zona   || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
     const matchPrecio = !r.precio || parseFloat(r.precio) <= precio;
     const matchAsesor = !asesor  || (r.asesor||'').toLowerCase().includes(asesor);
-    return matchTipo && matchOp && matchZona && matchPrecio && matchAsesor;
+    const matchEstado = !estado  || (r.estado||'activa').toLowerCase() === estado;
+    return matchTipo && matchOp && matchZona && matchPrecio && matchAsesor && matchEstado;
   });
 
   const badge = document.getElementById('filtro-resultado');
-  if (tipo || op || zona || document.getElementById('filtro-precio').value || asesor) {
+  if (tipo || op || zona || document.getElementById('filtro-precio').value || asesor || estado) {
     badge.style.display = 'block';
     badge.textContent   = `🔍 ${filtrados.length} de ${all.length} propiedades encontradas`;
   } else {
@@ -2872,6 +2889,7 @@ function limpiarFiltros() {
   document.getElementById('filtro-zona').value      = '';
   document.getElementById('filtro-precio').value    = '';
   const fa = document.getElementById('filtro-asesor'); if(fa) fa.value = '';
+  const fe = document.getElementById('filtro-estado'); if(fe) fe.value = '';
   document.getElementById('filtro-resultado').style.display = 'none';
   renderProps();
 }
@@ -2890,7 +2908,7 @@ function renderPropsData(data) {
     <td title="${r.ubicacion||''}">${(r.ubicacion||'—').substring(0,18)}</td>
     <td>${r.area||'—'}</td><td>${r.precio ? 'USD '+Number(r.precio).toLocaleString() : '—'}</td>
     <td>${r.orientacion||'—'}</td>
-    <td><span class="tag ${r.estado==='Vendida'?'tag-green':r.estado==='En proceso'?'tag-gold':'tag-red'}">${r.estado||'Activa'}</span></td>
+    <td><span class="tag ${r.estado==='Activa'?'tag-green':r.estado==='Vendida'?'tag-green':r.estado==='Alquilada'?'tag-blue':r.estado==='Anticrétada'?'tag-blue':r.estado==='Desactivada'?'tag-gray':'tag-red'}">${r.estado||'Activa'}</span></td>
     <td style="display:flex;gap:4px;">
       <button style="background:#CE011F;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;" title="Ver y exportar ficha" onclick="abrirPropiedadParaExportar(${r.id})">📄</button>
       ${(isAdmin || !currentUser || (currentUser && (r.asesor_tel === currentUser.email.split('@')[0] || r.asesor === (currentUser.nombre||'').charAt(0).toUpperCase()+(currentUser.nombre||'').slice(1)))) ? `
@@ -2938,7 +2956,7 @@ function leerDatosProp() {
     asesor_tel:  document.getElementById('cap-asesor-tel').value    || '—',
     ficha:       fichaGuardar,
     fotos:       fotosGuardar,
-    estado:      'Activa'
+    estado:      document.getElementById('cap-estado')?.value || 'Activa'
   };
 }
 
@@ -3099,6 +3117,7 @@ function cargarPropParaEditar(id) {
   set('cap-area-const',  r.areaConst);
   set('cap-precio',      r.precio);
   set('cap-orientacion', r.orientacion);
+  set('cap-estado',      r.estado||'Activa');
   set('cap-antiguedad',  r.antiguedad);
 
   // Parsear y cargar características (dorms, baños, cocheras, extras)
@@ -4426,7 +4445,9 @@ function buscarDash() {
     const mZona   = !zona   || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
     const mPrecio = !r.precio || parseFloat(r.precio) <= precio;
     const mAsesor = !asesor  || (r.asesor||'').toLowerCase().includes(asesor);
-    return mTipo && mOp && mZona && mPrecio && mAsesor;
+    // Dashboard solo muestra propiedades Activas
+    const mActiva = (r.estado||'Activa') === 'Activa';
+    return mTipo && mOp && mZona && mPrecio && mAsesor && mActiva;
   });
 
   const label = document.getElementById('dash-resultado-label');
@@ -5566,6 +5587,7 @@ function abrirCopyRedesDesdeModal(id) {
   set('cap-area',        r.area);
   set('cap-precio',      r.precio);
   set('cap-orientacion', r.orientacion);
+  set('cap-estado',     r.estado||'Activa');
   set('cap-antiguedad',  r.antiguedad);
 
   // Parsear características en sus campos individuales
