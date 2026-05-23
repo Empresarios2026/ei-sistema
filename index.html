@@ -2595,7 +2595,7 @@ function exportarPDF() {
   const area       = document.getElementById('cap-area').value || '';
   const areaConst  = document.getElementById('cap-area-const').value || '';
   const direccion  = document.getElementById('cap-direccion').value || '';
-  const orient     = document.getElementById('cap-orientacion').value || '';
+  const orient     = document.getElementById('cap-orientacion')?.value || '';
   const antiguedad = document.getElementById('cap-antiguedad').value || '';
 
   // ── FOTOS — todas en grid uniforme (al fondo de la ficha) ──
@@ -2950,7 +2950,7 @@ function leerDatosProp() {
     areaConst:   document.getElementById('cap-area-const').value,
     precio:      document.getElementById('cap-precio').value,
     caract:      cp.join(', ') || '—',
-    orientacion: document.getElementById('cap-orientacion').value,
+    orientacion: document.getElementById('cap-orientacion')?.value || '',
     antiguedad:  document.getElementById('cap-antiguedad').value,
     asesor:      document.getElementById('cap-asesor-nombre').value || '—',
     asesor_tel:  document.getElementById('cap-asesor-tel').value    || '—',
@@ -3635,7 +3635,7 @@ function exportarWord() {
   const area       = document.getElementById('cap-area').value || '';
   const areaConst  = document.getElementById('cap-area-const').value || '';
   const direccion  = document.getElementById('cap-direccion').value || '';
-  const orient     = document.getElementById('cap-orientacion').value || '';
+  const orient     = document.getElementById('cap-orientacion')?.value || '';
   const antiguedad = document.getElementById('cap-antiguedad').value || '';
 
   // Convertir el texto de la ficha a párrafos HTML
@@ -3926,7 +3926,7 @@ function generarFicha() {
   const banos    = document.getElementById('cap-banos').value;
   const cocheras = document.getElementById('cap-cocheras').value;
   const caract   = document.getElementById('cap-caract').value;
-  const orient   = document.getElementById('cap-orientacion').value;
+  const orient   = document.getElementById('cap-orientacion')?.value || '';
   const propietario = document.getElementById('cap-propietario').value;
   const direccion = document.getElementById('cap-direccion').value;
   const antiguedad = document.getElementById('cap-antiguedad').value;
@@ -5703,7 +5703,7 @@ async function generarFichaDirecto() {
   const area      = document.getElementById('cap-area').value;
   const areaConst = document.getElementById('cap-area-const').value;
   const precio    = document.getElementById('cap-precio').value;
-  const orient    = document.getElementById('cap-orientacion').value;
+  const orient    = document.getElementById('cap-orientacion')?.value || '';
   const antig     = document.getElementById('cap-antiguedad').value;
   const dorms     = document.getElementById('cap-dorms').value;
   const banos     = document.getElementById('cap-banos').value;
