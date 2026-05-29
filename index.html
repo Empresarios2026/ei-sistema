@@ -681,8 +681,14 @@ td:first-child { color:var(--t1); font-weight:500; }
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>Precio (USD)</label>
-            <input type="number" id="cap-precio" placeholder="95000">
+            <label>Precio</label>
+            <div style="display:flex;gap:6px;">
+              <select id="cap-moneda" style="padding:9px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;font-weight:700;width:90px;flex-shrink:0;">
+                <option value="USD">USD $</option>
+                <option value="PEN">PEN S/</option>
+              </select>
+              <input type="number" id="cap-precio" placeholder="95000" style="flex:1;">
+            </div>
           </div>
           <div class="field">
             <label>Antigüedad (años)</label>
@@ -2906,7 +2912,7 @@ function renderPropsData(data) {
     <td>${r.fecha}</td><td>${r.tipo||'—'}</td><td>${r.operacion||'—'}</td>
     <td title="${r.propietario||''}">${(r.propietario||'—').substring(0,16)}</td>
     <td title="${r.ubicacion||''}">${(r.ubicacion||'—').substring(0,18)}</td>
-    <td>${r.area||'—'}</td><td>${r.precio ? 'USD '+Number(r.precio).toLocaleString() : '—'}</td>
+    <td>${r.area||'—'}</td><td>${r.precio ? (r.moneda||'USD')+' '+Number(r.precio).toLocaleString() : '—'}</td>
     <td>${r.orientacion||'—'}</td>
     <td><span class="tag ${r.estado==='Activa'?'tag-green':r.estado==='Vendida'?'tag-green':r.estado==='Alquilada'?'tag-blue':r.estado==='Anticrétada'?'tag-blue':r.estado==='Desactivada'?'tag-gray':'tag-red'}">${r.estado||'Activa'}</span></td>
     <td style="display:flex;gap:4px;">
@@ -2949,6 +2955,7 @@ function leerDatosProp() {
     area:        document.getElementById('cap-area').value,
     areaConst:   document.getElementById('cap-area-const').value,
     precio:      document.getElementById('cap-precio').value,
+    moneda:      document.getElementById('cap-moneda')?.value || 'USD',
     caract:      cp.join(', ') || '—',
     orientacion: document.getElementById('cap-orientacion')?.value || '',
     antiguedad:  document.getElementById('cap-antiguedad').value,
@@ -3116,6 +3123,7 @@ function cargarPropParaEditar(id) {
   set('cap-area',        r.area);
   set('cap-area-const',  r.areaConst);
   set('cap-precio',      r.precio);
+  const selMoneda = document.getElementById('cap-moneda'); if(selMoneda) selMoneda.value = r.moneda||'USD';
   set('cap-orientacion', r.orientacion);
   set('cap-estado',      r.estado||'Activa');
   set('cap-antiguedad',  r.antiguedad);
@@ -4470,28 +4478,41 @@ function buscarDash() {
     return;
   }
 
-  cont.innerHTML = lista.map(r => `
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--r);background:rgba(206,1,31,.08);padding:2px 8px;border-radius:20px;">${r.tipo||'—'}</span>
-        <span style="font-size:10px;color:var(--t3);">${r.operacion||''}</span>
+  cont.innerHTML = lista.map(r => {
+    const foto = (r.fotos_urls && r.fotos_urls[0]) || (r.fotos && r.fotos[0]) || '';
+    return `
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;">
+      ${foto ? `
+      <div style="position:relative;height:160px;overflow:hidden;background:#111;">
+        <img src="${foto}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        <div style="position:absolute;top:8px;left:8px;background:#CE011F;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:20px;letter-spacing:.5px;">${r.tipo||'—'}</div>
+        <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;">${r.operacion||''}</div>
+        ${r.precio ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">${r.moneda||'USD'} ${Number(r.precio).toLocaleString()}</div>` : ''}
+      </div>` : `
+      <div style="height:80px;background:var(--s3);display:flex;align-items:center;justify-content:center;position:relative;">
+        <span style="font-size:28px;">🏠</span>
+        <div style="position:absolute;top:8px;left:8px;background:#CE011F;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:20px;">${r.tipo||'—'}</div>
+        <div style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--t3);">${r.operacion||''}</div>
+      </div>`}
+      <div style="padding:12px;">
+        <div style="font-weight:700;font-size:14px;color:var(--t1);margin-bottom:3px;">${r.ubicacion||'Sin ubicación'}</div>
+        ${r.direccion ? `<div style="font-size:11px;color:var(--t3);margin-bottom:5px;">📍 ${r.direccion}</div>` : ''}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+          ${!foto && r.precio ? `<span style="font-size:13px;font-weight:700;color:var(--t1);">${r.moneda||'USD'} ${Number(r.precio).toLocaleString()}</span>` : ''}
+          ${r.area ? `<span style="font-size:12px;color:var(--t2);">📐 ${r.area} m²</span>` : ''}
+        </div>
+        ${r.caract && r.caract!=='—' ? `<div style="font-size:11px;color:var(--t3);margin-bottom:5px;">🏠 ${r.caract}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="font-size:11px;color:var(--t3);">👤 ${r.asesor||'—'}</span>
+          <span style="font-size:10px;color:var(--t3);">${r.fecha}</span>
+        </div>
+        <button onclick="abrirPropiedadParaExportar(${r.id})"
+          style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;">
+          👁️ Ver Ficha
+        </button>
       </div>
-      <div style="font-weight:700;font-size:14px;color:var(--t1);margin-bottom:4px;">${r.ubicacion||'Sin ubicación'}</div>
-      ${r.direccion ? `<div style="font-size:11px;color:var(--t3);margin-bottom:6px;">📍 ${r.direccion}</div>` : ''}
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
-        ${r.precio ? `<span style="font-size:13px;font-weight:700;color:var(--t1);">USD ${Number(r.precio).toLocaleString()}</span>` : ''}
-        ${r.area   ? `<span style="font-size:12px;color:var(--t2);">📐 ${r.area} m²</span>` : ''}
-      </div>
-      ${r.caract && r.caract!=='—' ? `<div style="font-size:11px;color:var(--t3);margin-bottom:6px;">🏠 ${r.caract}</div>` : ''}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <span style="font-size:11px;color:var(--t3);">👤 ${r.asesor||'—'}</span>
-        <span style="font-size:10px;color:var(--t3);">${r.fecha}</span>
-      </div>
-      <button onclick="abrirPropiedadParaExportar(${r.id})"
-        style="margin-top:10px;width:100%;background:var(--r);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;">
-        👁️ Ver Ficha
-      </button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // Actualizar buscador del dashboard al cargar la página
@@ -5620,7 +5641,7 @@ function abrirCopyRedesDesdeModal(id) {
   // Llenar campos de TODAS las pestañas de Redes Sociales
   const setRs = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   const caracFull = r.caract && r.caract !== '—' ? r.caract : '';
-  const precioFmt = r.precio ? 'USD ' + Number(r.precio).toLocaleString() : '';
+  const precioFmt = r.precio ? (r.moneda||'USD') + ' ' + Number(r.precio).toLocaleString() : '';
   const areaFmt   = r.area ? r.area + ' m2' : '';
 
   // Copy Propiedad
@@ -6613,7 +6634,7 @@ function generarHTMLVolante(r) {
     });
   }
 
-  const precio = r.precio ? 'USD ' + Number(r.precio).toLocaleString() : 'A consultar';
+  const precio = r.precio ? (r.moneda||'USD') + ' ' + Number(r.precio).toLocaleString() : 'A consultar';
   const area = r.area ? r.area + ' m²' : '';
 
   const html = `<!DOCTYPE html>
