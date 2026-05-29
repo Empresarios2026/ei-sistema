@@ -2443,7 +2443,7 @@ function fromSbRow(key, r) {
       area:r.area, areaConst:r.area_const, precio:r.precio, caract:r.caract,
       orientacion:r.orientacion, antiguedad:r.antiguedad,
       asesor:r.asesor, asesor_tel:r.asesor_tel,
-      ficha:r.ficha||'', fotos:fotosUrls, fotos_urls:fotosUrls, estado:r.estado, moneda:r.moneda||'USD'
+      ficha:r.ficha||'', fotos:fotosUrls, fotos_urls:fotosUrls, estado:r.estado||'Activa', moneda:r.moneda||'USD'
     };
   }
   if (key === 'kpis') return {
@@ -3563,6 +3563,7 @@ const checkItems = [
   { label: 'Constancia de no adeudo', key: 'adeudo' },
   { label: 'Cálculo de impuestos y pagos (alcabala, renta)', key: 'impuestos' },
   { label: 'Planos de la propiedad', key: 'planos' },
+  { label: 'Contrato de corretaje firmado', key: 'corretaje' },
 ];
 
 function buildChecklist() {
@@ -4471,7 +4472,7 @@ function buscarDash() {
 
   const label = document.getElementById('dash-resultado-label');
   const cont  = document.getElementById('dash-resultados');
-  const hasFiltro = tipo || op || zona || document.getElementById('dash-precio').value || asesor;
+  const hasFiltro = tipo || op || zona || document.getElementById('dash-precio').value || asesor || estadoFiltro;
 
   if (!all.length) {
     label.style.display = 'none';
@@ -4479,10 +4480,10 @@ function buscarDash() {
     return;
   }
 
-  label.style.display = hasFiltro ? 'block' : 'none';
-  label.textContent   = hasFiltro ? `🔍 ${res.length} propiedad${res.length!==1?'es':''} encontrada${res.length!==1?'s':''}` : '';
+  label.style.display = 'block';
+  label.textContent = `🔍 ${res.length} propiedad${res.length!==1?'es':''} encontrada${res.length!==1?'s':''}`;
 
-  const lista = hasFiltro ? res : all;
+  const lista = res;
 
   if (!lista.length) {
     cont.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px 0;color:var(--t3);font-size:13px;">No se encontraron propiedades con esos filtros.</div>';
