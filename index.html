@@ -2399,7 +2399,7 @@ function toSbRow(key, record) {
     area_const:r.areaConst||'', precio:r.precio||'', caract:r.caract||'',
     orientacion:r.orientacion||'', antiguedad:r.antiguedad||'',
     asesor:r.asesor||'', asesor_tel:r.asesor_tel||'',
-    ficha:r.ficha||'', estado:r.estado||'Activa'
+    ficha:r.ficha||'', estado:r.estado||'Activa', moneda:r.moneda||'USD'
   };
   if (key === 'leads') return {
     fecha:r.fecha, nombre:r.nombre||'', contacto:r.contacto||'',
@@ -2443,7 +2443,7 @@ function fromSbRow(key, r) {
       area:r.area, areaConst:r.area_const, precio:r.precio, caract:r.caract,
       orientacion:r.orientacion, antiguedad:r.antiguedad,
       asesor:r.asesor, asesor_tel:r.asesor_tel,
-      ficha:r.ficha||'', fotos:fotosUrls, fotos_urls:fotosUrls, estado:r.estado
+      ficha:r.ficha||'', fotos:fotosUrls, fotos_urls:fotosUrls, estado:r.estado, moneda:r.moneda||'USD'
     };
   }
   if (key === 'kpis') return {
@@ -2996,7 +2996,7 @@ function guardarPropiedadManual() {
       area: datos.area||'', area_const: datos.areaConst||'', precio: datos.precio||'',
       caract: datos.caract||'', orientacion: datos.orientacion||'',
       antiguedad: datos.antiguedad||'', asesor: datos.asesor||'',
-      asesor_tel: datos.asesor_tel||'', ficha: datos.ficha||'', estado: datos.estado||'Activa'
+      asesor_tel: datos.asesor_tel||'', ficha: datos.ficha||'', estado: datos.estado||'Activa', moneda: datos.moneda||'USD'
     };
     sbFetch('ei_props?id=eq.' + editId, 'PATCH', sbData).then(() => {
       // Actualizar caché local
