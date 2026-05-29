@@ -508,7 +508,7 @@ td:first-child { color:var(--t1); font-weight:500; }
       </div>
 
       <!-- Filtros -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
         <div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Tipo</div>
           <select id="dash-tipo" onchange="buscarDash()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
@@ -548,6 +548,17 @@ td:first-child { color:var(--t1); font-weight:500; }
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
             <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;">Estado</div>
+          <select id="dash-estado" onchange="buscarDash()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--t1);font-size:13px;">
+            <option value="Activa">✅ Activas</option>
+            <option value="Vendida">🏆 Vendidas</option>
+            <option value="Alquilada">🔑 Alquiladas</option>
+            <option value="Anticrétada">📋 Anticrétadas</option>
+            <option value="Desactivada">⛔ Desactivadas</option>
+            <option value="">📂 Todas</option>
           </select>
         </div>
       </div>
@@ -4447,15 +4458,15 @@ function buscarDash() {
   const asesor = document.getElementById('dash-asesor').value.toLowerCase();
   const all    = dbGet('props');
 
+  const estadoFiltro = document.getElementById('dash-estado')?.value ?? 'Activa';
   const res = all.filter(r => {
     const mTipo   = !tipo   || (r.tipo||'').toLowerCase().includes(tipo);
     const mOp     = !op     || (r.operacion||'').toLowerCase().includes(op);
     const mZona   = !zona   || (r.ubicacion||'').toLowerCase().includes(zona) || (r.direccion||'').toLowerCase().includes(zona);
     const mPrecio = !r.precio || parseFloat(r.precio) <= precio;
     const mAsesor = !asesor  || (r.asesor||'').toLowerCase().includes(asesor);
-    // Dashboard solo muestra propiedades Activas
-    const mActiva = (r.estado||'Activa') === 'Activa';
-    return mTipo && mOp && mZona && mPrecio && mAsesor && mActiva;
+    const mEstado = !estadoFiltro || (r.estado||'Activa') === estadoFiltro;
+    return mTipo && mOp && mZona && mPrecio && mAsesor && mEstado;
   });
 
   const label = document.getElementById('dash-resultado-label');
