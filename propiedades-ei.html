@@ -407,7 +407,7 @@ footer strong { color:#fff; }
       <span id="label-precio">Precio</span> ▾
     </button>
     <div class="dropdown-panel" id="drop-precio" style="width:260px;">
-      <div class="drop-title">Rango de precio (USD)</div>
+      <div class="drop-title">Rango de precio</div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
         <input type="number" id="precio-min" placeholder="Mínimo" oninput="renderGrid()"
           style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;">
@@ -515,6 +515,7 @@ function mapRow(r) {
     fotos,
     ficha: r.ficha || '',
     estado: r.estado || 'Activa',
+    moneda: r.moneda || 'USD',
     fecha: r.fecha || ''
   };
 }
@@ -639,7 +640,7 @@ function renderGrid() {
     const fotoHTML = p.fotos.length
       ? `<div class="card-img"><img src="${p.fotos[0]}" alt="${p.tipo}" onerror="this.parentElement.innerHTML='🏠'"></div>`
       : `<div class="card-img" style="height:200px;">🏠</div>`;
-    const precioStr = p.precio ? `USD ${p.precio.toLocaleString()}${p.operacion==='Alquiler'?' <span>/mes</span>':''}` : 'A consultar';
+    const precioStr = p.precio ? `${p.moneda||'USD'} ${p.precio.toLocaleString()}${p.operacion==='Alquiler'?' <span>/mes</span>':''}` : 'A consultar';
     const specs = [];
     if (p.dormitorios) specs.push(`🛏 ${p.dormitorios} dorm.`);
     if (p.banos) specs.push(`🚿 ${p.banos} baños`);
@@ -663,7 +664,7 @@ function renderGrid() {
 function abrirModal(p) {
   if (typeof p === 'string') p = JSON.parse(p);
   document.getElementById('modal-titulo').textContent = `${p.tipo} en ${p.ubicacion}`;
-  document.getElementById('modal-subtitulo').textContent = `${p.operacion} · ${p.precio ? 'USD '+p.precio.toLocaleString() : 'A consultar'}`;
+  document.getElementById('modal-subtitulo').textContent = `${p.operacion} · ${p.precio ? (p.moneda||'USD')+' '+p.precio.toLocaleString() : 'A consultar'}`;
   
   const fotosEl = document.getElementById('modal-fotos');
   fotosEl.innerHTML = p.fotos && p.fotos.length
