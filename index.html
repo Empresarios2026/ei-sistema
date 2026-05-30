@@ -2645,7 +2645,7 @@ function exportarPDF() {
   // ── TABLA DE DATOS ──
   const dataFields = [
     ['Propietario', propietario], ['Dirección', direccion || ubi],
-    ['Precio', precio ? 'USD '+Number(precio).toLocaleString() : '']
+    ['Precio', precio ? (moneda||'USD')+' '+Number(precio).toLocaleString() : '']
   ].filter(r => r[1]);
   const tableRows = dataFields.map(([k,v]) =>
     `<tr>
@@ -2693,7 +2693,7 @@ function exportarPDF() {
     <!-- TÍTULO -->
     <div style="background:#CE011F;padding:14px 28px;">
       <div style="font-size:18px;font-weight:900;color:#fff;font-family:Georgia,serif;">${tipo}${ubi?' — '+ubi:''}</div>
-      ${precio?`<div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8);margin-top:3px;">USD ${Number(precio).toLocaleString()}</div>`:''}
+      ${precio?`<div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8);margin-top:3px;">${moneda||'USD'} ${Number(precio).toLocaleString()}</div>`:''}
     </div>
 
     <!-- CUERPO -->
@@ -3691,7 +3691,7 @@ function exportarWord() {
     ['Tipo', tipo], ['Propietario', propietario], ['Dirección', direccion || ubi],
     ['Área Total', area ? area+' m²' : ''], ['Área Construida', areaConst ? areaConst+' m²' : ''],
     ['Antigüedad', antiguedad ? antiguedad+' años' : ''],
-    ['Orientación', orient], ['Precio', precio ? 'USD '+Number(precio).toLocaleString() : '']
+    ['Orientación', orient], ['Precio', precio ? (moneda||'USD')+' '+Number(precio).toLocaleString() : '']
   ].filter(r => r[1]).map(([k,v]) =>
     `<tr>
       <td style="padding:5pt 8pt;background:#F5F5F5;font-weight:bold;font-size:10pt;color:#333;width:35%;border:1px solid #DDD;">${k}</td>
@@ -3743,7 +3743,7 @@ function exportarWord() {
   <tr>
     <td style="background:#CE011F;padding:10pt 14pt;">
       <div style="font-size:16pt;font-weight:900;color:#fff;font-family:Georgia,serif;">${tipo}${ubi ? ' — '+ubi : ''}</div>
-      ${precio ? `<div style="font-size:13pt;font-weight:700;color:rgba(255,255,255,.85);margin-top:4pt;">USD ${Number(precio).toLocaleString()}</div>` : ''}
+      ${precio ? `<div style="font-size:13pt;font-weight:700;color:rgba(255,255,255,.85);margin-top:4pt;">${moneda||'USD'} ${Number(precio).toLocaleString()}</div>` : ''}
     </td>
   </tr>
 </table>
@@ -3969,7 +3969,7 @@ DATOS DE LA PROPIEDAD:
 - Tipo: ${tipo}
 - Área Total: ${area || 'N/D'} m² | Área Construida: ${areaConst || 'N/D'} m²
 - Antigüedad: ${antiguedad || 'N/D'} años
-- Precio: USD ${precio ? Number(precio).toLocaleString() : 'A consultar'}
+- Precio: ${(moneda||"USD")} ${precio ? Number(precio).toLocaleString() : "A consultar"}
 - Características: ${caractFull}
 - Orientación: ${orient || 'No especificada'}
 
@@ -3994,7 +3994,7 @@ DIAGNÓSTICO BIO-AMBIENTAL
 (análisis Feng Shui orientación ${orient})` : ''}
 
 CONDICIONES DE VENTA
-Precio: USD ${precio ? Number(precio).toLocaleString() : 'A consultar'}. Las visitas se coordinan a través de Empresarios Inmobiliarios al 940 916 247.
+Precio: ${(moneda||"USD")} ${precio ? Number(precio).toLocaleString() : "A consultar"}. Las visitas se coordinan a través de Empresarios Inmobiliarios al 940 916 247.
 
 Máximo 350 palabras. Solo texto plano, sin asteriscos, sin markdown, sin tablas. El sistema dará el formato visual.`;
 
@@ -4750,7 +4750,7 @@ async function abrirPropiedadParaExportar(id) {
         <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Empresarios Inmobiliarios — Arequipa, Perú</div>
         <div style="font-size:20px;font-weight:900;color:#fff;">${r.tipo||'Propiedad'}${r.ubicacion ? ' — '+r.ubicacion : ''}</div>
         ${r.operacion ? `<div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:4px;">${r.operacion}</div>` : ''}
-        ${r.precio ? `<div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.9);margin-top:6px;">USD ${Number(r.precio).toLocaleString()}</div>` : ''}
+        ${r.precio ? `<div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.9);margin-top:6px;">${r.moneda||"USD"} ${Number(r.precio).toLocaleString()}</div>` : ''}
       </div>
 
       <div style="padding:20px 24px;">
@@ -5774,7 +5774,7 @@ Incluye distribucion, acabados, extras y ubicacion. Integra palabras clave SEO d
 2 oraciones finales de propuesta de valor o plusvalia. Sin subtitulo.
 
 CONDICIONES DE ${opLabel}
-${precioLabel}: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'}
+${precioLabel}: ${precio ? (moneda||'USD')+' '+Number(precio).toLocaleString() : 'A consultar'}
 ${ctaLabel}
 
 ${orient ? 'DIAGNOSTICO BIO-AMBIENTAL\nAnalisis Feng Shui de orientacion '+orient+'.' : ''}
@@ -5821,7 +5821,7 @@ async function generarCopyDirecto() {
 
   if (!ubi) { alert('Completa los datos de la propiedad primero.'); return; }
 
-  const base = `${tipo} en ${ubi} | Precio: ${precio ? 'USD '+Number(precio).toLocaleString() : 'A consultar'} | Área: ${area||'N/D'} m² | ${dorms} dorms, ${banos} baños, ${cocheras} cocheras | Características: ${caract||'N/D'}`;
+  const base = `${tipo} en ${ubi} | Precio: ${precio ? (moneda||'USD')+' '+Number(precio).toLocaleString() : 'A consultar'} | Área: ${area||'N/D'} m² | ${dorms} dorms, ${banos} baños, ${cocheras} cocheras | Características: ${caract||'N/D'}`;
 
   let instruccion = '';
   if (red === 'Facebook') instruccion = `Crea un post completo de Facebook (200-250 palabras). Gancho poderoso al inicio, describe la propiedad con puntos de valor, menciona el precio, CTA claro invitando a escribir por WhatsApp al ${agente.tel}. Emojis con moderación. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces`;
@@ -6126,7 +6126,7 @@ function abrirCatalogo() {
           <div style="font-size:11px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">EMPRESARIOS INMOBILIARIOS</div>
           <div style="font-size:22px;font-weight:900;color:#fff;font-family:Georgia,serif;">${tipo}${ubi ? ' — ' + ubi : ''}</div>
           ${op ? '<div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:4px;">' + op + '</div>' : ''}
-          ${precio ? '<div style="font-size:18px;font-weight:700;color:#fff;margin-top:6px;">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
+          ${precio ? '<div style="font-size:18px;font-weight:700;color:#fff;margin-top:6px;">' + (moneda||'USD') + ' ' + Number(precio).toLocaleString() + '</div>' : ''}
         </div>
         <div style="flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:space-between;">
           <div>
@@ -6179,7 +6179,7 @@ function abrirCatalogo() {
         '<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:16px 20px;">' +
           itemsHTML +
         '</div>' +
-        (precio ? '<div style="margin-top:14px;text-align:center;font-size:22px;font-weight:700;color:#CE011F;">USD ' + Number(precio).toLocaleString() + '</div>' : '') +
+        (precio ? '<div style="margin-top:14px;text-align:center;font-size:22px;font-weight:700;color:#CE011F;">' + (moneda||'USD') + ' ' + Number(precio).toLocaleString() + '</div>' : '') +
       '</div>' +
     '</div>';
   }
@@ -6339,7 +6339,7 @@ function descargarCatalogo() {
           <div class="cover-info">
             <div class="cover-tag">${op || 'En Venta'}</div>
             <div class="cover-title">${tipo}${ubi ? '<br>' + ubi : ''}</div>
-            ${precio ? '<div class="cover-price">USD ' + Number(precio).toLocaleString() + '</div>' : ''}
+            ${precio ? '<div class="cover-price">' + (moneda||'USD') + ' ' + Number(precio).toLocaleString() + '</div>' : ''}
             <div class="cover-stats">
               ${area ? '<div class="stat"><div class="stat-val">' + area + ' m²</div><div class="stat-lbl">ÁREA</div></div>' : ''}
               ${dorms ? '<div class="stat"><div class="stat-val">' + dorms + '</div><div class="stat-lbl">DORMS</div></div>' : ''}
