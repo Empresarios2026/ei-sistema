@@ -656,6 +656,7 @@ function renderGrid() {
         <div class="card-loc">📍 ${p.ubicacion}${p.direccion?' · '+p.direccion:''}</div>
         <div class="card-precio">${precioStr}</div>
         ${specs.length ? `<div class="card-specs">${specs.map(s=>`<span class="spec">${s}</span>`).join('')}</div>` : ''}
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:11px;color:#999;">👤 ${p.asesor||'Empresarios Inmobiliarios'}</div>
       </div>
     </div>`;
   }).join('');
