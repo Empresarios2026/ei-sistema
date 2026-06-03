@@ -6058,6 +6058,7 @@ function abrirCatalogo() {
   const op         = document.getElementById('cap-operacion').value || '';
   const ubi        = document.getElementById('cap-ubicacion').value || '';
   const precio     = document.getElementById('cap-precio').value || '';
+  const moneda     = document.getElementById('cap-moneda')?.value || 'USD';
   const area       = document.getElementById('cap-area').value || '';
   const dorms      = document.getElementById('cap-dorms').value || '';
   const banos      = document.getElementById('cap-banos').value || '';
@@ -6078,7 +6079,7 @@ function abrirCatalogo() {
   }
 
   // Guardar datos para descarga
-  _catalogoData = { tipo, op, ubi, precio, area, dorms, banos, cocheras, caract, ficha, fotosList };
+  _catalogoData = { tipo, op, ubi, precio, moneda, area, dorms, banos, cocheras, caract, ficha, fotosList };
 
   // Obtener descripción corta de la ficha (primeras 3 líneas)
   // Extraer características técnicas de la ficha o usar caract directo
@@ -6274,7 +6275,7 @@ function descargarCatalogo() {
   // Usar datos guardados del catálogo actual si existen
   let tipo, op, ubi, precio, area, dorms, banos, cocheras, ficha, fotosList, caract;
   if (_catalogoData) {
-    ({ tipo, op, ubi, precio, area, dorms, banos, cocheras, ficha, fotosList, caract } = _catalogoData);
+    ({ tipo, op, ubi, precio, moneda, area, dorms, banos, cocheras, ficha, fotosList, caract } = _catalogoData);
   } else {
     tipo     = document.getElementById('cap-tipo')?.value || 'Propiedad';
     op       = document.getElementById('cap-operacion')?.value || '';
@@ -6285,6 +6286,7 @@ function descargarCatalogo() {
     banos    = document.getElementById('cap-banos')?.value || '';
     cocheras = document.getElementById('cap-cocheras')?.value || '';
     caract   = document.getElementById('cap-caract')?.value || '';
+    moneda   = document.getElementById('cap-moneda')?.value || 'USD';
     const fichaEl = document.getElementById('out-ficha');
     ficha    = fichaEl ? fichaEl.value.trim() : '';
     fotosList = photos.filter(p => p);
@@ -6503,6 +6505,7 @@ async function abrirCatalogoDesdeModal(id) {
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
   set('cap-tipo', r.tipo); set('cap-operacion', r.operacion);
   set('cap-ubicacion', r.ubicacion); set('cap-precio', r.precio);
+  const selMon = document.getElementById('cap-moneda'); if(selMon) selMon.value = r.moneda||'USD';
   set('cap-area', r.area); set('cap-dorms', ''); set('cap-banos', ''); set('cap-cocheras', '');
 
   // Parsear características
