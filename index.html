@@ -2608,6 +2608,7 @@ function exportarPDF() {
   const ubiPartes  = ubiRaw.split(',').map(s => s.trim()).filter(Boolean);
   const ubi        = ubiPartes.length >= 2 ? ubiPartes.slice(-2).join(', ') : ubiRaw;
   const precio     = document.getElementById('cap-precio').value || '';
+  const moneda     = document.getElementById('cap-moneda')?.value || 'USD';
   const propietario= document.getElementById('cap-propietario').value || '';
   const area       = document.getElementById('cap-area').value || '';
   const areaConst  = document.getElementById('cap-area-const').value || '';
@@ -3651,6 +3652,7 @@ function exportarWord() {
   const tipo       = document.getElementById('cap-tipo').value || 'Propiedad';
   const ubi        = document.getElementById('cap-ubicacion').value || '';
   const precio     = document.getElementById('cap-precio').value || '';
+  const moneda     = document.getElementById('cap-moneda')?.value || 'USD';
   const propietario= document.getElementById('cap-propietario').value || '';
   const area       = document.getElementById('cap-area').value || '';
   const areaConst  = document.getElementById('cap-area-const').value || '';
@@ -3937,6 +3939,7 @@ function setLoading(spinId, labelId, outId, loading) {
 
 // ── FICHA ──
 function generarFicha() {
+  const moneda = document.getElementById('cap-moneda')?.value || 'USD';
   const tipo = document.getElementById('cap-tipo').value;
   const ubi = document.getElementById('cap-ubicacion').value;
   const area = document.getElementById('cap-area').value;
@@ -5736,6 +5739,7 @@ async function generarFichaDirecto() {
   const area      = document.getElementById('cap-area').value;
   const areaConst = document.getElementById('cap-area-const').value;
   const precio    = document.getElementById('cap-precio').value;
+  const moneda    = document.getElementById('cap-moneda')?.value || 'USD';
   const orient    = document.getElementById('cap-orientacion')?.value || '';
   const antig     = document.getElementById('cap-antiguedad').value;
   const dorms     = document.getElementById('cap-dorms').value;
