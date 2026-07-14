@@ -431,7 +431,7 @@ td:first-child { color:var(--t1); font-weight:500; }
 
   <div class="nav-section">
     <div class="nav-label">Datos</div>
-    <div class="nav-item" onclick="showPage('base-datos', this); renderBaseDatos()">
+    <div class="nav-item" id="nav-base-datos" onclick="showPage('base-datos', this); renderBaseDatos()" style="display:none;">
       <div class="icon">🗄️</div> Base de Datos
     </div>
     <div class="nav-item" onclick="showPage('contratos', this); initContratos()">
@@ -5197,6 +5197,13 @@ function activarSistema() {
   const teamName = document.querySelector('.team-name');
   if (teamName && currentUser) {
     teamName.textContent = currentUser.nombre.charAt(0).toUpperCase() + currentUser.nombre.slice(1);
+  }
+
+  // Mostrar Base de Datos solo para Zulema
+  const EMAILS_ADMIN_BD = ['zulemagy@gmail.com', 'zulema@ei.com'];
+  const navBD = document.getElementById('nav-base-datos');
+  if (navBD && currentUser && EMAILS_ADMIN_BD.includes(currentUser.email)) {
+    navBD.style.display = 'flex';
   }
 
   // Agregar botón de cerrar sesión
