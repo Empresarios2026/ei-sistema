@@ -22,10 +22,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--t1); 
 
 /* SIDEBAR */
 .sidebar {
-  width:240px; min-height:100vh; background:#1E2023;
+  width:240px; height:100vh; background:#1E2023;
   border-right:1px solid var(--border); position:fixed; left:0; top:0;
   display:flex; flex-direction:column; z-index:50;
-  transition: transform 0.3s;
+  transition: transform 0.3s; overflow:hidden;
 }
 .sidebar-logo {
   padding:28px 24px 20px;
@@ -40,6 +40,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--t1); 
 .logo-sub { font-size:10px; color:var(--t3); letter-spacing:.5px; text-transform:uppercase; margin-left:20px; }
 
 .nav-section { padding:20px 16px 8px; }
+.nav-scroll { flex:1; overflow-y:auto; }
 .nav-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--t3); padding:0 8px; margin-bottom:8px; }
 .nav-item {
   display:flex; align-items:center; gap:12px;
@@ -402,6 +403,7 @@ td:first-child { color:var(--t1); font-weight:500; }
     </div>
   </div>
 
+  <div class="nav-scroll">
   <div class="nav-section">
     <div class="nav-label">Principal</div>
     <div class="nav-item active" onclick="showPage('dashboard', this)">
@@ -436,6 +438,7 @@ td:first-child { color:var(--t1); font-weight:500; }
       <div class="icon">📋</div> Contratos
     </div>
   </div>
+  </div><!-- /nav-scroll -->
 
   <div class="sidebar-footer">
     <div class="team-badge">
