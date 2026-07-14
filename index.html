@@ -431,9 +431,8 @@ td:first-child { color:var(--t1); font-weight:500; }
 
   <div class="nav-section">
     <div class="nav-label">Datos</div>
-    <div class="nav-item" id="nav-base-datos" onclick="showPage('base-datos', this); renderBaseDatos()" style="display:none;">
-      <div class="icon">🗄️</div> Base de Datos
-    </div>
+    <!-- Base de Datos: se inserta dinámicamente solo para admin -->
+    <div id="nav-base-datos-placeholder"></div>
     <div class="nav-item" onclick="showPage('contratos', this); initContratos()">
       <div class="icon">📋</div> Contratos
     </div>
@@ -5199,11 +5198,11 @@ function activarSistema() {
     teamName.textContent = currentUser.nombre.charAt(0).toUpperCase() + currentUser.nombre.slice(1);
   }
 
-  // Mostrar Base de Datos solo para Zulema
+  // Insertar Base de Datos solo para Zulema
   const EMAILS_ADMIN_BD = ['zulemagy@gmail.com', 'zulema@ei.com'];
-  const navBD = document.getElementById('nav-base-datos');
-  if (navBD && currentUser && EMAILS_ADMIN_BD.includes(currentUser.email)) {
-    navBD.style.display = 'flex';
+  const placeholder = document.getElementById('nav-base-datos-placeholder');
+  if (placeholder && currentUser && EMAILS_ADMIN_BD.includes(currentUser.email)) {
+    placeholder.innerHTML = '<div class="nav-item" onclick="showPage(\'base-datos\', this); renderBaseDatos()"><div class="icon">🗄️</div> Base de Datos</div>';
   }
 
   // Agregar botón de cerrar sesión
