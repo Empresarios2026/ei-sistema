@@ -432,6 +432,9 @@ td:first-child { color:var(--t1); font-weight:500; }
     <div class="nav-item" onclick="showPage('base-datos', this); renderBaseDatos()">
       <div class="icon">🗄️</div> Base de Datos
     </div>
+    <div class="nav-item" onclick="showPage('contratos', this); initContratos()">
+      <div class="icon">📋</div> Contratos
+    </div>
   </div>
 
   <div class="sidebar-footer">
@@ -544,7 +547,7 @@ td:first-child { color:var(--t1); font-weight:500; }
             <option>Evelyn Rivera</option><option>Fiorella Heresi</option>
             <option>Joel Cuadros</option><option>Juan Fernando Fuentes</option>
             <option>Lucy Arapa</option><option>Marilyn Benavente</option>
-            <option>Milagros Rodriguez</option><option>Paola Herrera</option><option>Paola Cruz</option><option>Evert Trujillo</option>
+            <option>Milagros Rodriguez</option><option>Paola Herrera</option><option>Paola Cruz</option><option>Evert Trujillo</option><option>Omar Mamani</option>
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
             <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
@@ -770,7 +773,7 @@ td:first-child { color:var(--t1); font-weight:500; }
             <option value="989403914">Lucy Arapa</option>
             <option value="953769128">Marilyn Benavente</option>
             <option value="993266771">Milagros Rodriguez</option>
-            <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option>
+            <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option><option value="983293959">Omar Mamani</option>
             <option value="923071770">Veronica Chacón</option>
             <option value="992239361">Ylka Stojkic</option>
             <option value="959749778">Zulema Gutierrez</option>
@@ -1035,7 +1038,7 @@ Un asesor te atenderá muy pronto. 🏡</div>
                 <option value="923071770">Veronica Chacón</option>
                 <option value="956702984">Fiorella Heresi</option>
                 <option value="961094351">Cinthia Calizaya</option>
-                <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option>
+                <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option><option value="983293959">Omar Mamani</option>
                 <option value="958237709">Cecilia Cayani</option>
                 <option value="959749778">Zulema Gutierrez</option>
                 <option value="959798477">David Rodriguez</option>
@@ -1900,7 +1903,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
             <option>Evelyn Rivera</option><option>Fiorella Heresi</option>
             <option>Joel Cuadros</option><option>Juan Fernando Fuentes</option>
             <option>Lucy Arapa</option><option>Marilyn Benavente</option>
-            <option>Milagros Rodriguez</option><option>Paola Herrera</option><option>Paola Cruz</option><option>Evert Trujillo</option>
+            <option>Milagros Rodriguez</option><option>Paola Herrera</option><option>Paola Cruz</option><option>Evert Trujillo</option><option>Omar Mamani</option>
             <option>Veronica Chacón</option><option>Ylka Stojkic</option>
             <option>Zulema Gutierrez</option>
             <option>Norma Ponce</option><option>Vanessa Chavez</option><option>Zaida Riega</option>
@@ -2169,7 +2172,7 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
                 <option value="969000163">Juan Fernando Fuentes</option>
                 <option value="989403914">Lucy Arapa</option>
                 <option value="993266771">Milagros Rodriguez</option>
-                <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option>
+                <option value="970267212">Paola Herrera</option><option value="903131620">Paola Cruz</option><option value="963080384">Evert Trujillo</option><option value="983293959">Omar Mamani</option>
                 <option value="923071770">Veronica Chacón</option>
                 <option value="992239361">Ylka Stojkic</option>
                 <option value="936802576">Norma Ponce</option>
@@ -2282,6 +2285,193 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
       </button>
     </div>
   </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- PAGE: CONTRATOS                           -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="page" id="page-contratos">
+    <div class="page-header">
+      <div>
+        <div class="page-title">📋 Contratos de Captación</div>
+        <div class="page-sub">Genera contratos listos para imprimir y firmar</div>
+      </div>
+    </div>
+
+    <!-- SELECTOR TIPO CONTRATO -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px;">Operación</div>
+        <select id="ct-operacion" onchange="actualizarTextoContrato()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-weight:600;">
+          <option value="compraventa">Compra-Venta</option>
+          <option value="alquiler">Alquiler</option>
+          <option value="anticresis">Anticresis</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px;">Exclusividad</div>
+        <select id="ct-exclusividad" onchange="actualizarTextoContrato()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-weight:600;">
+          <option value="no-exclusividad">No Exclusividad</option>
+          <option value="exclusividad">Con Exclusividad</option>
+          <option value="flexible">Flexible</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px;">Tipo de Propietario</div>
+        <select id="ct-propietario-tipo" onchange="mostrarCamposPropietario()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:14px;font-weight:600;">
+          <option value="natural">Persona Natural</option>
+          <option value="copropiedad">Copropiedad</option>
+          <option value="juridica">Persona Jurídica</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+      <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- DATOS DEL PROPIETARIO -->
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--r);margin-bottom:14px;">👤 Datos del Propietario</div>
+
+          <!-- Persona Natural -->
+          <div id="ct-bloque-natural">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="field"><label>Nombres y Apellidos</label><input type="text" id="ct-pn-nombre" placeholder="Nombre completo"></div>
+              <div class="field"><label>DNI / CE / Pasaporte</label><input type="text" id="ct-pn-dni" placeholder="Nº documento"></div>
+              <div class="field"><label>Domicilio</label><input type="text" id="ct-pn-domicilio" placeholder="Dirección completa"></div>
+              <div class="field">
+                <label>Estado Civil</label>
+                <select id="ct-pn-estado-civil" onchange="toggleConyuge()">
+                  <option value="S">Soltero/a (S)</option>
+                  <option value="C">Casado/a (C)</option>
+                  <option value="V">Viudo/a (V)</option>
+                  <option value="D">Divorciado/a (D)</option>
+                </select>
+              </div>
+            </div>
+            <div id="ct-bloque-conyuge" style="display:none;margin-top:10px;padding:10px;background:var(--s3);border-radius:8px;display:none;">
+              <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Datos del Cónyuge</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="field"><label>Nombres y Apellidos del Cónyuge</label><input type="text" id="ct-pn-conyuge" placeholder="Nombre completo"></div>
+                <div class="field"><label>Partida / Separación de Patrimonios</label><input type="text" id="ct-pn-partida-sep" placeholder="N° partida (si aplica)"></div>
+              </div>
+            </div>
+            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="field"><label>Representado por (si aplica)</label><input type="text" id="ct-pn-representante" placeholder="Nombre del representante"></div>
+              <div class="field"><label>DNI del Representante</label><input type="text" id="ct-pn-rep-dni" placeholder="Nº documento"></div>
+              <div class="field"><label>Partida Electrónica del Poder</label><input type="text" id="ct-pn-poder" placeholder="N° partida"></div>
+            </div>
+          </div>
+
+          <!-- Copropiedad -->
+          <div id="ct-bloque-copropiedad" style="display:none;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Hasta 4 copropietarios</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="field"><label>Copropietario 1 — Nombre</label><input type="text" id="ct-co-n1" placeholder="Nombre completo"></div>
+              <div class="field"><label>DNI / CE</label><input type="text" id="ct-co-d1" placeholder="Nº documento"></div>
+              <div class="field"><label>Copropietario 2 — Nombre</label><input type="text" id="ct-co-n2" placeholder="Nombre completo"></div>
+              <div class="field"><label>DNI / CE</label><input type="text" id="ct-co-d2" placeholder="Nº documento"></div>
+              <div class="field"><label>Copropietario 3 — Nombre</label><input type="text" id="ct-co-n3" placeholder="Nombre completo"></div>
+              <div class="field"><label>DNI / CE</label><input type="text" id="ct-co-d3" placeholder="Nº documento"></div>
+              <div class="field"><label>Copropietario 4 — Nombre</label><input type="text" id="ct-co-n4" placeholder="Nombre completo"></div>
+              <div class="field"><label>DNI / CE</label><input type="text" id="ct-co-d4" placeholder="Nº documento"></div>
+            </div>
+          </div>
+
+          <!-- Persona Jurídica -->
+          <div id="ct-bloque-juridica" style="display:none;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Hasta 3 representantes</div>
+            <div id="ct-juridica-reps">
+              <div style="padding:10px;background:var(--s3);border-radius:8px;margin-bottom:8px;">
+                <div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:6px;">Representante 1</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div class="field"><label>Representado por</label><input type="text" id="ct-jur-n1" placeholder="Nombre completo"></div>
+                  <div class="field"><label>DNI / CE</label><input type="text" id="ct-jur-d1" placeholder="Nº documento"></div>
+                  <div class="field"><label>Partida del Poder</label><input type="text" id="ct-jur-p1" placeholder="N° partida"></div>
+                  <div class="field"><label>Domicilio</label><input type="text" id="ct-jur-dom1" placeholder="Dirección"></div>
+                </div>
+              </div>
+              <div style="padding:10px;background:var(--s3);border-radius:8px;margin-bottom:8px;">
+                <div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:6px;">Representante 2 (opcional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div class="field"><label>Representado por</label><input type="text" id="ct-jur-n2" placeholder="Nombre completo"></div>
+                  <div class="field"><label>DNI / CE</label><input type="text" id="ct-jur-d2" placeholder="Nº documento"></div>
+                  <div class="field"><label>Partida del Poder</label><input type="text" id="ct-jur-p2" placeholder="N° partida"></div>
+                  <div class="field"><label>Domicilio</label><input type="text" id="ct-jur-dom2" placeholder="Dirección"></div>
+                </div>
+              </div>
+              <div style="padding:10px;background:var(--s3);border-radius:8px;">
+                <div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:6px;">Representante 3 (opcional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div class="field"><label>Representado por</label><input type="text" id="ct-jur-n3" placeholder="Nombre completo"></div>
+                  <div class="field"><label>DNI / CE</label><input type="text" id="ct-jur-d3" placeholder="Nº documento"></div>
+                  <div class="field"><label>Partida del Poder</label><input type="text" id="ct-jur-p3" placeholder="N° partida"></div>
+                  <div class="field"><label>Domicilio</label><input type="text" id="ct-jur-dom3" placeholder="Dirección"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS DEL INMUEBLE -->
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--r);margin-bottom:14px;">🏠 Datos del Inmueble</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field">
+              <label>Tipo</label>
+              <select id="ct-imm-tipo">
+                <option>Casa</option><option>Departamento</option><option>Terreno</option>
+                <option>Oficina</option><option>Local</option><option>Otro</option>
+              </select>
+            </div>
+            <div class="field"><label>Otro (especificar)</label><input type="text" id="ct-imm-otro" placeholder="Si seleccionó Otro"></div>
+            <div class="field"><label>Partida Electrónica Nro.</label><input type="text" id="ct-imm-partida" placeholder="N° partida"></div>
+            <div class="field"><label>Zona Registral</label><input type="text" id="ct-imm-zona" placeholder="Ej: AREQUIPA" value="AREQUIPA"></div>
+            <div class="field"><label>Año de Adquisición</label><input type="text" id="ct-imm-anio" placeholder="Ej: 2015"></div>
+            <div class="field"><label>Dirección</label><input type="text" id="ct-imm-dir" placeholder="Calle/Av/Jr"></div>
+            <div class="field"><label>Piso</label><input type="text" id="ct-imm-piso" placeholder="Ej: 3"></div>
+            <div class="field"><label>Nro / Dpto</label><input type="text" id="ct-imm-nro" placeholder="Ej: 301"></div>
+            <div class="field"><label>Distrito</label><input type="text" id="ct-imm-distrito" placeholder="Ej: Cayma"></div>
+            <div class="field"><label>Provincia</label><input type="text" id="ct-imm-provincia" placeholder="Arequipa" value="Arequipa"></div>
+          </div>
+        </div>
+
+        <!-- CONDICIONES -->
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--r);margin-bottom:14px;">💰 Condiciones</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field">
+              <label>Precio Inicial</label>
+              <div style="display:flex;gap:6px;">
+                <select id="ct-moneda" style="width:80px;flex-shrink:0;padding:9px 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--s1);color:var(--t1);font-size:13px;font-weight:700;">
+                  <option value="USD">USD $</option>
+                  <option value="PEN">PEN S/</option>
+                </select>
+                <input type="number" id="ct-precio" placeholder="95000" style="flex:1;">
+              </div>
+            </div>
+            <div class="field"><label>Honorarios (%)</label><input type="text" id="ct-honorarios" placeholder="Según acuerdo con el cliente"></div>
+            <div class="field"><label>Plazo</label><input type="text" id="ct-plazo" placeholder="Según acuerdo con el cliente"></div>
+            <div class="field"><label>Fecha del Contrato</label><input type="date" id="ct-fecha"></div>
+            <div class="field"><label>DNI del Asesor</label><input type="text" id="ct-asesor-dni" placeholder="Nº DNI del asesor"></div>
+            <div class="field"><label>Código MVCS</label><input type="text" id="ct-asesor-mvcs" placeholder="PJ-0444 ó código PN"></div>
+          </div>
+        </div>
+
+        <button onclick="generarContrato()" style="width:100%;background:linear-gradient(135deg,#CE011F,#a00018);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;">
+          📋 Generar Contrato para Imprimir
+        </button>
+      </div>
+
+      <!-- COLUMNA DERECHA: VISTA PREVIA -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:20px;min-height:400px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:14px;">Vista previa del tipo de contrato</div>
+        <div id="ct-preview-texto" style="font-size:13px;color:var(--t2);line-height:1.7;"></div>
+      </div>
+    </div>
+  </div><!-- /page-contratos -->
+
 </div><!-- /main -->
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -4409,6 +4599,7 @@ const agentesMap = {
   "970267212": "Paola Herrera",
   "903131620": "Paola Cruz",
   "963080384": "Evert Trujillo",
+  "983293959": "Omar Mamani",
   "958237709": "Cecilia Cayani",
   "959749778": "Zulema Gutierrez",
   "959798477": "David Rodriguez"
@@ -4440,6 +4631,7 @@ const agentesMapMod1 = {
   "970267212": "Paola Herrera",
   "903131620": "Paola Cruz",
   "963080384": "Evert Trujillo",
+  "983293959": "Omar Mamani",
   "923071770": "Veronica Chacón",
   "992239361": "Ylka Stojkic",
   "959749778": "Zulema Gutierrez",
@@ -5315,7 +5507,7 @@ function seleccionarAsesorReq(sel) {
     '957488942':'Evelyn Rivera','956702984':'Fiorella Heresi',
     '969892569':'Joel Cuadros','969000163':'Juan Fernando Fuentes',
     '989403914':'Lucy Arapa','993266771':'Milagros Rodriguez',
-    '970267212':'Paola Herrera','903131620':'Paola Cruz','963080384':'Evert Trujillo','923071770':'Veronica Chacón',
+    '970267212':'Paola Herrera','903131620':'Paola Cruz','963080384':'Evert Trujillo','983293959':'Omar Mamani','923071770':'Veronica Chacón',
     '992239361':'Ylka Stojkic'
   };
   const tel = sel.value;
@@ -5591,6 +5783,7 @@ const AGENTES_DATA = {
   'paola@ei.com':         { nombre: 'Paola Herrera',         tel: '970267212' },
   'paola.cruz@ei.com':    { nombre: 'Paola Cruz',             tel: '903131620' },
   'evert.trujillo@ei.com':{ nombre: 'Evert Trujillo',         tel: '963080384' },
+  'omar.mamani@ei.com':   { nombre: 'Omar Mamani',            tel: '983293959' },
   'veronica@ei.com':      { nombre: 'Veronica Chacón',       tel: '923071770' },
   'ylka@ei.com':          { nombre: 'Ylka Stojkic',          tel: '992239361' },
   'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
@@ -6910,6 +7103,332 @@ function imprimirVolante4(id) {
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
 }
+
+// ══════════════════════════════════════════════════════════════
+// MÓDULO CONTRATOS DE CAPTACIÓN
+// ══════════════════════════════════════════════════════════════
+
+function initContratos() {
+  // Setear fecha de hoy
+  const hoy = new Date().toISOString().split('T')[0];
+  const fechaEl = document.getElementById('ct-fecha');
+  if (fechaEl && !fechaEl.value) fechaEl.value = hoy;
+  actualizarTextoContrato();
+  mostrarCamposPropietario();
+}
+
+function mostrarCamposPropietario() {
+  const tipo = document.getElementById('ct-propietario-tipo')?.value || 'natural';
+  document.getElementById('ct-bloque-natural').style.display    = tipo === 'natural'     ? 'block' : 'none';
+  document.getElementById('ct-bloque-copropiedad').style.display = tipo === 'copropiedad' ? 'block' : 'none';
+  document.getElementById('ct-bloque-juridica').style.display   = tipo === 'juridica'    ? 'block' : 'none';
+}
+
+function toggleConyuge() {
+  const ec = document.getElementById('ct-pn-estado-civil')?.value;
+  const bloque = document.getElementById('ct-bloque-conyuge');
+  if (bloque) bloque.style.display = ec === 'C' ? 'block' : 'none';
+}
+
+function actualizarTextoContrato() {
+  const op  = document.getElementById('ct-operacion')?.value    || 'compraventa';
+  const exc = document.getElementById('ct-exclusividad')?.value || 'no-exclusividad';
+  const opTextos = { compraventa:'Compra-Venta', alquiler:'Alquiler', anticresis:'Anticresis' };
+  const excTextos = { 'exclusividad':'Con Exclusividad', 'no-exclusividad':'Sin Exclusividad (No Exclusiva)', 'flexible':'Flexible' };
+  const prev = document.getElementById('ct-preview-texto');
+  if (!prev) return;
+  prev.innerHTML = `
+    <div style="padding:12px 16px;background:rgba(206,1,31,.07);border-left:3px solid var(--r);border-radius:0 8px 8px 0;margin-bottom:14px;">
+      <div style="font-weight:700;font-size:14px;color:var(--r);">CONTRATO DE INTERMEDIACIÓN INMOBILIARIA</div>
+      <div style="font-size:13px;color:var(--t1);margin-top:4px;">${excTextos[exc].toUpperCase()} — ${opTextos[op].toUpperCase()} DE INMUEBLE</div>
+    </div>
+    <p>Conste por el presente documento privado, <strong>CONTRATO DE INTERMEDIACIÓN INMOBILIARIA ${exc === 'exclusividad' ? 'EXCLUSIVA' : exc === 'no-exclusividad' ? 'DE NO EXCLUSIVIDAD' : 'FLEXIBLE'} DE ${opTextos[op].toUpperCase()} DE INMUEBLE</strong>, que celebran <strong>EL PROPIETARIO</strong> y <strong>EL ASESOR INMOBILIARIO</strong>, con la intervención de <strong>EMPRESARIOS INMOBILIARIOS</strong>, cuyos datos se detallan en el numeral 1 de la Hoja Anexa.</p>
+    <p style="margin-top:10px;"><strong>I. AUTORIZACIÓN:</strong> EL PROPIETARIO autoriza a EL ASESOR INMOBILIARIO a promover <em>${exc === 'exclusividad' ? 'CON CARÁCTER DE EXCLUSIVIDAD' : exc === 'no-exclusividad' ? 'CON CARÁCTER DE NO EXCLUSIVIDAD' : 'CON CARÁCTER FLEXIBLE'}</em>, la ${opTextos[op]} del inmueble de su propiedad descrito en el numeral 2 de la Hoja Anexa.</p>
+    <p style="margin-top:10px;"><strong>II. PRECIO:</strong> El precio ${op === 'alquiler' ? 'de alquiler' : op === 'anticresis' ? 'de anticresis' : 'de venta'} referencial del inmueble es el que se detalla en el numeral 3 de la Hoja Anexa.</p>
+    <p style="margin-top:10px;"><strong>III. HONORARIOS:</strong> Será el porcentaje establecido en el numeral 4 de la Hoja Anexa, calculados sobre el precio ${op === 'alquiler' ? 'de la renta' : op === 'anticresis' ? 'de anticresis' : 'de venta final'} más IGV.</p>
+    <p style="margin-top:10px;"><strong>IV. PLAZO:</strong> Según acuerdo con el cliente.</p>
+    <p style="margin-top:10px;color:var(--t3);font-size:12px;">Complete el formulario y haga clic en "Generar Contrato" para obtener el documento completo listo para imprimir.</p>
+  `;
+}
+
+function generarContrato() {
+  const op      = document.getElementById('ct-operacion')?.value    || 'compraventa';
+  const exc     = document.getElementById('ct-exclusividad')?.value || 'no-exclusividad';
+  const tipoProp= document.getElementById('ct-propietario-tipo')?.value || 'natural';
+  const moneda  = document.getElementById('ct-moneda')?.value       || 'USD';
+  const precio  = document.getElementById('ct-precio')?.value       || '';
+  const honor   = document.getElementById('ct-honorarios')?.value   || 'Según acuerdo';
+  const plazo   = document.getElementById('ct-plazo')?.value        || 'Según acuerdo con el cliente';
+  const fechaVal= document.getElementById('ct-fecha')?.value        || '';
+  const asesorDni = document.getElementById('ct-asesor-dni')?.value || '';
+  const asesorMvcs= document.getElementById('ct-asesor-mvcs')?.value|| 'PJ-0444';
+
+  // Agente logueado
+  const agente = getAgenteActual();
+  const asesorNombre = agente ? agente.nombre : '________________________';
+  const asesorTel    = agente ? agente.tel    : '________________________';
+  const asesorEmail  = currentUser?.email || '________________________';
+
+  // Fecha formateada
+  let fechaTexto = '______ de __________________ del 2026';
+  if (fechaVal) {
+    const d = new Date(fechaVal + 'T12:00:00');
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    fechaTexto = `${d.getDate()} de ${meses[d.getMonth()]} del ${d.getFullYear()}`;
+  }
+
+  // Textos según tipo de operación y exclusividad
+  const opMap = { compraventa:'COMPRA VENTA', alquiler:'ARRENDAMIENTO', anticresis:'ANTICRESIS' };
+  const opMapTitle = { compraventa:'COMPRAVENTA DE INMUEBLE', alquiler:'ARRENDAMIENTO DE INMUEBLE', anticresis:'ANTICRESIS DE INMUEBLE' };
+  const excMap = { 'exclusividad':'CON EXCLUSIVIDAD', 'no-exclusividad':'DE NO EXCLUSIVIDAD', 'flexible':'FLEXIBLE' };
+  const excTextoAuth = {
+    'exclusividad': 'CON CARÁCTER DE EXCLUSIVIDAD',
+    'no-exclusividad': 'CON CARÁCTER DE NO EXCLUSIVIDAD',
+    'flexible': 'CON CARÁCTER FLEXIBLE'
+  };
+  const precioLabel = op === 'alquiler' ? 'PRECIO DE ALQUILER' : op === 'anticresis' ? 'MONTO DE ANTICRESIS' : 'PRECIO DE VENTA';
+  const precioCalcLabel = op === 'alquiler' ? 'precio de la renta' : op === 'anticresis' ? 'monto de anticresis' : 'precio de venta final';
+
+  // Datos del propietario según tipo
+  let seccionPropietario = '';
+  if (tipoProp === 'natural') {
+    const nombre   = document.getElementById('ct-pn-nombre')?.value   || '________________________';
+    const dni      = document.getElementById('ct-pn-dni')?.value      || '________________________';
+    const domicilio= document.getElementById('ct-pn-domicilio')?.value|| '________________________';
+    const ec       = document.getElementById('ct-pn-estado-civil')?.value || 'S';
+    const conyuge  = document.getElementById('ct-pn-conyuge')?.value  || '';
+    const partSep  = document.getElementById('ct-pn-partida-sep')?.value || '';
+    const rep      = document.getElementById('ct-pn-representante')?.value || '';
+    const repDni   = document.getElementById('ct-pn-rep-dni')?.value  || '';
+    const poder    = document.getElementById('ct-pn-poder')?.value    || '';
+    seccionPropietario = `
+      <h3 style="color:#CE011F;font-size:13px;margin:0 0 10px 0;">HOJA ANEXO — PERSONA NATURAL</h3>
+      <p style="font-weight:700;font-size:12px;margin:0 0 8px 0;">1. DATOS DEL PROPIETARIO, DEL ASESOR INMOBILIARIO Y DEL INTERVINIENTE</p>
+      <p style="font-weight:700;font-size:11px;margin:0 0 6px 0;">EL PROPIETARIO: PERSONA NATURAL</p>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;width:40%;font-weight:600;">Nombres y Apellidos</td><td style="border:1px solid #ccc;padding:5px 8px;">${nombre}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Documento de Identidad</td><td style="border:1px solid #ccc;padding:5px 8px;">${dni}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Domicilio</td><td style="border:1px solid #ccc;padding:5px 8px;">${domicilio}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Estado Civil</td><td style="border:1px solid #ccc;padding:5px 8px;">${ec === 'S' ? 'Soltero/a (S)' : ec === 'C' ? 'Casado/a (C)' : ec === 'V' ? 'Viudo/a (V)' : 'Divorciado/a (D)'}</td></tr>
+        ${ec === 'C' ? `<tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Nombre del Cónyuge</td><td style="border:1px solid #ccc;padding:5px 8px;">${conyuge || '________________________'}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Partida de Separación de Patrimonios</td><td style="border:1px solid #ccc;padding:5px 8px;">${partSep || 'No aplica'}</td></tr>` : ''}
+        ${rep ? `<tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Representado por</td><td style="border:1px solid #ccc;padding:5px 8px;">${rep}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">DNI Representante</td><td style="border:1px solid #ccc;padding:5px 8px;">${repDni}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Partida Electrónica del Poder</td><td style="border:1px solid #ccc;padding:5px 8px;">${poder}</td></tr>` : ''}
+      </table>`;
+  } else if (tipoProp === 'copropiedad') {
+    const cops = [1,2,3,4].map(i => ({
+      nombre: document.getElementById(`ct-co-n${i}`)?.value || '',
+      dni:    document.getElementById(`ct-co-d${i}`)?.value || ''
+    })).filter(c => c.nombre);
+    seccionPropietario = `
+      <h3 style="color:#CE011F;font-size:13px;margin:0 0 10px 0;">HOJA ANEXO — COPROPIEDAD</h3>
+      <p style="font-weight:700;font-size:12px;margin:0 0 8px 0;">1. DATOS DEL PROPIETARIO, DEL ASESOR INMOBILIARIO Y DEL INTERVINIENTE</p>
+      <p style="font-weight:700;font-size:11px;margin:0 0 6px 0;">EL PROPIETARIO: COPROPIETARIOS</p>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">
+        ${cops.map((c,i) => `<tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Copropietario ${i+1} — Nombre</td><td style="border:1px solid #ccc;padding:5px 8px;">${c.nombre}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Documento de Identidad</td><td style="border:1px solid #ccc;padding:5px 8px;">${c.dni || '________________________'}</td></tr>`).join('')}
+      </table>`;
+  } else {
+    const reps = [1,2,3].map(i => ({
+      nombre:  document.getElementById(`ct-jur-n${i}`)?.value   || '',
+      dni:     document.getElementById(`ct-jur-d${i}`)?.value   || '',
+      partida: document.getElementById(`ct-jur-p${i}`)?.value   || '',
+      dom:     document.getElementById(`ct-jur-dom${i}`)?.value || ''
+    })).filter(r => r.nombre);
+    seccionPropietario = `
+      <h3 style="color:#CE011F;font-size:13px;margin:0 0 10px 0;">HOJA ANEXO — PERSONA JURÍDICA CON REPRESENTACIÓN</h3>
+      <p style="font-weight:700;font-size:12px;margin:0 0 8px 0;">1. DATOS DEL PROPIETARIO, DEL ASESOR INMOBILIARIO Y DEL INTERVINIENTE</p>
+      <p style="font-weight:700;font-size:11px;margin:0 0 6px 0;">EL PROPIETARIO: PERSONA JURÍDICA</p>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">
+        ${reps.map((r,i) => `<tr><td colspan="2" style="border:1px solid #ccc;padding:4px 8px;background:#e8e8e8;font-weight:700;font-size:11px;">Representante ${i+1}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;width:40%;">Representado por</td><td style="border:1px solid #ccc;padding:5px 8px;">${r.nombre}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Documento de Identidad</td><td style="border:1px solid #ccc;padding:5px 8px;">${r.dni || '________________________'}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Partida Electrónica del Poder</td><td style="border:1px solid #ccc;padding:5px 8px;">${r.partida || '________________________'}</td></tr>
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;background:#f5f5f5;font-weight:600;">Domicilio</td><td style="border:1px solid #ccc;padding:5px 8px;">${r.dom || '________________________'}</td></tr>`).join('')}
+      </table>`;
+  }
+
+  // Datos del inmueble
+  const immTipo     = document.getElementById('ct-imm-tipo')?.value      || 'Inmueble';
+  const immOtro     = document.getElementById('ct-imm-otro')?.value      || '';
+  const immPartida  = document.getElementById('ct-imm-partida')?.value   || '________________________';
+  const immZona     = document.getElementById('ct-imm-zona')?.value      || 'AREQUIPA';
+  const immAnio     = document.getElementById('ct-imm-anio')?.value      || '________________________';
+  const immDir      = document.getElementById('ct-imm-dir')?.value       || '________________________';
+  const immPiso     = document.getElementById('ct-imm-piso')?.value      || '—';
+  const immNro      = document.getElementById('ct-imm-nro')?.value       || '—';
+  const immDistrito = document.getElementById('ct-imm-distrito')?.value  || '________________________';
+  const immProvincia= document.getElementById('ct-imm-provincia')?.value || 'Arequipa';
+  const tipoFinal   = immTipo === 'Otro' ? (immOtro || 'Otro') : immTipo;
+
+  const precioFmt = precio ? `${moneda} ${Number(precio).toLocaleString()}` : '________________________';
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Contrato ${opMap[op]} — ${excMap[exc]}</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 11.5px; color: #111; line-height: 1.6; }
+  h1 { font-size:13px; text-align:center; text-transform:uppercase; margin-bottom:4px; }
+  h2 { font-size:12px; text-align:center; text-transform:uppercase; margin-bottom:16px; color:#333; }
+  .header { text-align:center; margin-bottom:18px; border-bottom:2px solid #CE011F; padding-bottom:12px; }
+  .logo-text { font-size:16px; font-weight:900; color:#CE011F; letter-spacing:1px; }
+  .reg { font-size:9px; color:#666; margin-top:2px; }
+  .clausula { margin-bottom:12px; }
+  .clausula strong { display:block; margin-bottom:3px; }
+  .firmas { display:flex; justify-content:space-between; margin-top:40px; text-align:center; }
+  .firma { width:30%; border-top:1px solid #333; padding-top:6px; font-size:10.5px; }
+  .page-break { page-break-before: always; }
+  table { width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px; }
+  td { padding:5px 8px; border:1px solid #ccc; }
+  .td-label { background:#f0f0f0; font-weight:600; width:42%; }
+  .cuenta { background:#f9f9f9; border:1px solid #ddd; border-radius:4px; padding:8px 12px; margin:8px 0; font-size:11px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ CUERPO DEL CONTRATO ══ -->
+<div class="header">
+  <div class="logo-text">EMPRESARIOS INMOBILIARIOS</div>
+  <div class="reg">Registro del Ministerio de Vivienda, Construcción y Saneamiento: PJ-0444</div>
+</div>
+
+<h1>Contrato de Intermediación Inmobiliaria</h1>
+<h2>${excMap[exc]} — ${opMapTitle[op]}</h2>
+
+<p style="margin-bottom:14px;">Conste por el presente documento privado, <strong>CONTRATO DE INTERMEDIACIÓN INMOBILIARIA ${exc === 'exclusividad' ? 'EXCLUSIVA' : exc === 'no-exclusividad' ? 'DE NO EXCLUSIVIDAD' : 'FLEXIBLE'} DE ${opMap[op]} DE INMUEBLE</strong>, que celebran <strong>EL PROPIETARIO</strong> y <strong>EL ASESOR INMOBILIARIO</strong>, con la intervención de <strong>EMPRESARIOS INMOBILIARIOS</strong>, cuyos datos se detallan en el numeral 1 de la Hoja Anexa.</p>
+
+<div class="clausula">
+  <strong>I. AUTORIZACIÓN</strong>
+  <p>EL PROPIETARIO autoriza a EL ASESOR INMOBILIARIO a presentar, mostrar, promover y negociar <em>${excTextoAuth[exc]}</em>, el ${opMap[op]} del inmueble de su propiedad descrito en el numeral 2 de la Hoja Anexa; en adelante EL INMUEBLE.</p>
+  <p style="margin-top:6px;">Cabe señalar que, a la fecha, EL ASESOR INMOBILIARIO es un asociado independiente a EMPRESARIOS INMOBILIARIOS.</p>
+</div>
+
+<div class="clausula">
+  <strong>II. ${precioLabel}</strong>
+  <p>El precio ${op === 'alquiler' ? 'del alquiler' : op === 'anticresis' ? 'de la anticresis' : 'de venta'} referencial de EL INMUEBLE es el que se detalla en el numeral 3 de la Hoja Anexa. Dicha suma podrá ajustarse a un monto menor, con autorización de EL PROPIETARIO, y a un monto mayor en caso se reciban ofertas superiores, las cuales podrán solicitarse por escrito o por medio de correo electrónico.</p>
+</div>
+
+<div class="clausula">
+  <strong>III. HONORARIOS</strong>
+  <p>Los Honorarios por los servicios de intermediación que realiza EL ASESOR INMOBILIARIO serán del porcentaje establecido en el numeral 4 de la Hoja Anexa, calculados sobre el ${precioCalcLabel} del INMUEBLE más el IGV.</p>
+  <p style="margin-top:6px;">Los pagos de los honorarios pactados se abonarán EXCLUSIVAMENTE Y EN SU TOTALIDAD en la cuenta:</p>
+  <div class="cuenta">
+    Banco de Crédito — Cuenta Soles: Nº 21571464261017 &nbsp;|&nbsp; CI: 00221517146426101729<br>
+    Banco de Crédito — Cuenta Dólares: Nº 21571617570174 &nbsp;|&nbsp; CI: 00221517161757017427<br>
+    <strong>RAZÓN SOCIAL: EMPRESARIOS INMOBILIARIOS &nbsp;|&nbsp; RUC: 20609448955</strong>
+  </div>
+</div>
+
+<div class="clausula">
+  <strong>IV. PLAZO</strong>
+  <p>El plazo del presente contrato será de <strong>${plazo}</strong> desde su firma. Luego de vencer este plazo, EL ASESOR INMOBILIARIO extenderá una comunicación escrita a EL PROPIETARIO, en la cual se detallarán las personas a las cuales EL INMUEBLE ha sido ofrecido.</p>
+  <p style="margin-top:6px;">Asimismo, EL ASESOR INMOBILIARIO percibirá el pago de la comisión pactada si, luego de vencer el plazo, EL PROPIETARIO celebra contrato de ${opMap[op].toLowerCase()} con alguna de las personas a las cuales EL INMUEBLE ha sido ofrecido.</p>
+  <p style="margin-top:6px;">Una vez vencido el plazo señalado, el presente contrato se entiende renovado automáticamente por igual plazo, salvo que EL PROPIETARIO comunique su intención de no renovación previo a su vencimiento.</p>
+</div>
+
+<div class="clausula">
+  <strong>V. LEY Y JURISDICCIÓN</strong>
+  <p>Las partes acuerdan de manera voluntaria que toda desavenencia, litigio o controversia que pudiera derivarse de este contrato, incluidas las de su nulidad o invalidez, serán resueltas a través del arbitraje popular, mediante fallo definitivo, de conformidad con los Reglamentos del Centro de Arbitraje Popular "ARBITRA PERÚ", a cuya administración, reglamentos y decisión se someten las partes en forma incondicional, declarando conocerlas y aceptarlas en su integridad.</p>
+  <p style="margin-top:6px;">El arbitraje es de derecho y será resuelto por árbitro único, elegido por el Centro de Arbitraje "ARBITRA PERÚ". Salvo disposición distinta, el árbitro tendrá facultades de ejecución de laudo y de toda medida cautelar y/o preventiva que se trabe en el proceso.</p>
+</div>
+
+<div class="clausula">
+  <strong>VI. FIRMAS</strong>
+  <p>Las partes suscriben el presente documento en forma presencial o mediante firma digital, pudiendo cualquiera de las mismas legalizar una copia del contrato para acreditar su fecha cierta.</p>
+</div>
+
+<p style="margin-top:16px;">Arequipa, ${fechaTexto}</p>
+
+<div class="firmas">
+  <div class="firma">EL PROPIETARIO</div>
+  <div class="firma">EL ASESOR INMOBILIARIO<br><small>${asesorNombre}</small></div>
+  <div class="firma">EMPRESARIOS INMOBILIARIOS</div>
+</div>
+
+<!-- ══ HOJA ANEXA ══ -->
+<div class="page-break"></div>
+
+<div class="header">
+  <div class="logo-text">EMPRESARIOS INMOBILIARIOS</div>
+  <div class="reg">Registro del Ministerio de Vivienda, Construcción y Saneamiento: PJ-0444</div>
+</div>
+
+${seccionPropietario}
+
+<p style="font-weight:700;font-size:11px;margin:12px 0 6px 0;">EL ASESOR INMOBILIARIO</p>
+<table style="margin-bottom:12px;">
+  <tr><td class="td-label">Nombres y Apellidos</td><td>${asesorNombre}</td></tr>
+  <tr><td class="td-label">Documento de Identidad</td><td>${asesorDni || '________________________'}</td></tr>
+  <tr><td class="td-label">Código Agente Inmobiliario (MVCS)</td><td>${asesorMvcs}</td></tr>
+  <tr><td class="td-label">Razón Social</td><td>EMPRESARIOS INMOBILIARIOS</td></tr>
+  <tr><td class="td-label">RUC</td><td>20609448955</td></tr>
+  <tr><td class="td-label">Dirección</td><td>Av. Trinidad Morán K2 - Cayma - Arequipa, 6to Piso</td></tr>
+  <tr><td class="td-label">Números de Contacto</td><td>940 916 247 &nbsp;|&nbsp; Celular: ${asesorTel}</td></tr>
+  <tr><td class="td-label">Correo Electrónico</td><td>${asesorEmail}</td></tr>
+</table>
+
+<p style="font-weight:700;font-size:11px;margin:12px 0 6px 0;">EL INTERVINIENTE — EMPRESARIOS INMOBILIARIOS</p>
+<table style="margin-bottom:16px;">
+  <tr><td class="td-label">Nombre</td><td>EMPRESARIOS INMOBILIARIOS</td></tr>
+  <tr><td class="td-label">Razón Social</td><td>EMPRESARIOS INMOBILIARIOS</td></tr>
+  <tr><td class="td-label">RUC</td><td>20609448955</td></tr>
+  <tr><td class="td-label">Dirección</td><td>Av. Trinidad Morán K2 - Cayma - Arequipa, 6to Piso</td></tr>
+  <tr><td class="td-label">Ciudad</td><td>AREQUIPA</td></tr>
+  <tr><td class="td-label">Números de Contacto</td><td>940 916 247</td></tr>
+  <tr><td class="td-label">Correo Electrónico</td><td>contacto@empresariosinmobiliarios.com</td></tr>
+</table>
+
+<p style="font-weight:700;font-size:12px;margin:0 0 8px 0;">2. DESCRIPCIÓN DEL INMUEBLE</p>
+<p style="margin-bottom:8px;">
+  <strong>Tipo:</strong> ${tipoFinal} &nbsp;&nbsp;
+  <strong>Partida Electrónica Nro.:</strong> ${immPartida} &nbsp;&nbsp;
+  <strong>Zona Registral:</strong> ${immZona} &nbsp;&nbsp;
+  <strong>Año de Adquisición:</strong> ${immAnio}
+</p>
+<p style="margin-bottom:8px;">
+  <strong>Dirección:</strong> ${immDir} &nbsp;&nbsp;
+  <strong>Piso:</strong> ${immPiso} &nbsp;&nbsp;
+  <strong>Nro/Dpto:</strong> ${immNro}
+</p>
+<p style="margin-bottom:16px;">
+  <strong>Distrito:</strong> ${immDistrito} &nbsp;&nbsp;
+  <strong>Provincia:</strong> ${immProvincia} &nbsp;&nbsp;
+  <strong>Departamento:</strong> Arequipa
+</p>
+
+<p style="font-weight:700;font-size:12px;margin:0 0 6px 0;">3. PRECIO INICIAL DE ${opMap[op]}</p>
+<p style="margin-bottom:14px;">${precioFmt} &nbsp;&nbsp; <strong>MONEDA:</strong> ${moneda}</p>
+
+<p style="font-weight:700;font-size:12px;margin:0 0 6px 0;">4. HONORARIOS</p>
+<p style="margin-bottom:24px;">${honor}% &nbsp;&nbsp; (${honor})</p>
+
+<div class="firmas">
+  <div class="firma">EL PROPIETARIO</div>
+  <div class="firma">EL ASESOR INMOBILIARIO<br><small>${asesorNombre}</small></div>
+  <div class="firma">EMPRESARIOS INMOBILIARIOS</div>
+</div>
+
+<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 600); };<\/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Contrato_${opMap[op]}_${excMap[exc]}_EI.html`.replace(/\s/g,'_');
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
+}
+
 
 </script>
 </body>
