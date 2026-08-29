@@ -430,6 +430,13 @@ td:first-child { color:var(--t1); font-weight:500; }
   </div>
 
   <div class="nav-section">
+    <div class="nav-label">CRM</div>
+    <div class="nav-item" onclick="showPage('crm', this); crmRender()">
+      <div class="icon">🎯</div> Contactos
+    </div>
+  </div>
+
+  <div class="nav-section">
     <div class="nav-label">Datos</div>
     <!-- Base de Datos: se inserta dinámicamente solo para admin -->
     <div id="nav-base-datos-placeholder"></div>
@@ -2474,7 +2481,577 @@ Responde siempre con profesionalismo, orientado a resultados. Tono: experto, cá
     </div>
   </div><!-- /page-contratos -->
 
-</div><!-- /main -->
+  <!-- ══════════════════════════════════════════ -->
+  <!-- PAGE: CRM (Leads · Pipeline)              -->
+  <!-- ══════════════════════════════════════════ -->
+  <style>
+    .crm-stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+    .crm-stat-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+    .crm-stat-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;line-height:1;}
+    .crm-stat-label{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-top:6px;}
+    .crm-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap;}
+    .crm-search{position:relative;flex:1;max-width:340px;}
+    .crm-search input{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:9px;padding:10px 14px 10px 36px;font-size:13.5px;color:var(--t1);font-family:'DM Sans',sans-serif;}
+    .crm-search input:focus{outline:none;border-color:var(--r);}
+    .crm-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5;}
+    .crm-filter-chip{font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--s1);color:var(--t2);cursor:pointer;white-space:nowrap;}
+    .crm-filter-chip.active{background:var(--r);color:#fff;border-color:var(--r);}
+    .crm-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;align-items:flex-start;}
+    .crm-col{background:var(--s2);border-radius:14px;min-width:270px;max-width:270px;display:flex;flex-direction:column;max-height:calc(100vh - 320px);border-top:3px solid var(--col-color, var(--t3));}
+    .crm-col-head{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;}
+    .crm-col-title{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--t1);}
+    .crm-col-count{font-size:11px;font-weight:700;color:var(--t2);background:var(--s3);padding:2px 8px;border-radius:20px;}
+    .crm-col-body{padding:0 10px 10px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;min-height:60px;}
+    .crm-col-body.drag-over{background:rgba(206,1,31,.06);border-radius:10px;}
+    .crm-col-empty{font-size:12px;color:var(--t3);text-align:center;padding:24px 8px;font-style:italic;}
+    .crm-lead-card{background:var(--s1);border:1px solid var(--border);border-radius:11px;padding:13px 14px;cursor:grab;transition:box-shadow .15s;}
+    .crm-lead-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);}
+    .crm-lead-card.dragging{opacity:.4;}
+    .crm-lc-name{font-size:13.5px;font-weight:700;color:var(--t1);margin-bottom:3px;}
+    .crm-lc-op{font-size:11.5px;color:var(--r);font-weight:600;margin-bottom:8px;}
+    .crm-lc-row{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--t2);margin-bottom:4px;}
+    .crm-lc-row .ic{opacity:.6;width:13px;text-align:center;}
+    .crm-lc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:9px;border-top:1px solid var(--border);}
+    .crm-lc-agent{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);font-weight:600;}
+    .crm-avatar-sm{width:20px;height:20px;border-radius:50%;background:var(--r);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;}
+    .crm-lc-days{font-size:10.5px;color:var(--t3);}
+    .crm-lc-days.stale{color:var(--r);font-weight:700;}
+    .crm-lc-dtd2{font-size:9.5px;color:var(--t3);font-weight:700;letter-spacing:.3px;}
+    .crm-tag-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:var(--rl);color:var(--rd);padding:5px 9px 5px 10px;border-radius:20px;margin:0 6px 6px 0;}
+    .crm-tag-chip .tag-cat{opacity:.65;font-weight:500;}
+    .crm-tag-chip .tag-x{cursor:pointer;font-weight:700;opacity:.6;padding-left:2px;}
+    .crm-tag-chip .tag-x:hover{opacity:1;}
+    .crm-tag-add-row{display:flex;gap:8px;margin-top:4px;}
+    .crm-tag-add-row select{font-size:12.5px;padding:9px 10px;}
+    .crm-dtd2-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:var(--s3);color:var(--t2);padding:4px 10px;border-radius:20px;letter-spacing:.3px;}
+    .crm-timeline{display:flex;flex-direction:column;gap:0;margin-top:6px;}
+    .crm-tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .crm-tl-item:last-child{border-bottom:none;}
+    .crm-tl-dot{width:8px;height:8px;border-radius:50%;background:var(--r);margin-top:5px;flex-shrink:0;}
+    .crm-tl-text{font-size:13px;color:var(--t1);line-height:1.5;}
+    .crm-tl-date{font-size:10.5px;color:var(--t3);margin-top:2px;}
+    .crm-note-add{display:flex;gap:8px;margin-top:12px;}
+    .crm-note-add input{flex:1;}
+    .crm-danger-link{color:var(--r);font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;margin-top:2px;}
+    .crm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--t1);color:#fff;padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:900;transition:transform .25s;opacity:0;pointer-events:none;}
+    .crm-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+    @media (max-width:900px){.crm-stats-row{grid-template-columns:repeat(2,1fr);}}
+  </style>
+
+  <div class="page" id="page-crm">
+    <div class="page-header">
+      <div>
+        <div class="page-title">🎯 Contactos</div>
+        <div class="page-sub" id="crm-page-sub">Gestiona tus leads por etapa de negociación</div>
+      </div>
+      <button class="btn btn-primary" onclick="crmAbrirModalLead()">+ Nuevo Lead</button>
+    </div>
+
+    <div class="crm-stats-row" id="crm-stats-row"></div>
+
+    <div class="crm-toolbar">
+      <div class="crm-search">
+        <span class="crm-search-icon">🔍</span>
+        <input type="text" id="crm-buscador" placeholder="Buscar por nombre, contacto o zona..." oninput="crmRender()">
+      </div>
+      <div id="crm-filtros-agente" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="crm-board" id="crm-board"></div>
+  </div>
+
+  <!-- MODAL: NUEVO LEAD -->
+  <div id="crm-modal-lead" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;">
+    <div style="background:var(--s1);border:1px solid rgba(206,1,31,.3);border-radius:14px;padding:28px;width:100%;max-width:520px;margin:20px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;">+ Nuevo Lead</div>
+        <button onclick="crmCerrarModalLead()" style="cursor:pointer;font-size:20px;color:var(--t3);background:none;border:none;line-height:1;">✕</button>
+      </div>
+      <div class="field"><label>Nombre del cliente</label><input type="text" id="crm-f-nombre" placeholder="Ej: María Zegarra"></div>
+      <div class="field"><label>Contacto (WhatsApp / email)</label><input type="text" id="crm-f-contacto" placeholder="Ej: 999 123 456"></div>
+      <div class="grid-2">
+        <div class="field"><label>Operación</label>
+          <select id="crm-f-operacion">
+            <option>Comprar departamento</option><option>Comprar casa</option>
+            <option>Comprar local comercial</option><option>Comprar terreno</option>
+            <option>Alquilar departamento</option><option>Alquilar casa</option>
+            <option>Alquilar local comercial</option><option>Alquilar terreno</option>
+            <option>Anticresis departamento</option><option>Anticresis casa</option>
+            <option>Anticresis local comercial</option><option>Anticresis terreno</option>
+          </select>
+        </div>
+        <div class="field"><label>Etapa</label>
+          <select id="crm-f-estado">
+            <option>Nuevo</option><option>Contactado</option><option>Visita agendada</option>
+            <option>En negociación</option><option>Cerrado ✓</option><option>Perdido</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Presupuesto</label><input type="text" id="crm-f-presupuesto" placeholder="Ej: USD 80,000"></div>
+        <div class="field"><label>Zona de interés</label><input type="text" id="crm-f-zona" placeholder="Ej: Cayma"></div>
+      </div>
+      <div class="field"><label>Origen del lead</label>
+        <select id="crm-f-origen">
+          <option value="Facebook">📘 Facebook</option>
+          <option value="Instagram">📷 Instagram</option>
+          <option value="TikTok">🎵 TikTok</option>
+          <option value="WhatsApp">💬 WhatsApp</option>
+          <option value="Referido">🤝 Referido</option>
+          <option value="Web / Portal">🌐 Web / Portal</option>
+          <option value="Volante / Cartel">📄 Volante / Cartel</option>
+          <option value="Otro">➕ Otro</option>
+        </select>
+      </div>
+      <div class="field"><label>Agente asignado</label>
+        <select id="crm-f-agente"></select>
+      </div>
+      <div class="field"><label>Notas iniciales</label><textarea id="crm-f-notas" rows="2" placeholder="Observaciones..."></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn btn-primary" style="flex:1" onclick="crmGuardarLead()">Guardar Lead</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="crmCerrarModalLead()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE LEAD -->
+  <div id="crm-modal-detalle" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;">
+    <div style="background:var(--s1);border:1px solid rgba(206,1,31,.3);border-radius:14px;padding:28px;width:100%;max-width:560px;margin:20px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;" id="crm-det-nombre">—</div>
+          <div style="font-size:12px;color:var(--t3);" id="crm-det-sub">—</div>
+          <div id="crm-det-dtd2-wrap" style="margin-top:6px;"></div>
+        </div>
+        <button onclick="crmCerrarDetalle()" style="cursor:pointer;font-size:20px;color:var(--t3);background:none;border:none;line-height:1;">✕</button>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="field" style="margin-bottom:0;"><label>Presupuesto</label><div id="crm-det-presupuesto" style="font-size:13.5px;font-weight:600;">—</div></div>
+        <div class="field" style="margin-bottom:0;"><label>Zona</label><div id="crm-det-zona" style="font-size:13.5px;font-weight:600;">—</div></div>
+      </div>
+      <div class="field" style="margin-bottom:16px;"><label>Origen del lead</label><div id="crm-det-origen" style="font-size:13.5px;font-weight:600;">—</div></div>
+
+      <div class="field"><label>Etapa</label>
+        <select id="crm-det-estado" onchange="crmCambiarEtapaDesdeDetalle()"></select>
+      </div>
+      <div class="field"><label>Agente asignado</label>
+        <select id="crm-det-agente" onchange="crmCambiarAgenteDesdeDetalle()"></select>
+      </div>
+
+      <div class="field">
+        <label>Etiquetas</label>
+        <div id="crm-det-tags"></div>
+        <div class="crm-tag-add-row">
+          <select id="crm-tag-categoria" onchange="crmPoblarValoresEtiqueta()" style="flex:1;"></select>
+          <select id="crm-tag-valor" style="flex:1;"></select>
+          <button class="btn btn-ghost" style="padding:9px 14px;white-space:nowrap;" onclick="crmAgregarEtiqueta()">+ Agregar</button>
+        </div>
+      </div>
+
+      <label style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:8px;">Historial</label>
+      <div class="crm-timeline" id="crm-det-timeline"></div>
+      <div class="crm-note-add">
+        <input type="text" id="crm-det-nota-nueva" placeholder="Agregar nota o seguimiento...">
+        <button class="btn btn-primary" style="padding:10px 16px;" onclick="crmAgregarNota()">Agregar</button>
+      </div>
+
+      <button class="crm-danger-link" onclick="crmEliminarLeadDetalle()" style="margin-top:18px;">Eliminar lead</button>
+    </div>
+  </div>
+
+  <div class="crm-toast" id="crm-toast"></div>
+
+  </div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// CRM · LEADS (Pipeline) — módulo independiente
+// ═══════════════════════════════════════════════════
+const CRM_ADMINS = ['zulema@ei.com', 'david@ei.com']; // únicos con visibilidad del pipeline completo
+
+const CRM_TAG_CATEGORIES = {
+  'Personal': ['Abogado','Agente','Alq Casa','Alq Dpto','Alq Local','Alq Terreno','Amigos','Analistas','Anticresis','Banca','Cliente Alq Dpto','Cliente Alq Local','Cliente Alq Oficina','Cliente Alquila','Cliente Compro','Cliente Vta Casa','Cliente Vta Dpto','Cliente Vta Terreno','Colegio','Compra Casa','Compra Dpto','Compra Hotel','Compra Local','Compra Oficina','Compra Stand','Compra Terreno','Familia','Municipalidad','Notaria','Otros','Seguros','Servicios','Vecino','Vta Casa','Vta Dpto','Vta Hotel','Vta Terreno'],
+  'Zona': ['ASA','Arequipa','Cerro Colorado','Characato','Cayma','Miraflores','Mariano Melgar','JLBR','Jacobo Hunter','Mollebaya','Paucarpata','Polobaya','Sabandia','Sachaca','Quequeña','Tiabaya','Socabaya','Yanahuara','Camana','Caylloma','Castilla','Caraveli','Condesuyos','Islay','La Union'],
+  'Precio': ['0-1k soles','1k-2k soles','2k-4k soles','4k-mas soles','0-60k dolares','60k-110k dolares','110k-200k dolares','200k-300k dolares','300k-400k dolares','400k-500k dolares','500k-a más dolares'],
+  'Seguimiento': ['1ra Visita','2da Visita','36 Toques','8x8 Comprador','8x8 Vendedor','9PC','9PV','Llamada','Prospecto','Solo email','Whatsapp'],
+  'Características': ['Habitado','Nueva Promoción','Minidepartamento','2 dormitorios','3 dormitorios','Cochera','S/Cochera','Reformar','Retirado'],
+  'Tipo Vivienda': ['0-40 m2','40-70 m2','70-90 m2','90-120 m2','120-150 m2','150-180 m2','mayor a 180 m2'],
+};
+
+const CRM_DTD2_PAREJAS = ['A&W','B&E','D&O','H&V','C&K','F&G','M&X','N&R','S&U','P&L','T&J','I&Q','Y&Z'];
+const CRM_LETRA_A_DTD2 = {};
+CRM_DTD2_PAREJAS.forEach(par => par.split('&').forEach(letra => CRM_LETRA_A_DTD2[letra] = par));
+
+function crmQuitarAcentos(s) { return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function crmCalcularDTD2(nombreCompleto) {
+  const partes = (nombreCompleto||'').trim().split(/\s+/);
+  const apellido = partes[partes.length-1] || '';
+  const letra = crmQuitarAcentos(apellido).charAt(0).toUpperCase();
+  return CRM_LETRA_A_DTD2[letra] || null;
+}
+
+const CRM_ETAPAS = [
+  { estado:'Nuevo',           color:'#9A9AAF' },
+  { estado:'Contactado',      color:'#4A90D9' },
+  { estado:'Visita agendada', color:'#B58B00' },
+  { estado:'En negociación',  color:'#CE011F' },
+  { estado:'Cerrado ✓',       color:'#1E8E3E' },
+  { estado:'Perdido',         color:'#555560' },
+];
+
+const CRM_ORIGEN_ICONO = {
+  'Facebook':'📘', 'Instagram':'📷', 'TikTok':'🎵', 'WhatsApp':'💬',
+  'Referido':'🤝', 'Web / Portal':'🌐', 'Volante / Cartel':'📄', 'Otro':'➕'
+};
+
+let crmFiltroAgente = '';
+let crmDetalleId = null;
+let crmDragId = null;
+
+function crmEsAdmin() { return !!(currentUser && CRM_ADMINS.includes(currentUser.email)); }
+function crmNombreAgente(email) { return (AGENTES_DATA[email] && AGENTES_DATA[email].nombre) || email || '—'; }
+
+function crmMostrarToast(msg) {
+  const t = document.getElementById('crm-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function crmIniciales(nombre) { return (nombre||'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function crmFechaCorta(ts) { return new Date(ts).toLocaleDateString('es-PE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); }
+function crmParseFechaPE(str) {
+  if (!str) return new Date();
+  const p = str.split('/').map(Number);
+  return new Date(p[2]||1970, (p[1]||1)-1, p[0]||1);
+}
+function crmDiasDesde(fechaStr) {
+  const f = crmParseFechaPE(fechaStr); const hoy = new Date();
+  f.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
+  return Math.max(0, Math.round((hoy - f) / 86400000));
+}
+
+function crmPoblarSelectAgentes(select, valorActual) {
+  select.innerHTML = '';
+  Object.entries(AGENTES_DATA).forEach(([email, a]) => {
+    const opt = document.createElement('option');
+    opt.value = email; opt.textContent = a.nombre;
+    if (email === valorActual) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+function crmPoblarSelectEtapas(select, valorActual) {
+  select.innerHTML = CRM_ETAPAS.map(e => `<option value="${e.estado}" ${e.estado===valorActual?'selected':''}>${e.estado}</option>`).join('');
+}
+
+// ===================== ACCESO / FILTRO =====================
+function crmLeadsVisibles() {
+  const todos = dbGet('leads');
+  if (crmEsAdmin()) return todos;
+  return todos.filter(l => l.agente === (currentUser && currentUser.email));
+}
+function crmLeadsFiltrados() {
+  const buscadorEl = document.getElementById('crm-buscador');
+  const q = buscadorEl ? buscadorEl.value.trim().toLowerCase() : '';
+  return crmLeadsVisibles().filter(l => {
+    if (crmEsAdmin() && crmFiltroAgente && l.agente !== crmFiltroAgente) return false;
+    if (!q) return true;
+    return ((l.nombre||'')+(l.contacto||'')+(l.zona||'')+(l.operacion||'')).toLowerCase().includes(q);
+  });
+}
+
+// ===================== RENDER =====================
+function crmRender() {
+  if (!currentUser) return;
+  crmRenderStats();
+  crmRenderFiltrosAgente();
+  crmRenderBoard();
+}
+
+function crmRenderStats() {
+  const data = crmLeadsVisibles();
+  const total = data.length;
+  const activos = data.filter(l => !['Cerrado ✓','Perdido'].includes(l.estado)).length;
+  const cerrados = data.filter(l => l.estado === 'Cerrado ✓').length;
+  const perdidos = data.filter(l => l.estado === 'Perdido').length;
+  const tasa = total ? Math.round((cerrados/total)*100) : 0;
+  const cont = document.getElementById('crm-stats-row');
+  if (!cont) return;
+  cont.innerHTML = `
+    <div class="crm-stat-card"><div class="crm-stat-num">${total}</div><div class="crm-stat-label">Leads totales</div></div>
+    <div class="crm-stat-card"><div class="crm-stat-num">${activos}</div><div class="crm-stat-label">En proceso</div></div>
+    <div class="crm-stat-card"><div class="crm-stat-num" style="color:#1E8E3E">${cerrados}</div><div class="crm-stat-label">Cerrados</div></div>
+    <div class="crm-stat-card"><div class="crm-stat-num" style="color:var(--t3)">${perdidos}</div><div class="crm-stat-label">Perdidos</div></div>
+    <div class="crm-stat-card"><div class="crm-stat-num" style="color:var(--r)">${tasa}%</div><div class="crm-stat-label">Tasa de cierre</div></div>
+  `;
+}
+
+function crmRenderFiltrosAgente() {
+  const cont = document.getElementById('crm-filtros-agente');
+  if (!cont) return;
+  if (!crmEsAdmin()) {
+    cont.innerHTML = `<div class="crm-filter-chip active" style="cursor:default;">🔒 Mis leads</div>`;
+    return;
+  }
+  const todos = dbGet('leads');
+  const agentesConLeads = [...new Set(todos.map(l => l.agente).filter(Boolean))];
+  let html = `<div class="crm-filter-chip ${crmFiltroAgente===''?'active':''}" onclick="crmFiltrarAgente('')">Todos los agentes</div>`;
+  agentesConLeads.forEach(email => {
+    html += `<div class="crm-filter-chip ${crmFiltroAgente===email?'active':''}" onclick="crmFiltrarAgente('${email}')">${crmNombreAgente(email)}</div>`;
+  });
+  cont.innerHTML = html;
+}
+function crmFiltrarAgente(email) { crmFiltroAgente = email; crmRender(); }
+
+function crmRenderBoard() {
+  const data = crmLeadsFiltrados();
+  const board = document.getElementById('crm-board');
+  if (!board) return;
+  board.innerHTML = CRM_ETAPAS.map(etapa => {
+    const items = data.filter(l => (l.estado||'Nuevo') === etapa.estado);
+    const cards = items.length
+      ? items.slice().sort((a,b)=>(b.id||0)-(a.id||0)).map(l => crmCardHTML(l)).join('')
+      : `<div class="crm-col-empty">Sin leads en esta etapa</div>`;
+    return `
+      <div class="crm-col" style="--col-color:${etapa.color}">
+        <div class="crm-col-head">
+          <div class="crm-col-title">${etapa.estado}</div>
+          <div class="crm-col-count">${items.length}</div>
+        </div>
+        <div class="crm-col-body" data-estado="${etapa.estado}"
+             ondragover="crmOnDragOver(event)" ondrop="crmOnDrop(event, '${etapa.estado}')" ondragleave="crmOnDragLeave(event)">
+          ${cards}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.querySelectorAll('.crm-lead-card').forEach(card => {
+    card.addEventListener('dragstart', () => { crmDragId = Number(card.dataset.id); card.classList.add('dragging'); });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+}
+
+function crmCardHTML(l) {
+  const nombreAgente = l.agente ? crmNombreAgente(l.agente) : '—';
+  const dias = crmDiasDesde(l.fecha);
+  const stale = dias >= 5 && !['Cerrado ✓','Perdido'].includes(l.estado);
+  return `
+    <div class="crm-lead-card" draggable="true" data-id="${l.id}" onclick="crmAbrirDetalle(${l.id})">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+        <div class="crm-lc-name">${l.nombre||''}</div>
+        ${l.origen ? `<span title="${l.origen}" style="font-size:13px;flex-shrink:0;">${CRM_ORIGEN_ICONO[l.origen]||'📌'}</span>` : ''}
+      </div>
+      <div class="crm-lc-op">${l.operacion||''}</div>
+      <div class="crm-lc-row"><span class="ic">📞</span>${l.contacto||''}</div>
+      ${l.zona ? `<div class="crm-lc-row"><span class="ic">📍</span>${l.zona}</div>` : ''}
+      ${l.presupuesto ? `<div class="crm-lc-row"><span class="ic">💰</span>${l.presupuesto}</div>` : ''}
+      <div class="crm-lc-foot">
+        <div class="crm-lc-agent">
+          <div class="crm-avatar-sm">${l.agente ? crmIniciales(nombreAgente) : '?'}</div>
+          ${l.agente ? nombreAgente.split(' ')[0] : '—'}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${l.dtd2 ? `<span class="crm-lc-dtd2">${l.dtd2}</span>` : ''}
+          <div class="crm-lc-days ${stale?'stale':''}">${dias===0?'Hoy':dias+'d'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ===================== DRAG & DROP =====================
+function crmOnDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function crmOnDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+async function crmOnDrop(e, nuevoEstado) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const l = dbGet('leads').find(x => x.id === crmDragId);
+  if (!l || l.estado === nuevoEstado) return;
+  if (!crmEsAdmin() && l.agente !== (currentUser && currentUser.email)) {
+    crmMostrarToast('⚠️ Solo puedes mover tus propios leads'); return;
+  }
+  l.estado = nuevoEstado;
+  l.historial = l.historial || [];
+  l.historial.push({ tipo:'etapa', texto:`Etapa cambiada a ${nuevoEstado}`, fecha:Date.now() });
+  await dbUpdateLeadCloud(l.id, { estado:l.estado, historial:l.historial });
+  crmRender();
+  crmMostrarToast(`✓ ${l.nombre} → ${nuevoEstado}`);
+}
+
+// ===================== MODAL NUEVO LEAD =====================
+function crmAbrirModalLead() {
+  ['crm-f-nombre','crm-f-contacto','crm-f-presupuesto','crm-f-zona','crm-f-notas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('crm-f-operacion').selectedIndex = 0;
+  document.getElementById('crm-f-estado').value = 'Nuevo';
+  document.getElementById('crm-f-origen').selectedIndex = 0;
+  const selAgente = document.getElementById('crm-f-agente');
+  if (crmEsAdmin()) {
+    selAgente.disabled = false;
+    crmPoblarSelectAgentes(selAgente);
+  } else {
+    crmPoblarSelectAgentes(selAgente, currentUser.email);
+    selAgente.value = currentUser.email;
+    selAgente.disabled = true;
+  }
+  document.getElementById('crm-modal-lead').style.display = 'flex';
+}
+function crmCerrarModalLead() { document.getElementById('crm-modal-lead').style.display = 'none'; }
+
+async function crmGuardarLead() {
+  const nombre = document.getElementById('crm-f-nombre').value.trim();
+  const contacto = document.getElementById('crm-f-contacto').value.trim();
+  if (!nombre || !contacto) { alert('⚠️ Nombre y contacto son obligatorios'); return; }
+  const historial = [];
+  const notas = document.getElementById('crm-f-notas').value.trim();
+  if (notas) historial.push({ tipo:'nota', texto:notas, fecha:Date.now() });
+  const nuevo = {
+    nombre, contacto,
+    operacion: document.getElementById('crm-f-operacion').value,
+    estado: document.getElementById('crm-f-estado').value,
+    presupuesto: document.getElementById('crm-f-presupuesto').value.trim(),
+    zona: document.getElementById('crm-f-zona').value.trim(),
+    origen: document.getElementById('crm-f-origen').value,
+    agente: document.getElementById('crm-f-agente').value,
+    dtd2: crmCalcularDTD2(nombre),
+    tags: [],
+    historial
+  };
+  await dbAddCloud('leads', nuevo);
+  crmCerrarModalLead();
+  crmRender();
+  crmMostrarToast(`✓ Lead "${nombre}" guardado`);
+}
+
+// ===================== MODAL DETALLE =====================
+function crmAbrirDetalle(id) {
+  crmDetalleId = id;
+  const l = dbGet('leads').find(x => x.id === id);
+  if (!l) return;
+  if (!l.dtd2) l.dtd2 = crmCalcularDTD2(l.nombre||'');
+  if (!l.tags) l.tags = [];
+  if (!l.historial) l.historial = [];
+  document.getElementById('crm-det-nombre').textContent = l.nombre || '—';
+  document.getElementById('crm-det-sub').textContent = `${l.operacion||''} · ${l.contacto||''}`;
+  document.getElementById('crm-det-dtd2-wrap').innerHTML = l.dtd2 ? `<span class="crm-dtd2-badge">🔁 DTD2 ${l.dtd2}</span>` : '';
+  document.getElementById('crm-det-presupuesto').textContent = l.presupuesto || '—';
+  document.getElementById('crm-det-zona').textContent = l.zona || '—';
+  document.getElementById('crm-det-origen').textContent = l.origen ? `${CRM_ORIGEN_ICONO[l.origen]||''} ${l.origen}` : '—';
+  crmPoblarSelectEtapas(document.getElementById('crm-det-estado'), l.estado || 'Nuevo');
+  const selAgente = document.getElementById('crm-det-agente');
+  crmPoblarSelectAgentes(selAgente, l.agente);
+  selAgente.disabled = !crmEsAdmin();
+  crmPoblarSelectorCategoriaEtiqueta();
+  crmRenderEtiquetas(l);
+  crmRenderTimeline(l);
+  document.getElementById('crm-modal-detalle').style.display = 'flex';
+}
+function crmCerrarDetalle() { document.getElementById('crm-modal-detalle').style.display = 'none'; crmDetalleId = null; }
+
+function crmRenderTimeline(l) {
+  const items = [...(l.historial||[])].sort((a,b) => b.fecha - a.fecha);
+  const cont = document.getElementById('crm-det-timeline');
+  if (!items.length) {
+    cont.innerHTML = `<div style="font-size:12px;color:var(--t3);font-style:italic;padding:8px 0;">Sin historial todavía</div>`;
+    return;
+  }
+  cont.innerHTML = items.map(h => `
+    <div class="crm-tl-item">
+      <div class="crm-tl-dot"></div>
+      <div><div class="crm-tl-text">${h.texto}</div><div class="crm-tl-date">${crmFechaCorta(h.fecha)}</div></div>
+    </div>
+  `).join('');
+}
+
+async function crmCambiarEtapaDesdeDetalle() {
+  const l = dbGet('leads').find(x => x.id === crmDetalleId);
+  const nueva = document.getElementById('crm-det-estado').value;
+  if (!l || l.estado === nueva) return;
+  l.estado = nueva;
+  l.historial = l.historial || [];
+  l.historial.push({ tipo:'etapa', texto:`Etapa cambiada a ${nueva}`, fecha:Date.now() });
+  await dbUpdateLeadCloud(l.id, { estado:l.estado, historial:l.historial });
+  crmRenderTimeline(l);
+  crmRender();
+  crmMostrarToast('✓ Etapa actualizada');
+}
+
+async function crmCambiarAgenteDesdeDetalle() {
+  const l = dbGet('leads').find(x => x.id === crmDetalleId);
+  const nuevoEmail = document.getElementById('crm-det-agente').value;
+  if (!l || l.agente === nuevoEmail) return;
+  const nombreNuevo = crmNombreAgente(nuevoEmail);
+  l.agente = nuevoEmail;
+  l.historial = l.historial || [];
+  l.historial.push({ tipo:'nota', texto:`Reasignado a ${nombreNuevo}`, fecha:Date.now() });
+  await dbUpdateLeadCloud(l.id, { agente:l.agente, historial:l.historial });
+  crmRenderTimeline(l);
+  crmRender();
+  crmMostrarToast(`✓ Reasignado a ${nombreNuevo}`);
+}
+
+async function crmAgregarNota() {
+  const input = document.getElementById('crm-det-nota-nueva');
+  const texto = input.value.trim();
+  if (!texto) return;
+  const l = dbGet('leads').find(x => x.id === crmDetalleId);
+  l.historial = l.historial || [];
+  l.historial.push({ tipo:'nota', texto, fecha:Date.now() });
+  input.value = '';
+  await dbUpdateLeadCloud(l.id, { historial:l.historial });
+  crmRenderTimeline(l);
+  crmMostrarToast('✓ Nota agregada');
+}
+
+async function crmEliminarLeadDetalle() {
+  if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
+  await dbDeleteCloud('leads', crmDetalleId);
+  crmCerrarDetalle();
+  crmRender();
+  crmMostrarToast('🗑️ Lead eliminado');
+}
+
+// ===================== ETIQUETAS =====================
+function crmPoblarSelectorCategoriaEtiqueta() {
+  const sel = document.getElementById('crm-tag-categoria');
+  sel.innerHTML = Object.keys(CRM_TAG_CATEGORIES).map(c => `<option value="${c}">${c}</option>`).join('');
+  crmPoblarValoresEtiqueta();
+}
+function crmPoblarValoresEtiqueta() {
+  const cat = document.getElementById('crm-tag-categoria').value;
+  const sel = document.getElementById('crm-tag-valor');
+  sel.innerHTML = (CRM_TAG_CATEGORIES[cat]||[]).map(v => `<option value="${v}">${v}</option>`).join('');
+}
+function crmRenderEtiquetas(l) {
+  const cont = document.getElementById('crm-det-tags');
+  if (!l.tags || !l.tags.length) {
+    cont.innerHTML = `<div style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:6px;">Sin etiquetas todavía</div>`;
+    return;
+  }
+  cont.innerHTML = l.tags.map((t,i) => `
+    <span class="crm-tag-chip"><span class="tag-cat">${t.cat}:</span> ${t.val}<span class="tag-x" onclick="crmQuitarEtiqueta(${i})">✕</span></span>
+  `).join('');
+}
+async function crmAgregarEtiqueta() {
+  const l = dbGet('leads').find(x => x.id === crmDetalleId);
+  const cat = document.getElementById('crm-tag-categoria').value;
+  const val = document.getElementById('crm-tag-valor').value;
+  l.tags = l.tags || [];
+  if (l.tags.some(t => t.cat===cat && t.val===val)) { crmMostrarToast('Esa etiqueta ya está agregada'); return; }
+  l.tags.push({ cat, val });
+  await dbUpdateLeadCloud(l.id, { tags:l.tags });
+  crmRenderEtiquetas(l);
+  crmMostrarToast('✓ Etiqueta agregada');
+}
+async function crmQuitarEtiqueta(idx) {
+  const l = dbGet('leads').find(x => x.id === crmDetalleId);
+  l.tags.splice(idx,1);
+  await dbUpdateLeadCloud(l.id, { tags:l.tags });
+  crmRenderEtiquetas(l);
+}
+</script>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 
@@ -2596,7 +3173,9 @@ function toSbRow(key, record) {
   if (key === 'leads') return {
     fecha:r.fecha, nombre:r.nombre||'', contacto:r.contacto||'',
     operacion:r.operacion||'', presupuesto:r.presupuesto||'',
-    zona:r.zona||'', notas:r.notas||'', estado:r.estado||'Nuevo'
+    zona:r.zona||'', notas:r.notas||'', estado:r.estado||'Nuevo',
+    origen:r.origen||'', agente:r.agente||'', dtd2:r.dtd2||'',
+    tags: JSON.stringify(r.tags||[]), historial: JSON.stringify(r.historial||[])
   };
   if (key === 'reqs') return {
     fecha:r.fecha, tipo:r.tipo||'', operacion:r.operacion||'',
@@ -2643,6 +3222,12 @@ function fromSbRow(key, r) {
     leads:r.leads, visitas:r.visitas, ofertas:r.ofertas, contratos:r.contratos,
     tasaLV:r.tasa_lv, tasaVC:r.tasa_vc
   };
+  if (key === 'leads') {
+    let tags = [], historial = [];
+    try { tags = r.tags ? (typeof r.tags === 'string' ? JSON.parse(r.tags) : r.tags) : []; } catch(e) { tags = []; }
+    try { historial = r.historial ? (typeof r.historial === 'string' ? JSON.parse(r.historial) : r.historial) : []; } catch(e) { historial = []; }
+    return { ...r, tags, historial };
+  }
   // leads, reqs, docs — campos coinciden
   return r;
 }
@@ -2699,6 +3284,22 @@ async function dbDeleteCloud(key, id) {
   const data = dbGet(key).filter(r => r.id !== id);
   dbSave(key, data);
   renderBaseDatos();
+}
+
+// ── Actualizar un lead existente (Supabase + caché local) ──
+async function dbUpdateLeadCloud(id, cambiosJS) {
+  const sbPatch = {...cambiosJS};
+  if ('tags' in sbPatch) sbPatch.tags = JSON.stringify(sbPatch.tags || []);
+  if ('historial' in sbPatch) sbPatch.historial = JSON.stringify(sbPatch.historial || []);
+  await sbFetch('ei_leads', 'PATCH', sbPatch, id);
+  const data = dbGet('leads');
+  const idx = data.findIndex(r => r.id === id);
+  if (idx >= 0) {
+    data[idx] = { ...data[idx], ...cambiosJS };
+    dbSave('leads', data);
+    return data[idx];
+  }
+  return null;
 }
 
 // ── Cargar datos desde Supabase al iniciar ──
@@ -3668,7 +4269,7 @@ function showPage(id, el) {
     if (dash) dash.classList.add('active');
   }
   if (el) el.classList.add('active');
-  const titles = { dashboard:'Dashboard', captacion:'Captación de Propiedades', clientes:'Clientes & Leads', equipo:'Gestión del Equipo', redes:'Redes Sociales', proyecto:'Proyecto IA', 'hoja-ruta':'Hoja de Ruta', 'base-datos':'Base de Datos', requerimientos:'Requerimientos' };
+  const titles = { dashboard:'Dashboard', captacion:'Captación de Propiedades', clientes:'Clientes & Leads', equipo:'Gestión del Equipo', redes:'Redes Sociales', proyecto:'Proyecto IA', 'hoja-ruta':'Hoja de Ruta', 'base-datos':'Base de Datos', requerimientos:'Requerimientos', crm:'Contactos' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[id] || id;
   window.scrollTo(0, 0);
