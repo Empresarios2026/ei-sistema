@@ -3460,8 +3460,11 @@ function exportarPDF() {
   // ── FICHA LÍNEAS ──
   const fichaLines = fichaText.split('\n').map(line => {
     if (!line.trim()) return '<br>';
-    if (line.trim() === line.trim().toUpperCase() && line.trim().length > 3 && !/\d/.test(line.trim().slice(-1))) {
-      return `<p style="margin:14px 0 5px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#CE011F;border-bottom:1px solid #CE011F;padding-bottom:4px;">${line.replace(/</g,'&lt;')}</p>`;
+    const t2 = line.trim();
+    const esHeader2 = t2 === t2.toUpperCase() && t2.length > 3 && t2.length <= 60
+      && !t2.includes(':') && !/\d/.test(t2) && t2.split(' ').length <= 6;
+    if (esHeader2) {
+      return `<p style="margin:14px 0 5px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#CE011F;border-bottom:1px solid #CE011F;padding-bottom:4px;">${t2.replace(/</g,'&lt;')}</p>`;
     }
     return `<p style="margin:0 0 5px;font-size:13px;color:#333;line-height:1.65;">${line.replace(/</g,'&lt;')}</p>`;
   }).join('');
@@ -4476,10 +4479,13 @@ function exportarWord() {
   const fichaHtml = fichaText.split('\n').map(line => {
     if (!line.trim()) return '<p style="margin:0 0 4pt;"></p>';
     // Detectar títulos de sección (todo mayúsculas o termina en :)
-    if (line.trim() === line.trim().toUpperCase() && line.trim().length > 3) {
-      return `<p style="margin:12pt 0 4pt;font-size:10pt;font-weight:bold;color:#CE011F;letter-spacing:1pt;border-bottom:1px solid #CE011F;">${line.trim()}</p>`;
+    const t1 = line.trim();
+    const esHeader1 = t1 === t1.toUpperCase() && t1.length > 3 && t1.length <= 60
+      && !t1.includes(':') && !/\d/.test(t1) && t1.split(' ').length <= 6;
+    if (esHeader1) {
+      return `<p style="margin:12pt 0 4pt;font-size:10pt;font-weight:bold;color:#CE011F;letter-spacing:1pt;border-bottom:1px solid #CE011F;">${t1}</p>`;
     }
-    return `<p style="margin:0 0 6pt;font-size:11pt;line-height:1.6;">${line.trim()}</p>`;
+    return `<p style="margin:0 0 6pt;font-size:11pt;line-height:1.6;">${t1}</p>`;
   }).join('');
 
   const dataRows = [
@@ -5515,8 +5521,10 @@ async function abrirPropiedadParaExportar(id) {
   const fichaHTML = r.ficha
     ? r.ficha.split('\n').map(l => {
         if (!l.trim()) return '<br>';
-        if (l.trim() === l.trim().toUpperCase() && l.trim().length > 3)
-          return `<div style="font-size:11px;font-weight:700;color:#CE011F;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #CE011F;padding-bottom:3px;margin:14px 0 6px;">${l}</div>`;
+        const lh = l.trim();
+        const isHdr = lh === lh.toUpperCase() && lh.length > 3 && lh.length <= 60 && !lh.includes(':') && !/[0-9]/.test(lh) && lh.split(' ').length <= 6;
+        if (isHdr)
+          return `<div style="font-size:11px;font-weight:700;color:#CE011F;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #CE011F;padding-bottom:3px;margin:14px 0 6px;">${lh}</div>`;
         return `<div style="font-size:13px;color:#333;line-height:1.6;margin-bottom:3px;">${l}</div>`;
       }).join('')
     : '<div style="color:#999;font-size:13px;font-style:italic;">Esta propiedad no tiene ficha guardada. Abre en Módulo 1 para generar una.</div>';
@@ -7115,7 +7123,10 @@ function descargarCatalogo() {
   // Extraer características técnicas de la ficha para el catálogo
   function extraerCaractDesc(fichaTexto, caractRaw) {
     if (fichaTexto) {
-      const lineas = fichaTexto.split('\n');
+      const lineas = fichaTexto.split('\n').filter(l => l.trim());
+      // Detectar si la ficha es mayormente en mayúsculas
+      const lineasMayus = lineas.filter(l => l.trim() === l.trim().toUpperCase()).length;
+      const fichaEsMayus = lineas.length > 0 && (lineasMayus / lineas.length) > 0.6;
       let enCaract = false;
       let intro = '';
       const items = [];
@@ -7124,10 +7135,11 @@ function descargarCatalogo() {
         if (!l) continue;
         if (l.toUpperCase().includes('CARACTERISTICAS') || l.toUpperCase().includes('CARACTERÍSTICAS') || l.toUpperCase().includes('ESPECIFICACIONES')) { enCaract = true; continue; }
         if (enCaract) {
-          if (l.toUpperCase() === l && l.length > 3 && items.length) break;
+          const esHdrBreak = !fichaEsMayus && l.toUpperCase() === l && l.length > 3 && l.length <= 60 && !l.includes(':') && l.split(' ').length <= 6;
+          if (esHdrBreak && items.length) break;
           items.push('• ' + l.replace(/^[•\-\*]\s*/, ''));
-        } else if (!intro && l.length > 20) {
-          intro = l; // primera línea larga = introducción
+        } else if (!intro && l.length > 20 && !fichaEsMayus) {
+          intro = l;
         }
       }
       if (items.length) return (intro ? intro + '\n' : '') + items.join('\n');
