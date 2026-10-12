@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EI — Valorizaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --r: #CE011F; --rd: #9E0117; --rl: rgba(206,1,31,0.10);
+  --bg: #F2F3F5; --s1: #FFFFFF; --s2: #F7F8FA; --s3: #EDEEF0;
+  --t1: #1A1A1A; --t2: #555560; --t3: #9A9AAF;
+  --border: rgba(0,0,0,0.09);
+  --gold: #C9A84C;
+  --line: #DCDCDC; --dark: #333; --gray: #666; --gray2: #999; --soft: #F7F6F5;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--t1); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+/* ══ TOPBAR ══ */
+.topbar {
+  background:#1E2023; padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50;
+}
+.topbar-brand { display:flex; align-items:center; gap:10px; }
+.topbar-dot { width:8px; height:8px; background:var(--r); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+.topbar-name { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#FAFAFA; }
+.topbar-sub { font-size:10px; color:var(--t3); letter-spacing:.5px; }
+.topbar-title { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:#FAFAFA; letter-spacing:.5px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-user { font-size:12px; color:var(--t3); }
+.topbar-btn { background:none; border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.6); padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.topbar-btn:hover { border-color:rgba(255,255,255,.3); color:#fff; }
+
+/* ══ MAIN LAYOUT ══ */
+main { max-width:1200px; margin:0 auto; padding:24px 18px 80px; display:grid; grid-template-columns:1fr 330px; gap:22px; }
+@media (max-width:920px){ main{grid-template-columns:1fr;} .summary{position:static !important;} }
+
+/* ══ CARDS ══ */
+.card { background:var(--s1); border:1px solid var(--border); border-radius:10px; padding:20px 22px; margin-bottom:18px; }
+.card h2 { font-family:'Playfair Display',serif; font-weight:700; font-size:16px; margin:0 0 4px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.tag { font-family:'DM Sans',sans-serif; font-weight:600; font-size:10px; color:#fff; background:var(--r); padding:3px 8px; border-radius:3px; letter-spacing:.5px; }
+.tag.off { background:var(--t3); }
+p.desc { color:var(--t3); font-size:12.5px; margin:0 0 14px; line-height:1.5; }
+
+/* ══ FORM ELEMENTS ══ */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+@media (max-width:600px){ .grid2,.grid3{grid-template-columns:1fr;} }
+label { display:block; font-size:11.5px; color:var(--t2); margin-bottom:4px; font-weight:600; }
+input,select,textarea { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-family:'DM Sans',sans-serif; font-size:13.5px; color:var(--t1); background:var(--s1); }
+textarea { min-height:64px; resize:vertical; }
+input:focus,select:focus,textarea:focus { outline:none; border-color:var(--r); }
+.field { margin-bottom:12px; }
+.hint { font-size:11px; color:var(--t3); margin-top:3px; line-height:1.4; }
+.hidden { display:none !important; }
+
+/* ══ COMPARABLES TABLE ══ */
+.row-comp { display:grid; grid-template-columns:1.6fr .8fr .7fr .9fr 70px 32px; gap:8px; align-items:center; margin-bottom:8px; }
+.row-comp.head { font-size:10.5px; color:var(--t3); font-weight:600; margin-bottom:4px; }
+.row-comp .out { font-size:12px; color:var(--t2); }
+@media (max-width:700px){ .row-comp{grid-template-columns:1fr 1fr;} .row-comp.head{display:none;} }
+button.rm { background:none; border:1px solid var(--border); color:var(--t3); border-radius:6px; width:30px; height:30px; cursor:pointer; }
+button.rm:hover { border-color:var(--r); color:var(--r); }
+
+/* ══ BUTTONS ══ */
+.btn { font-family:'DM Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer; border-radius:6px; padding:9px 16px; border:1px solid var(--border); background:var(--s1); color:var(--t1); }
+.btn:hover { border-color:var(--t3); }
+.btn.primary { background:var(--r); color:#fff; border-color:var(--r); }
+.btn.primary:hover { background:var(--rd); }
+
+/* ══ LINES & SUMMARY ══ */
+.sub-line { display:flex; justify-content:space-between; align-items:baseline; border-top:1px dashed var(--border); padding-top:9px; margin-top:9px; font-size:12.5px; color:var(--t2); }
+.sub-line b.v { font-family:'Playfair Display',serif; font-size:16px; color:var(--t1); }
+.warn { background:#FFF6E5; border-left:3px solid #E0A100; padding:8px 12px; font-size:12px; color:#7a5800; margin-top:10px; border-radius:3px; }
+.summary { position:sticky; top:16px; align-self:start; background:var(--s1); border:1px solid var(--border); border-radius:10px; overflow:hidden; display:flex; }
+.summary .bar { background:var(--r); width:6px; }
+.summary-body { padding:18px 18px 20px; flex:1; }
+.summary-body h3 { font-family:'Playfair Display',serif; font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--t3); margin:0 0 12px; }
+.sline { display:flex; justify-content:space-between; font-size:12.5px; color:var(--t2); margin-bottom:8px; }
+.sline b { color:var(--t1); font-weight:600; }
+.sfinal { border-top:1px solid var(--border); margin-top:10px; padding-top:12px; }
+.sfinal .lbl { font-size:11px; color:var(--t3); text-transform:uppercase; letter-spacing:.4px; }
+.sfinal .num { font-family:'Playfair Display',serif; font-weight:700; font-size:25px; color:var(--r); margin-top:3px; }
+.internal { margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); }
+.actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+
+/* ══ INFORME ══ */
+#informe { display:none; }
+.sheet { background:#fff; border:1px solid var(--border); border-radius:10px; padding:30px 34px; }
+.i-brand { font-family:'Playfair Display',serif; font-weight:700; font-size:20px; }
+.i-brand span { color:var(--r); }
+.i-tag { font-size:10.5px; color:var(--t3); font-style:italic; margin-top:2px; }
+.i-title { font-family:'Playfair Display',serif; font-weight:700; font-size:15px; margin:16px 0 2px; border-top:2px solid var(--t1); padding-top:12px; }
+.i-sub { font-size:11.5px; color:var(--t3); font-style:italic; margin-bottom:12px; }
+.i-h { font-family:'Playfair Display',serif; font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--r); border-bottom:1px solid var(--border); padding-bottom:5px; margin:22px 0 10px; }
+.i-p { font-size:12.5px; color:var(--t2); line-height:1.6; margin:0 0 10px; }
+table.kv { width:100%; border-collapse:collapse; font-size:12.5px; }
+table.kv td { padding:6px 4px; border-bottom:1px solid var(--border); color:var(--t2); }
+table.kv td.v { text-align:right; color:var(--t1); font-weight:600; }
+table.grid { width:100%; border-collapse:collapse; font-size:12px; }
+table.grid th { background:var(--t1); color:#fff; font-size:10.5px; padding:7px 8px; text-align:center; letter-spacing:.3px; }
+table.grid td { border:1px solid var(--border); padding:7px 8px; color:var(--t1); text-align:center; }
+table.grid td:first-child { text-align:left; }
+table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
+.final-box { background:var(--s2); border:1px solid var(--r); border-left-width:6px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-radius:6px; }
+.final-box .t { font-size:11.5px; color:var(--t2); text-transform:uppercase; letter-spacing:.4px; }
+.final-box .n { font-family:'Playfair Display',serif; font-weight:700; font-size:25px; color:var(--r); }
+.i-sub2 { font-family:'Playfair Display',serif; font-size:12.5px; font-weight:700; margin:14px 0 8px; }
+.disclaimer { font-size:10.5px; color:var(--t3); line-height:1.6; margin-top:22px; border-top:1px solid var(--border); padding-top:12px; font-style:italic; }
+.contact { font-size:11.5px; color:var(--t3); margin-top:10px; }
+
+/* ══ IA SEARCH ══ */
+.ia-row { display:flex; gap:10px; align-items:end; flex-wrap:wrap; margin-top:10px; }
+.btn.ia { background:#1E2023; color:#fff; border-color:#1E2023; display:inline-flex; align-items:center; gap:6px; }
+.btn.ia:hover { background:#2a2d31; }
+.btn.ia:disabled { opacity:.5; cursor:not-allowed; }
+.ia-status { font-size:12px; color:var(--t3); margin-top:8px; min-height:18px; }
+.ia-status.error { color:#c0392b; }
+.ia-status .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--r); border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:4px; }
+@keyframes spin { to{transform:rotate(360deg);} }
+.ia-results { margin-top:12px; padding:12px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; font-size:12px; color:#166534; }
+.ia-results.warn { background:#fef9c3; border-color:#fde047; color:#854d0e; }
+
+/* ══ PRINT ══ */
+@media print {
+  @page { size:A4; margin:14mm; }
+  body { background:#fff; }
+  body * { visibility:hidden; }
+  #informe,#informe * { visibility:visible; }
+  #informe { position:absolute; left:0; top:0; width:100%; display:block !important; }
+  .sheet { border:none; padding:0; }
+  .no-print { display:none !important; }
+  .topbar { display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ PANTALLA DE LOGIN ════════ -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#F0F0F0 0%,#E8E8E8 50%,#DCDCDC 100%);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:40px;width:380px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#1A1A1A;">Empresarios <span style="color:#CE011F;">Inmobiliarios</span></div>
+      <div style="font-size:11px;color:#999;letter-spacing:.5px;margin-top:6px;">Módulo de Valorizaciones</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Correo</label>
+      <input type="email" id="login-email" placeholder="nombre@ei.com"
+        style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;font-family:'DM Sans',sans-serif;"
+        onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div style="margin-bottom:24px;">
+      <label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••"
+        style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;font-family:'DM Sans',sans-serif;"
+        onkeydown="if(event.key==='Enter')iniciarSesion()">
+    </div>
+    <button onclick="iniciarSesion()" id="btn-login"
+      style="width:100%;background:#CE011F;color:#fff;border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      Ingresar
+    </button>
+    <div id="login-error" style="display:none;margin-top:12px;background:#fff0f0;border:1px solid rgba(206,1,31,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#CE011F;text-align:center;"></div>
+    <div style="margin-top:20px;text-align:center;">
+      <a href="index.html" style="font-size:11px;color:#999;text-decoration:none;">Volver al Sistema Principal</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ APP PRINCIPAL ════════ -->
+<div id="main-app" style="display:none;">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-dot"></div>
+    <div>
+      <div class="topbar-name">Empresarios Inmobiliarios</div>
+      <div class="topbar-sub">Ingeniería · Estrategia · Energía</div>
+    </div>
+  </div>
+  <div class="topbar-title">Calculadora de Valorización</div>
+  <div class="topbar-right">
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="topbar-btn" onclick="window.location.href='index.html'">Sistema Principal</button>
+    <button class="topbar-btn" onclick="cerrarSesion()">Salir</button>
+  </div>
+</div>
+
+<main>
+<div>
+
+  <!-- 1. DATOS -->
+  <div class="card">
+    <h2>1. Datos de la propiedad</h2>
+    <p class="desc">Todos los valores en dólares (US$). Lo que no tengas, déjalo vacío: no se inventa nada.</p>
+    <div class="grid3">
+      <div class="field"><label>Propietario</label><input id="p_prop" placeholder="(en blanco si no se tiene)"></div>
+      <div class="field"><label>Agente</label><input id="p_agente" readonly></div>
+      <div class="field"><label>Dirección / ubicación</label><input id="p_dir" placeholder="Ej. Av. Pumacahua, Cerro Colorado"></div>
+    </div>
+    <div class="grid3">
+      <div class="field">
+        <label>Tipo de propiedad</label>
+        <select id="p_tipo"><option value="depto">Departamento</option><option value="casa">Casa</option><option value="local">Local comercial</option><option value="terreno">Terreno</option></select>
+      </div>
+      <div class="field" data-for="casa local terreno"><label>Área de terreno (m²)</label><input type="number" id="p_aTerreno" step="any"></div>
+      <div class="field" data-for="depto casa local"><label id="lbl_aConstr">Área techada / construida (m²)</label><input type="number" id="p_aConstr" step="any"></div>
+    </div>
+    <div class="grid3">
+      <div class="field" data-for="depto"><label>Área ocupada (m²) <span style="font-weight:400">— para comparables</span></label><input type="number" id="p_aOcup" step="any"></div>
+      <div class="field" data-for="depto casa local"><label>Área libre (m²)</label><input type="number" id="p_aLibre" step="any"><div class="hint" id="hint_libre"></div></div>
+      <div class="field" data-for="depto casa local"><label>Cochera (m²)</label><input type="number" id="p_aCoch" step="any"></div>
+    </div>
+    <div class="grid3">
+      <div class="field" data-for="depto casa local"><label>Depósito (m²)</label><input type="number" id="p_aDep" step="any"></div>
+      <div class="field" data-for="depto"><label>Piso</label><input type="number" id="p_piso" min="1" step="1"></div>
+      <div class="field" data-for="depto">
+        <label>¿Tiene ascensor?</label>
+        <select id="p_asc"><option value="si">Sí</option><option value="no">No</option></select>
+      </div>
+    </div>
+    <div class="grid3" data-for="terreno">
+      <div class="field">
+        <label>Clasificación del terreno</label>
+        <select id="p_subTerreno">
+          <option value="urbano">Urbano</option>
+          <option value="rural">Rural / Agrícola</option>
+          <option value="eriazo">Eriazo</option>
+        </select>
+        <div class="hint">Afecta el rango de valor esperado. Eriazo = sin servicios ni habilitación urbana.</div>
+      </div>
+    </div>
+    <div class="grid3" data-for="depto casa local">
+      <div class="field"><label>Antigüedad (años)</label><input type="number" id="p_antig" step="any"></div>
+      <div class="field">
+        <label>Nivel de acabado</label>
+        <select id="p_acabado">
+          <option value="400">Básico I — $400</option>
+          <option value="425">Básico I/II — $425</option>
+          <option value="450">Básico II — $450</option>
+          <option value="500">Estándar I — $500</option>
+          <option value="525" selected>Estándar I/II — $525</option>
+          <option value="550">Estándar II — $550</option>
+          <option value="600">Primera — $600</option>
+          <option value="custom">Otro valor…</option>
+        </select>
+      </div>
+      <div class="field hidden" id="wrap_acabadoCustom"><label>Costo construcción US$/m²</label><input type="number" id="p_acabadoCustom" step="any"></div>
+    </div>
+    <div class="field">
+      <label>Descripción para el informe <span style="font-weight:400">(opcional; si queda vacío se genera una)</span></label>
+      <textarea id="p_desc"></textarea>
+    </div>
+  </div>
+
+  <!-- 2. M1 -->
+  <div class="card">
+    <h2>2. Comparables de mercado <span class="tag">MÉTODO 1</span></h2>
+    <p class="desc">Usa el botón "Buscar comparables con IA" para que Claude busque automáticamente en Urbania y Nexo, o agrega manualmente. Revisa los resultados y desmarca la casilla del US$/m² para excluir atípicos del promedio.</p>
+    <div class="ia-row">
+      <button class="btn ia" id="btn_ia" onclick="buscarComparables()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Buscar comparables con IA
+      </button>
+      <button class="btn" onclick="addComp()">+ Agregar manualmente</button>
+    </div>
+    <div class="ia-status" id="ia_status"></div>
+    <div style="margin-top:14px;">
+    <div class="row-comp head"><div>LINK / REFERENCIA</div><div>PRECIO US$</div><div>ÁREA m²</div><div>PISO / DETALLE</div><div>US$/m² · USAR</div><div></div></div>
+    <div id="comparables"></div>
+    </div>
+    <div class="grid2" style="margin-top:14px;">
+      <div class="field">
+        <label>Aplicar el promedio US$/m² sobre</label>
+        <select id="p_baseComp">
+          <option value="ocup">Área ocupada (depto: total de la unidad)</option>
+          <option value="constr">Área construida / techada</option>
+          <option value="terreno">Área de terreno</option>
+        </select>
+      </div>
+    </div>
+    <div class="sub-line"><span>Promedio US$/m² (comparables usados)</span><b class="v" id="o_m1m2">—</b></div>
+    <div class="sub-line"><span><b>Valor Método 1</b></span><b class="v" id="o_m1">—</b></div>
+  </div>
+
+  <!-- 3. M2 -->
+  <div class="card">
+    <h2>3. Reposición <span class="tag" id="tag_m2">MÉTODO 2</span></h2>
+    <p class="desc">El agente selecciona la zona y nivel de acabado; la calculadora aplica las fórmulas automáticamente. Depto: terreno al 80%. Casa/Local: 100%. Cochera y depósito se valoran como terreno, sin depreciar.</p>
+    <div class="grid3">
+      <div class="field">
+        <label>Zona (Tabla Empresarios)</label>
+        <select id="p_zona"></select>
+        <div class="hint">Si la zona no está (ej. Tacna, Camaná), déjala vacía y escribe el valor de terreno a mano.</div>
+      </div>
+      <div class="field"><label>Valor terreno US$/m² (Método 2)</label><input type="number" id="p_vut" step="any"><div class="hint">Se autocompleta con el punto medio de la zona; editable.</div></div>
+      <div class="field" data-for="depto casa">
+        <label>Depreciación</label>
+        <select id="p_depModo">
+          <option value="lineal">Simplificada: 1% por año</option>
+          <option value="rnt">Tabla RNT (material + estado)</option>
+          <option value="manual">Porcentaje manual</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3 hidden" id="wrap_rnt">
+      <div class="field"><label>Material estructural</label>
+        <select id="p_mat"><option value="C">Concreto</option><option value="L" selected>Ladrillo</option><option value="A">Liviano / Adobe</option></select>
+      </div>
+      <div class="field"><label>Estado de conservación</label>
+        <select id="p_est"><option value="0">Muy bueno</option><option value="1">Bueno</option><option value="2" selected>Regular</option><option value="3">Malo</option></select>
+      </div>
+      <div class="field"></div>
+    </div>
+    <div class="field hidden" id="wrap_depManual"><label>Depreciación manual (%)</label><input type="number" id="p_depManual" step="any"></div>
+    <div class="grid3" data-for="depto casa">
+      <div class="field" data-for="depto"><label>Castigo piso sin ascensor (%)</label><input type="number" id="p_castigo" step="any" value="0"><div class="hint">Auto: 3er piso = 5%, 4to o más = 10% (editable).</div></div>
+      <div class="field"><label>Otro ajuste a la baja (%)</label><input type="number" id="p_otro" step="any" value="0"></div>
+      <div class="field"></div>
+    </div>
+    <div id="det_m2"></div>
+    <div class="sub-line"><span><b>Valor Comercial (Método 2)</b></span><b class="v" id="o_m2">—</b></div>
+  </div>
+
+  <!-- 4. M3 -->
+  <div class="card">
+    <h2>4. Tabla Empresarios <span class="tag" id="tag_m3">MÉTODO 3</span></h2>
+    <p class="desc">Terreno según la zona de la tabla EI + construcción por nivel de acabado, sin depreciar. Solo se calcula si elegiste una zona de la tabla.</p>
+    <div class="grid3">
+      <div class="field"><label>Valor de terreno a tomar</label>
+        <select id="p_vutSel"><option value="lo">Desde (piso)</option><option value="mid" selected>Punto medio</option><option value="hi">Hasta (techo)</option></select>
+      </div>
+      <div class="field"><label>Rango de la zona</label><input id="o_rango" readonly placeholder="—"></div>
+      <div class="field"></div>
+    </div>
+    <div class="sub-line"><span><b>Valor Método 3</b></span><b class="v" id="o_m3">—</b></div>
+  </div>
+
+  <!-- 5. RESULTADO -->
+  <div class="card">
+    <h2>5. Resultado</h2>
+    <p class="desc">Mínimo y máximo entre los métodos disponibles. Precio Propuesto = promedio de ambos.</p>
+    <div id="warns"></div>
+    <div class="actions no-print">
+      <button class="btn primary" onclick="generarInforme()">Generar informe para el cliente</button>
+      <button class="btn" onclick="copiarInterno()">Copiar resumen interno</button>
+    </div>
+  </div>
+
+  <!-- INFORME -->
+  <div id="informe">
+    <div class="sheet" id="sheet"></div>
+    <div class="actions no-print" style="margin-top:14px;">
+      <button class="btn primary" onclick="window.print()">Imprimir / Guardar como PDF</button>
+      <button class="btn" onclick="document.getElementById('informe').style.display='none'">Ocultar informe</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- PANEL INTERNO -->
+<div class="summary no-print">
+  <div class="bar"></div>
+  <div class="summary-body">
+    <h3>Resumen interno (no va al cliente)</h3>
+    <div class="sline"><span>Método 1 · Comparables</span><b id="s_m1">—</b></div>
+    <div class="sline"><span>Método 2 · Reposición</span><b id="s_m2">—</b></div>
+    <div class="sline"><span>Método 3 · Tabla Empresarios</span><b id="s_m3">—</b></div>
+    <div class="internal">
+      <div class="sline"><span>Mínimo <span id="s_minN" style="color:var(--t3)"></span></span><b id="s_min">—</b></div>
+      <div class="sline"><span>Máximo <span id="s_maxN" style="color:var(--t3)"></span></span><b id="s_max">—</b></div>
+    </div>
+    <div class="sfinal">
+      <div class="lbl">Precio Propuesto</div>
+      <div class="num" id="s_prop">—</div>
+    </div>
+    <div class="internal">
+      <div class="sline"><span>Precio de Publicación (+5%)</span><b id="s_pub">—</b></div>
+      <div class="sline"><span>Valor de Realización (-10%)</span><b id="s_real">—</b></div>
+    </div>
+  </div>
+</div>
+</main>
+</div><!-- /main-app -->
+
+<script>
+// ══════════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════════
+const SB_URL = 'https://crnvavaaxsoesabipcho.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybnZhdmFheHNvZXNhYmlwY2hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1OTQsImV4cCI6MjA4OTQ5MzU5NH0.P00sHTHvoZBvaL7WnAGdHWQqu9kUvXexLQ9B0IH1dR4';
+
+// ══════════════════════════════════════════
+// AGENTES
+// ══════════════════════════════════════════
+const AGENTES_DATA = {
+  'alexis@ei.com':        { nombre: 'Alexis Valdivia',      tel: '921305393' },
+  'carmen@ei.com':        { nombre: 'Carmen Barrios',        tel: '965231636' },
+  'cecilia@ei.com':       { nombre: 'Cecilia Cayani',        tel: '958237709' },
+  'cinthia@ei.com':       { nombre: 'Cinthia Calizaya',      tel: '961094351' },
+  'claudio@ei.com':       { nombre: 'Claudio Condori',       tel: '959928860' },
+  'david@ei.com':         { nombre: 'David Rodriguez',       tel: '959798477' },
+  'evelyn@ei.com':        { nombre: 'Evelyn Rivera',         tel: '957488942' },
+  'fiorella@ei.com':      { nombre: 'Fiorella Heresi',       tel: '956702984' },
+  'joel@ei.com':          { nombre: 'Joel Cuadros',          tel: '969892569' },
+  'juanfernando@ei.com':  { nombre: 'Juan Fernando Fuentes', tel: '969000163' },
+  'lucy@ei.com':          { nombre: 'Lucy Arapa',            tel: '989403914' },
+  'marilyn@ei.com':       { nombre: 'Marilyn Benavente',     tel: '953769128' },
+  'milagros@ei.com':      { nombre: 'Milagros Rodriguez',    tel: '993266771' },
+  'paola@ei.com':         { nombre: 'Paola Herrera',         tel: '970267212' },
+  'paola.cruz@ei.com':    { nombre: 'Paola Cruz',             tel: '903131620' },
+  'evert.trujillo@ei.com':{ nombre: 'Evert Trujillo',         tel: '963080384' },
+  'omar.mamani@ei.com':   { nombre: 'Omar Mamani',            tel: '983293959' },
+  'luzmary.pacheco@ei.com':{ nombre: 'Luz Mary Pacheco',       tel: '958713909' },
+  'beatriz.huarachi@ei.com':{ nombre: 'Beatriz Huarachi',      tel: '934109063' },
+  'reyna.herrera@ei.com':       { nombre: 'Reyna Herrera',          tel: '900652383' },
+  'juandaniel.valdivia@ei.com': { nombre: 'Juan Daniel Valdivia',   tel: '975750002' },
+  'veronica@ei.com':      { nombre: 'Veronica Chacón',       tel: '923071770' },
+  'ylka@ei.com':          { nombre: 'Ylka Stojkic',          tel: '992239361' },
+  'zulema@ei.com':        { nombre: 'Zulema Gutierrez',      tel: '959749778' },
+  'norma@ei.com':         { nombre: 'Norma Ponce',           tel: '936802576' },
+  'vanessa@ei.com':       { nombre: 'Vanessa Chavez',        tel: '940236052' },
+  'zaida@ei.com':         { nombre: 'Zaida Riega',           tel: '935623304' },
+};
+
+function getAgenteActual() {
+  if (!currentUser) return null;
+  return AGENTES_DATA[currentUser.email] || null;
+}
+
+// ══════════════════════════════════════════
+// SESIÓN Y LOGIN
+// ══════════════════════════════════════════
+let currentUser = null;
+let ANTHROPIC_KEY = '';
+
+async function cargarApiKey() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/ei_config?key=eq.anthropic_key&select=value', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    const data = await res.json();
+    if (data && data[0] && data[0].value) {
+      ANTHROPIC_KEY = data[0].value;
+      console.log('Valorizaciones: API key cargada');
+    }
+  } catch(e) { console.warn('No se pudo cargar API key:', e); }
+}
+
+async function verificarSesionGuardada() {
+  try {
+    const saved = localStorage.getItem('ei_session');
+    if (saved) {
+      const sesion = JSON.parse(saved);
+      const res = await fetch(SB_URL + '/auth/v1/user', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + sesion.token }
+      });
+      if (res.ok) {
+        currentUser = sesion;
+        activarApp();
+        return true;
+      } else {
+        localStorage.removeItem('ei_session');
+      }
+    }
+  } catch(e) {
+    localStorage.removeItem('ei_session');
+  }
+  return false;
+}
+
+async function iniciarSesion() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const btn      = document.getElementById('btn-login');
+  const errDiv   = document.getElementById('login-error');
+
+  if (!email || !password) { mostrarErrorLogin('Ingresa tu correo y contraseña'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  errDiv.style.display = 'none';
+
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      mostrarErrorLogin('Correo o contraseña incorrectos');
+      btn.disabled = false; btn.textContent = 'Ingresar'; return;
+    }
+    currentUser = { id: data.user.id, email: data.user.email, token: data.access_token, nombre: data.user.email.split('@')[0] };
+    localStorage.setItem('ei_session', JSON.stringify(currentUser));
+    activarApp();
+  } catch(e) {
+    mostrarErrorLogin('Error de conexión. Verifica tu internet.');
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  }
+}
+
+function mostrarErrorLogin(msg) {
+  const errDiv = document.getElementById('login-error');
+  errDiv.textContent = msg;
+  errDiv.style.display = 'block';
+}
+
+function activarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  // Mostrar nombre del agente
+  const agente = getAgenteActual();
+  document.getElementById('p_agente').value = agente ? agente.nombre : (currentUser.email || '—');
+  document.getElementById('topbar-user').textContent = agente ? agente.nombre : currentUser.email;
+
+  cargarApiKey();
+  onTipoChange();
+}
+
+function cerrarSesion() {
+  currentUser = null;
+  localStorage.removeItem('ei_session');
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Ingresar';
+}
+
+// Inicialización: intentar sesión guardada, si no mostrar login
+window.addEventListener('load', async () => {
+  const ok = await verificarSesionGuardada();
+  if (!ok) {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
+
+
+// ══════════════════════════════════════════
+// TABLA EMPRESARIOS (US$/m², Desde–Hasta)
+// ══════════════════════════════════════════
+var DAVID = {
+ "Cerro Colorado":[["Av Aviación","Por Paris - Sodimac",860,920],["Av. Aviación","Por Zamacola",450,500],["Alto Libertad","Pachacútec",350,380],["Semi Rural Pachacútec","",320,350],["Variante de Uchumayo","Rural (agrícola)",50,80],["Variante de Uchumayo","Comercial",480,580],["Av Circunvalación","Por Camal Don Goyo",380,420],["José Luis B. y Rivero I y II","",180,220],["Ciudad Municipal","",180,220],["Ciudad de Dios","",90,120],["Apipa","",160,180],["Av. 54","",280,360],["Villa Las Canteras","",220,260],["Las Flores","",220,280],["Villa Magisterial","",90,120],["La Alborada","",120,180],["Virgen de Chapi","",60,90],["Río Seco","",280,320],["Peruarbo","",260,320],["Campo Verde","",760,820],["Zamacola","",420,480],["Alto Cural","Terreno eriazo",8,15],["Cural","Rústico",15,60],["Cural","Residencial",120,220],["Monte Bello","",720,800],["Urb Hacienda","",480,520],["Quinta Siena","",760,820],["La Alquería","S/ cambio de uso",640,700],["Aduca","",860,980],["Urb Sta Sofía","",680,720],["Urb. La Planicie de Challapampa","",800,920],["Challapampa","",990,1350],["Urb Colegio de Ingenieros","",820,980],["Urb. Las Buganvillas","",580,680],["Valle Blanco","",520,780],["Av Manuel Forga","",750,800],["El Cortijo","",720,780],["Cerro Viejo","",480,520],["Plaza las Américas","",840,990],["La Fonda","",820,920],["Michell","",800,880],["La Tejada","",780,820],["La Molina","",760,820]],
+ "Cayma":[["Urb La Campiña","",1200,1350],["Valle Escondido","",920,1100],["Puerta del Sol","",820,960],["Los Delfines","",940,1000],["Urb San Antonio","",890,1000],["Urb Bello Horizonte","",890,960],["Av Bolognesi","Antes de la Plaza",1000,1150],["Los Ángeles","",920,1000],["La Encalada","",820,940],["Lari Lari","Urb. cerrada",760,890],["Av Lari Lari","Rural",30,45],["Los Portales","",780,860],["Calle Ramón Castilla","",780,820],["Calle Melgar","",820,890],["El Rosario","Por Asilo Lira",720,780],["Los Arces","En urb. privada",780,890],["Los Arces Boulevard","En urb. privada",960,1100],["Calle Los Arces","",800,980],["Santa Elisa","",920,1000],["Los Andenes del Valle de Cayma","",480,520],["Radio Azul","",230,250],["Av Chachani","Parte baja",220,280],["Av Chachani","Parte alta",120,180],["Fundo Cabrerías","",80,120],["La Catacora","",220,280],["Av. 54","",280,360],["Av. 54","Cercanos",120,280],["Alto Cayma","Parte baja",120,180],["Alto Cayma","Parte alta H M Z K",45,90],["Embajada de Japón","",45,90],["Asoc. Mujeres con Esperanza","",60,90],["11 de Mayo","",60,90],["El Nazareno","",120,160],["Villa Magisterial","",60,100],["Villa Cerrillos","",40,80],["Asoc. Virgen de Chapi","",160,220],["Asoc. 1ro de Junio","",180,220],["Urb. Las Malvinas","",220,280],["La Tomilla","",380,420],["Carmen Alto","",580,720],["Acequialta","",420,580],["Dean Valdivia","",220,280],["Casimiro Cuadros","",260,320]],
+ "Yanahuara":[["Valle Chilina","Rural",90,140],["Asoc. La Gruta","Por Magnopata",680,790],["Res. Villa Yanahuara","",820,890],["Urb. San José","",920,990],["Yanahuara Tradicional","Patrimonio histórico",780,890],["Misti","",950,1100],["Quezada","",960,1000],["Víctor Andrés Belaúnde","",820,950],["Trinidad Morán","",850,1100],["Señor de la Caña","",580,650],["Ricardo Palma","",820,890],["Enmel","",850,950],["Av Ejército","",1100,1800],["Santa Cecilia","",790,880],["Primavera","",820,890],["Coop Víctor Andrés Belaúnde","",720,780],["Estadio de Umacollo","",720,780],["La Herrería","",680,720],["Parque del Avión","",780,820],["Piedra Santa","",780,820],["Pampita Zeballos","",680,780],["Urb Jardín","",890,950],["San Rafael","",920,990],["La Estancia","",860,920],["Primavera (2)","",780,820],["Magisterial","",800,880],["Taboada","",680,720],["Tahuaycani","",690,780],["Av. Francisco Bolognesi","",820,890],["León Velarde","",720,790]],
+ "José Luis Bustamante y Rivero":[["Quinta Lourdes","",600,640],["Cerro Juli","",420,550],["La Pampilla","",650,680],["Dolores","Comercial",950,1200],["Bancarios","",780,820],["Quinta Tristán","",800,850],["Club Huracán","",600,650],["Daniel Alcides Carreón","",780,820],["Av Andrés Avelino Cáceres","Comercial",860,920],["Av Estados Unidos","Comercial",820,890],["Colegio de Arquitectos","",680,720],["Satélite","",680,720],["Tasahuayo","",480,520],["Tasahuayo","Rural",45,60]],
+ "Hunter":[["UPIS por Mansión del Fundador","",320,380],["Jacobo Hunter","Residencial",380,420],["Villa Ponderosa","Con servicios",220,260],["Av. Paisajista","",180,210],["Alto Alianza / Sta Mónica","",160,210],["Pampas del Cuzco","",180,210],["Tingo Grande","",260,320]],
+ "Mollebaya":[["Los Molles","Residencial",55,70],["Pueblo - Estadio","Residencial",80,90],["Rústico","Con servicios",15,30],["Rural - Agrícola","",20,45],["Terreno eriazo","",7,12]],
+ "Paucarpata":[["Calle Colón","Residencial",390,420],["Manuel Prado","Residencial",640,680],["Alas Peruanas","Residencial",660,710],["Villa Porongoche","Residencial",480,520],["Rural - Agrícola","",20,45],["Terreno eriazo","",7,12]],
+ "Sachaca":[["Av. Fernandini","Residencial",520,560],["Arrayanes","Residencial",790,890],["Alto de Amados","Residencial",360,390],["El Dorado","Residencial",790,890],["Pampa de Camarones","",380,420],["Tahuaycani","",820,890],["Huaranguillo","",420,520],["Urb. San Agustín","",320,380],["Urb. El Palacio I","",940,1000],["Urb. El Palacio II","",860,920],["Urb. Los Sauces","",840,900]],
+ "Islay / Mollendo":[["Corredor Mollendo–Matarani (rústico/industrial)","Referencia indicada por David",10,15]],
+ "Genérico por sector (respaldo)":[["Sector A","Más cercano al centro",900,1200],["Sector B","",680,890],["Sector C","",480,660],["Sector D","",280,460],["Sector E","Más alejado",120,260]]
+};
+var ZONAS = [];
+Object.keys(DAVID).forEach(function(d){ DAVID[d].forEach(function(r){ ZONAS.push({dist:d,zona:r[0],det:r[1],lo:r[2],hi:r[3]}); }); });
+
+// ══════════════════════════════════════════
+// TABLA RNT (R.M. 172-2016-VIVIENDA)
+// ══════════════════════════════════════════
+var RNT = {
+ 5:{C:[0,5,10,55],L:[0,8,20,60],A:[5,15,30,65]},
+ 10:{C:[0,5,10,55],L:[3,11,23,63],A:[10,20,35,70]},
+ 15:{C:[3,8,13,58],L:[6,14,26,66],A:[15,25,40,75]},
+ 20:{C:[6,11,16,61],L:[9,17,29,69],A:[20,30,45,80]},
+ 25:{C:[9,14,19,64],L:[12,20,32,72],A:[25,35,50,85]},
+ 30:{C:[12,17,22,67],L:[15,23,35,75],A:[30,40,55,90]},
+ 35:{C:[15,20,25,70],L:[18,26,38,78],A:[35,45,60,null]},
+ 40:{C:[18,23,28,73],L:[21,29,41,81],A:[40,50,65,null]},
+ 45:{C:[21,26,31,76],L:[24,32,44,84],A:[45,55,70,null]},
+ 50:{C:[24,29,34,79],L:[27,35,47,87],A:[50,60,75,null]},
+ 55:{C:[27,32,37,82],L:[30,38,50,90],A:[55,65,80,null]}
+};
+function rntDep(age, mat, est){
+  var get=function(k){return RNT[k][mat][est];};
+  if(age>50) return get(55);
+  if(age<=5) return get(5);
+  var a1=Math.ceil(age/5)*5;
+  if(a1===age) return get(a1);
+  var a0=a1-5, v0=get(a0), v1=get(a1);
+  if(v0==null||v1==null) return null;
+  return v0+(v1-v0)*(age-a0)/5;
+}
+
+function nz(x){ x=parseFloat(x); return isFinite(x)?x:0; }
+function mid(z){ return (z.lo+z.hi)/2; }
+
+// ══════════════════════════════════════════
+// MOTOR DE CÁLCULO (función pura)
+// ══════════════════════════════════════════
+function calcular(i){
+  var r = {warns:[]};
+  var depto = i.tipo==='depto', casa=i.tipo==='casa', local=i.tipo==='local', terr=i.tipo==='terreno';
+  var f = depto ? 0.8 : 1;
+  var aL = i.aL;
+  if(!aL && (casa||local) && i.aT>i.aC) aL = i.aT - i.aC;
+  r.aL = aL;
+
+  /* Método 1 */
+  var s=0,n=0;
+  (i.comps||[]).forEach(function(c){ if(c.usar && c.precio>0 && c.area>0){ s+=c.precio/c.area; n++; } });
+  r.m1m2 = n? s/n : null;
+  var base = i.baseComp==='ocup' ? (i.aO||i.aC) : i.baseComp==='constr' ? i.aC : i.aT;
+  r.m1base = base;
+  r.m1 = (n && base>0) ? r.m1m2*base : null;
+  if(n && !(base>0)) r.warns.push('Método 1: falta el área sobre la cual aplicar el promedio de comparables.');
+
+  /* Método 2 */
+  r.m2 = null; r.d2 = null;
+  if(!terr){
+    if(i.aC>0 && i.vut2>0 && i.c>0){
+      var valConstr = i.aC*i.vut2*f + i.aC*i.c;
+      var depPct = 0;
+      if(i.depModo==='lineal') depPct = Math.min(i.antig*1, 100);
+      else if(i.depModo==='manual') depPct = i.depManual;
+      else {
+        var v = rntDep(i.antig, i.mat, i.est);
+        if(v==null){ depPct = i.depManual||0; r.warns.push('Tabla RNT: para este caso el perito fija el % (no tabulado). Ingresa un % manual o cambia a "Porcentaje manual".'); }
+        else depPct = v;
+      }
+      var depMonto = valConstr*depPct/100;
+      var edif = valConstr - depMonto;
+      var vLibre = aL*i.vut2*f, vCoch = i.aCo*i.vut2*f, vDep = i.aD*i.vut2*f;
+      var pre = edif + vLibre + vCoch + vDep;
+      var cast = depto ? (i.castigo||0) : 0;
+      var vc1 = pre*(1-cast/100);
+      var vc = vc1*(1-(i.otro||0)/100);
+      r.m2 = vc;
+      r.d2 = {f:f,valConstr:valConstr,depPct:depPct,depMonto:depMonto,edif:edif,vLibre:vLibre,vCoch:vCoch,vDep:vDep,pre:pre,cast:cast,castMonto:pre-vc1,otro:(i.otro||0),otroMonto:vc1-vc,vc:vc};
+    }
+  }
+
+  /* Método 3 */
+  r.m3 = null;
+  if(i.vut3>0){
+    if(terr){ if(i.aT>0) r.m3 = i.aT*i.vut3; }
+    else if(i.aC>0 && i.c>0){
+      var tEq = depto ? (i.aC+aL+i.aCo+i.aD) : (i.aT>0 ? i.aT : (i.aC+(aL||0)+i.aCo+i.aD));
+      r.m3 = tEq*i.vut3*f + i.aC*i.c;
+    }
+  }
+
+  /* Rango */
+  var vals=[];
+  if(r.m1!=null) vals.push({n:'Método 1 · Comparables',v:r.m1});
+  if(r.m2!=null) vals.push({n:'Método 2 · Reposición',v:r.m2});
+  if(r.m3!=null) vals.push({n:'Método 3 · Tabla Empresarios',v:r.m3});
+  r.vals = vals;
+  if(vals.length){
+    var mn=vals[0], mx=vals[0];
+    vals.forEach(function(x){ if(x.v<mn.v) mn=x; if(x.v>mx.v) mx=x; });
+    r.min=mn; r.max=mx;
+    r.prop=(mn.v+mx.v)/2;
+    r.pub=r.prop*1.05; r.real=r.prop*0.90;
+    if(vals.length===1) r.warns.push('Solo hay 1 método disponible: Mínimo = Máximo = Precio Propuesto. Agrega comparables o elige una zona de la tabla para tener rango.');
+    r.rec = [
+      {a:'Aumento 15%',p:r.prop*1.15,e:'10%'},
+      {a:'Aumento 10%',p:r.prop*1.10,e:'25%'},
+      {a:'Precio Recomendado',p:r.prop,e:'60%',hl:true},
+      {a:'Reducción 10%',p:r.prop*0.90,e:'75%'},
+      {a:'Reducción 15%',p:r.prop*0.85,e:'90%'}
+    ];
+  }
+  return r;
+}
+
+// ══════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════
+function $(id){return document.getElementById(id);}
+function fmt(n){ if(n==null||!isFinite(n)) return '—'; return 'US$ '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt0(n){ if(n==null||!isFinite(n)) return '—'; return 'US$ '+n.toLocaleString('en-US',{maximumFractionDigits:0}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+/* zonas */
+(function(){
+  var sel=$('p_zona'); var html='<option value="">— Zona no está en la tabla —</option>';
+  var cur=''; ZONAS.forEach(function(z,idx){
+    if(z.dist!==cur){ if(cur) html+='</optgroup>'; html+='<optgroup label="'+esc(z.dist)+'">'; cur=z.dist; }
+    html+='<option value="'+idx+'">'+esc(z.zona+(z.det?' — '+z.det:''))+' ($'+z.lo+'–'+z.hi+')</option>';
+  });
+  html+='</optgroup>'; sel.innerHTML=html;
+})();
+
+/* comparables */
+var compN=0;
+function addComp(ref,precio,area,det){
+  compN++; var id=compN;
+  var w=document.createElement('div'); w.className='row-comp'; w.id='cr_'+id;
+  w.innerHTML='<input id="cref_'+id+'" placeholder="https://… o referencia" value="'+esc(ref||'')+'">'+
+   '<input type="number" id="cpre_'+id+'" step="any" value="'+(precio||'')+'">'+
+   '<input type="number" id="car_'+id+'" step="any" value="'+(area||'')+'">'+
+   '<input id="cdet_'+id+'" placeholder="Ej. 4to piso" value="'+esc(det||'')+'">'+
+   '<div class="out"><label style="display:flex;gap:4px;align-items:center;margin:0;font-weight:500"><input type="checkbox" id="cus_'+id+'" checked style="width:auto"> <span id="cm2_'+id+'">—</span></label></div>'+
+   '<button class="rm" onclick="document.getElementById(\'cr_'+id+'\').remove();update();">×</button>';
+  $('comparables').appendChild(w);
+  w.addEventListener('input',update); w.addEventListener('change',update);
+}
+function readComps(){
+  var out=[];
+  for(var k=1;k<=compN;k++){
+    if(!$('cr_'+k)) continue;
+    out.push({id:k,ref:$('cref_'+k).value,precio:nz($('cpre_'+k).value),area:nz($('car_'+k).value),det:$('cdet_'+k).value,usar:$('cus_'+k).checked});
+  }
+  return out;
+}
+
+function acabadoValor(){ var v=$('p_acabado').value; return v==='custom'? nz($('p_acabadoCustom').value) : nz(v); }
+function zonaSel(){ var v=$('p_zona').value; return v===''? null : ZONAS[parseInt(v,10)]; }
+
+function readInput(){
+  var z=zonaSel(), sel=$('p_vutSel').value;
+  var vut3 = z ? (sel==='lo'?z.lo : sel==='hi'?z.hi : mid(z)) : null;
+  return {
+    tipo:$('p_tipo').value, subTerreno:$('p_subTerreno').value, aT:nz($('p_aTerreno').value), aC:nz($('p_aConstr').value), aO:nz($('p_aOcup').value),
+    aL:nz($('p_aLibre').value), aCo:nz($('p_aCoch').value), aD:nz($('p_aDep').value),
+    piso:nz($('p_piso').value), asc:$('p_asc').value, antig:nz($('p_antig').value),
+    c:acabadoValor(), vut2:nz($('p_vut').value), vut3:vut3,
+    depModo:$('p_depModo').value, mat:$('p_mat').value, est:parseInt($('p_est').value,10), depManual:nz($('p_depManual').value),
+    castigo:nz($('p_castigo').value), otro:nz($('p_otro').value),
+    comps:readComps(), baseComp:$('p_baseComp').value
+  };
+}
+
+var LAST=null;
+function update(){
+  var i=readInput(); var tipo=i.tipo;
+  document.querySelectorAll('[data-for]').forEach(function(el){
+    var ok=el.getAttribute('data-for').split(' ').indexOf(tipo)>-1;
+    el.classList.toggle('hidden',!ok);
+  });
+  $('lbl_aConstr').textContent = tipo==='depto' ? 'Área techada (m²)' : tipo==='local' ? 'Área construida del local (m²)' : 'Área construida (m²)';
+  $('wrap_acabadoCustom').classList.toggle('hidden', $('p_acabado').value!=='custom' || tipo==='terreno');
+  $('wrap_rnt').classList.toggle('hidden', $('p_depModo').value!=='rnt' || tipo==='terreno');
+  $('wrap_depManual').classList.toggle('hidden', $('p_depModo').value==='lineal' || tipo==='terreno');
+  var z=zonaSel();
+  $('o_rango').value = z ? ('US$ '+z.lo+' – '+z.hi+' /m²') : '';
+
+  var r=calcular(i); LAST={i:i,r:r};
+  i.comps.forEach(function(c){ $('cm2_'+c.id).textContent = (c.precio>0&&c.area>0)? ('$'+Math.round(c.precio/c.area)) : '—'; });
+  $('o_m1m2').textContent = r.m1m2!=null ? fmt(r.m1m2)+' /m²' : '—';
+  $('o_m1').textContent = fmt(r.m1);
+  $('o_m2').textContent = tipo==='terreno' ? 'No aplica (sin edificación)' : fmt(r.m2);
+  $('o_m3').textContent = z ? fmt(r.m3) : 'Pendiente (zona sin dato en la tabla)';
+  $('tag_m3').classList.toggle('off', !z);
+  $('tag_m2').classList.toggle('off', tipo==='terreno');
+  if(tipo!=='terreno' && r.aL!=null && !i.aL && r.aL>0) $('hint_libre').textContent='Calculada: terreno − construida = '+r.aL.toFixed(2)+' m²'; else $('hint_libre').textContent='';
+
+  /* detalle M2 */
+  var d=r.d2, dh='';
+  if(d){
+    var rows=[['Valor de construcción'+(tipo==='depto'?' (terreno al 80% + edificación)':' (terreno + edificación)'),d.valConstr],
+              ['Depreciación ('+d.depPct.toFixed(1)+'%)',-d.depMonto],
+              ['Valor edificación depreciada',d.edif]];
+    if(d.vLibre) rows.push(['Valor área libre',d.vLibre]);
+    if(d.vCoch) rows.push(['Valor cochera',d.vCoch]);
+    if(d.vDep) rows.push(['Valor depósito',d.vDep]);
+    if(d.cast) rows.push(['Castigo piso sin ascensor ('+d.cast+'%)',-d.castMonto]);
+    if(d.otro) rows.push(['Otro ajuste ('+d.otro+'%)',-d.otroMonto]);
+    rows.forEach(function(x){ dh+='<div class="sub-line"><span>'+x[0]+'</span><span>'+fmt(x[1])+'</span></div>'; });
+  }
+  $('det_m2').innerHTML=dh;
+
+  /* panel interno */
+  $('s_m1').textContent=fmt0(r.m1); $('s_m2').textContent=tipo==='terreno'?'n/a':fmt0(r.m2); $('s_m3').textContent=z?fmt0(r.m3):'pendiente';
+  $('s_min').textContent=r.min?fmt0(r.min.v):'—'; $('s_max').textContent=r.max?fmt0(r.max.v):'—';
+  $('s_minN').textContent=r.min?'('+r.min.n.split(' · ')[0].replace('Método ','M')+')':''; $('s_maxN').textContent=r.max?'('+r.max.n.split(' · ')[0].replace('Método ','M')+')':'';
+  $('s_prop').textContent=r.prop!=null?fmt(r.prop):'—';
+  $('s_pub').textContent=r.pub!=null?fmt0(r.pub):'—'; $('s_real').textContent=r.real!=null?fmt0(r.real):'—';
+  $('warns').innerHTML = r.warns.map(function(w){return '<div class="warn">'+esc(w)+'</div>';}).join('');
+}
+
+function onPisoChange(){
+  if($('p_tipo').value!=='depto') return;
+  var piso=nz($('p_piso').value), sinAsc=$('p_asc').value==='no';
+  var c=0; if(sinAsc){ if(piso===3) c=5; else if(piso>=4) c=10; }
+  $('p_castigo').value=c; update();
+}
+function onZonaChange(){
+  var z=zonaSel(); if(z) $('p_vut').value=Math.round(mid(z)*100)/100;
+  update();
+}
+function onTipoChange(){
+  var t=$('p_tipo').value;
+  $('p_baseComp').value = t==='terreno' ? 'terreno' : (t==='casa'||t==='local') ? 'terreno' : 'ocup';
+  update();
+}
+
+// ══════════════════════════════════════════
+// INFORME PARA EL CLIENTE
+// ══════════════════════════════════════════
+function generarInforme(){
+  update(); var i=LAST.i, r=LAST.r;
+  if(r.prop==null){ alert('Aún no hay ningún método con resultado. Completa áreas y datos de al menos un método.'); return; }
+  var tipoTxt={depto:'Departamento',casa:'Casa',local:'Local comercial',terreno:'Terreno'}[i.tipo];
+  var dir=$('p_dir').value||'—';
+  var desc=$('p_desc').value.trim();
+  if(!desc) desc = tipoTxt+' ubicado en '+dir+'.';
+  var kv=[];
+  if(i.tipo==='depto'){
+    if(i.aO) kv.push(['Área ocupada',i.aO+' m²']); if(i.aC) kv.push(['Área techada',i.aC+' m²']);
+    if(r.aL) kv.push(['Área libre',(Math.round(r.aL*100)/100)+' m²']);
+    if(i.aCo) kv.push(['Cochera',i.aCo+' m²']); if(i.aD) kv.push(['Depósito',i.aD+' m²']);
+    if(i.piso) kv.push(['Piso',i.piso+'° '+(i.asc==='no'?'(sin ascensor)':'(con ascensor)')]);
+  } else if(i.tipo==='casa'||i.tipo==='local'){
+    if(i.aT) kv.push(['Área de terreno',i.aT+' m²']); if(i.aC) kv.push(['Área construida',i.aC+' m²']);
+    if(r.aL) kv.push(['Área libre',(Math.round(r.aL*100)/100)+' m²']);
+    if(i.aCo) kv.push(['Cochera',i.aCo+' m²']); if(i.aD) kv.push(['Depósito',i.aD+' m²']);
+  } else { if(i.aT) kv.push(['Área de terreno',i.aT+' m²']); if(i.subTerreno) kv.push(['Clasificación',{urbano:'Urbano',rural:'Rural / Agrícola',eriazo:'Eriazo'}[i.subTerreno]||i.subTerreno]); }
+  if(i.tipo!=='terreno'){ if(i.antig) kv.push(['Antigüedad',i.antig+' años']); kv.push(['Acabados',$('p_acabado').options[$('p_acabado').selectedIndex].text.split(' — ')[0].replace('Otro valor…','Personalizado')]); }
+
+  var comps=i.comps.filter(function(c){return c.precio>0||c.ref;});
+  var compHtml='';
+  if(comps.length){
+    compHtml='<table class="grid"><tr><th style="text-align:left">Referencia</th><th>Precio</th><th>Área</th><th>Piso / Detalle</th></tr>'+
+      comps.map(function(c){
+        var ref = /^https?:\/\//i.test(c.ref) ? '<a href="'+esc(c.ref)+'" style="color:inherit">'+esc(c.ref.replace(/^https?:\/\/(www\.)?/,'').slice(0,60))+'</a>' : esc(c.ref||'—');
+        return '<tr><td>'+ref+'</td><td>'+(c.precio?fmt0(c.precio):'—')+'</td><td>'+(c.area?c.area+' m²':'—')+'</td><td>'+esc(c.det||'—')+'</td></tr>';
+      }).join('')+'</table>'+
+      (r.m1m2?'<p class="i-p" style="font-size:11px;color:var(--t3);margin-top:6px">Promedio de comparables considerados: '+fmt0(r.m1m2)+'/m².</p>':'');
+  } else compHtml='<p class="i-p">Sin comparables incorporados para este informe.</p>';
+
+  var justTxt='El precio propuesto refleja el análisis del mercado de propiedades similares en la zona'+(r.m2!=null?' y el costo técnico de reposición del inmueble':'')+(r.m3!=null?', contrastado con la base de valores por zona de Empresarios Inmobiliarios':'')+', considerando su ubicación'+(i.tipo!=='terreno'?', antigüedad y nivel de acabados':'')+(i.tipo==='depto'&&i.asc==='no'&&i.piso>=3?', así como la ausencia de ascensor en un piso alto':'')+'.';
+
+  var agenteNombre = $('p_agente').value || '—';
+
+  var PASOS=['Firma de autorización de venta con Empresarios Inmobiliarios.','Publicación en portales y redes con material fotográfico profesional.','Coordinación de visitas y filtrado de interesados.','Negociación y elaboración de propuesta de compra.','Firma de minuta y elevación a escritura pública.','Inscripción en SUNARP.'];
+  var CONS=['DNI vigente','Partida registral actualizada','Autoevalúo al día','Constancia de no adeudo predial/arbitrios','Planos de la propiedad','Declaración de impuesto a la renta por la venta (si aplica)','Comisión del agente','Declaración a SUNAT','Inscripción de escritura en SUNARP','Baja municipal de servicios','Cambio de nombre en servicios (luz, agua)'];
+
+  var html=
+   '<div class="i-brand">Empresarios <span>Inmobiliarios</span></div><div class="i-tag">Construimos Patrimonio con Conocimiento y Propósito</div>'+
+   '<div class="i-title">INFORME DE VALORIZACIÓN COMERCIAL</div><div class="i-sub">'+esc(dir)+'</div>'+
+   '<table class="kv"><tr><td>Propietario</td><td class="v">'+esc($('p_prop').value||'_____________')+'</td></tr><tr><td>Agente</td><td class="v">'+esc(agenteNombre)+'</td></tr><tr><td>Dirección</td><td class="v">'+esc(dir)+'</td></tr></table>'+
+   '<div class="i-h">1. Características de la propiedad</div><p class="i-p">'+esc(desc)+'</p>'+
+   '<table class="kv">'+kv.map(function(x){return '<tr><td>'+x[0]+'</td><td class="v">'+esc(x[1])+'</td></tr>';}).join('')+'</table>'+
+   '<div class="i-h">2. Análisis Comparativo de Mercado</div>'+compHtml+
+   '<div class="i-h">3. Precio Propuesto para su Propiedad</div>'+
+   '<div class="final-box"><span class="t">Precio Propuesto</span><span class="n">'+fmt(r.prop)+'</span></div>'+
+   '<div class="i-sub2">RECOMENDACIÓN</div>'+
+   '<table class="grid"><tr><th style="text-align:left">AJUSTE DE PRECIO</th><th>PRECIO</th><th>NIVEL DE EXPOSICIÓN</th></tr>'+
+   r.rec.map(function(x){return '<tr'+(x.hl?' class="hl"':'')+'><td>'+x.a+'</td><td>'+fmt(x.p)+'</td><td>'+x.e+'</td></tr>';}).join('')+'</table>'+
+   '<p class="i-p" style="margin-top:12px">Se recomienda salir al mercado a un precio de '+fmt(r.prop)+', para que la promoción llegue a un 60% y se tenga una mayor probabilidad de venta en un menor tiempo. De salir a precios más altos, el nivel de exposición será menor y la propiedad demorará más en venderse.</p>'+
+   '<p class="i-p">'+esc(justTxt)+'</p>'+
+   '<div class="i-h">4. ¿Cuáles son los pasos que siguen cuando comercializo mi propiedad?</div>'+
+   '<p class="i-p">'+PASOS.map(function(p,k){return (k+1)+'. '+esc(p);}).join('<br>')+'</p>'+
+   '<div class="i-h">5. ¿Qué debo considerar para vender mi propiedad?</div><p class="i-p">'+CONS.join('  ·  ')+'</p>'+
+   '<div class="disclaimer">Este informe presenta una estimación de valor comercial referencial, elaborada por Empresarios Inmobiliarios bajo su propia metodología de análisis técnico-financiero. No constituye una tasación oficial inscrita ante SUNARP ni reemplaza una tasación con fines bancarios o judiciales, las cuales requieren un perito tasador colegiado.</div>'+
+   '<div class="contact">Empresarios Inmobiliarios · Arequipa, Perú · 940 916 247 · contacto@empresariosinmobiliarios.com</div>';
+  $('sheet').innerHTML=html;
+  $('informe').style.display='block';
+  $('informe').scrollIntoView({behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+// RESUMEN INTERNO (texto para copiar)
+// ══════════════════════════════════════════
+function copiarInterno(){
+  update(); var i=LAST.i, r=LAST.r;
+  if(r.prop==null){ alert('Aún no hay resultados para copiar.'); return; }
+  var L=[]; var pad=function(a,b){ a=a+':'; while(a.length<30) a+=' '; return a+b; };
+  L.push('VALORIZACIÓN COMERCIAL — RESUMEN INTERNO');
+  L.push('Predio: '+({depto:'Departamento',casa:'Casa',local:'Local comercial',terreno:'Terreno'}[i.tipo])+' — '+($('p_dir').value||'—'));
+  L.push('Agente: '+($('p_agente').value||'—'));
+  L.push('------------------------------------------------');
+  if(r.m1!=null) L.push(pad('Método 1 · Comparables',fmt(r.m1)));
+  if(r.m2!=null){ var d=r.d2;
+    L.push(pad('Método 2 · Reposición',fmt(r.m2)));
+    L.push('   Valor de construcción: '+fmt(d.valConstr)); L.push('   Depreciación ('+d.depPct.toFixed(1)+'%): '+fmt(d.depMonto)); L.push('   Edificación depreciada: '+fmt(d.edif));
+    if(d.vLibre) L.push('   Área libre: '+fmt(d.vLibre)); if(d.vCoch) L.push('   Cochera: '+fmt(d.vCoch)); if(d.vDep) L.push('   Depósito: '+fmt(d.vDep));
+    if(d.cast) L.push('   Castigo piso s/ascensor ('+d.cast+'%): -'+fmt(d.castMonto));
+    if(d.otro) L.push('   Otro ajuste ('+d.otro+'%): -'+fmt(d.otroMonto)); }
+  if(r.m3!=null) L.push(pad('Método 3 · Tabla Empresarios',fmt(r.m3)));
+  else L.push(pad('Método 3 · Tabla Empresarios','pendiente (zona sin dato)'));
+  L.push('------------------------------------------------');
+  L.push(pad('Precio Mínimo ('+r.min.n.split(' · ')[0]+')',fmt(r.min.v)));
+  L.push(pad('Precio Máximo ('+r.max.n.split(' · ')[0]+')',fmt(r.max.v)));
+  L.push(pad('PRECIO PROPUESTO',fmt(r.prop)));
+  L.push(pad('Precio de Publicación (+5%)',fmt(r.pub)));
+  L.push(pad('Valor de Realización (-10%)',fmt(r.real)));
+  var t=L.join('\n');
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ alert('Resumen interno copiado.'); },function(){ prompt('Copia el texto:',t); });
+  else prompt('Copia el texto:',t);
+}
+
+// ══════════════════════════════════════════
+// EVENTOS
+// ══════════════════════════════════════════
+$('p_tipo').addEventListener('change',onTipoChange);
+$('p_subTerreno').addEventListener('change',update);
+$('p_zona').addEventListener('change',onZonaChange);
+['p_piso','p_asc'].forEach(function(id){ $(id).addEventListener('input',onPisoChange); $(id).addEventListener('change',onPisoChange); });
+document.querySelectorAll('.card input,.card select,.card textarea').forEach(function(el){
+  if(!el.id || ['p_tipo','p_zona','p_piso','p_asc'].indexOf(el.id)>-1) return;
+  el.addEventListener('input',update); el.addEventListener('change',update);
+});
+addComp(); addComp(); addComp();
+
+// ══════════════════════════════════════════
+// BÚSQUEDA AUTOMÁTICA CON IA (Claude API + Web Search)
+// ══════════════════════════════════════════
+function iaStatus(msg, isError){
+  var el=$('ia_status');
+  el.className = 'ia-status' + (isError?' error':'');
+  el.innerHTML = msg;
+}
+
+async function buscarComparables(){
+  if(!ANTHROPIC_KEY){ iaStatus('La API key no se ha cargado. Espera unos segundos o recarga la página.', true); return; }
+
+  var tipo = $('p_tipo').value;
+  var dir = $('p_dir').value.trim();
+  var z = zonaSel();
+  var zona = z ? (z.zona + (z.det ? ' — '+z.det : '') + ', ' + z.dist) : '';
+
+  if(!dir && !zona){ iaStatus('Ingresa una dirección o selecciona una zona para que la IA sepa dónde buscar.', true); return; }
+
+  var tipoTxt = {depto:'departamento',casa:'casa',local:'local comercial',terreno:'terreno'}[tipo];
+  var aC = nz($('p_aConstr').value);
+  var aT = nz($('p_aTerreno').value);
+  var areaRef = aC || aT;
+  var areaHint = areaRef ? ' de aproximadamente '+areaRef+' m²' : '';
+
+  var ubicacion = dir || '';
+  if(zona) ubicacion += (ubicacion ? ', zona ' : '') + zona;
+  ubicacion += ', Arequipa, Perú';
+
+  var prompt = 'Busca 5 propiedades comparables ('+tipoTxt+'s'+areaHint+') actualmente en venta en '+ubicacion+'. '+
+    'Busca en los portales peruanos Urbania (urbania.pe) y Nexo Inmobiliario (nexoinmobiliario.pe). También puedes buscar en adondevivir.com y olx.com.pe si no encuentras suficientes.\n\n'+
+    'Para cada propiedad encontrada devuelve:\n'+
+    '- link: URL completa del anuncio\n'+
+    '- precio: precio en US$ (si está en soles, convierte a USD usando TC 3.70)\n'+
+    '- area: área en m² (usa el área '+( tipo==='terreno'?'del terreno':'construida o techada')+')\n'+
+    '- detalle: una nota breve (ej. "3er piso, 2 dorm", "semi-nuevo", "esquina", etc.)\n\n'+
+    'IMPORTANTE: Responde EXCLUSIVAMENTE con un JSON array, sin texto adicional, sin markdown, sin explicaciones. Formato exacto:\n'+
+    '[{"link":"https://...","precio":85000,"area":120,"detalle":"..."}]\n\n'+
+    'Si no encuentras suficientes resultados exactos, incluye propiedades similares de la misma zona o zonas aledañas, indicándolo en el detalle. Si un precio está en soles, conviértelo. Si no encuentras ninguno, devuelve un array vacío [].';
+
+  var btn = $('btn_ia');
+  btn.disabled = true;
+  iaStatus('<span class="spinner"></span> Buscando comparables en Urbania, Nexo y otros portales…');
+
+  try {
+    var body = {
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 10 }],
+      messages: [{ role: "user", content: prompt }]
+    };
+
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if(!resp.ok){
+      var errText = await resp.text();
+      var errMsg = 'Error '+resp.status;
+      try { var ej=JSON.parse(errText); errMsg += ': '+(ej.error?.message||errText.slice(0,200)); } catch(e){ errMsg += ': '+errText.slice(0,200); }
+      iaStatus(errMsg, true);
+      return;
+    }
+
+    var data = await resp.json();
+
+    var fullText = '';
+    (data.content||[]).forEach(function(block){
+      if(block.type==='text') fullText += block.text;
+    });
+
+    var comps = null;
+    var jsonMatch = fullText.match(/\[[\s\S]*\]/);
+    if(jsonMatch){
+      try { comps = JSON.parse(jsonMatch[0]); } catch(e){}
+    }
+    if(!comps){
+      try { comps = JSON.parse(fullText.trim()); } catch(e){}
+    }
+
+    if(!comps || !Array.isArray(comps)){
+      iaStatus('La IA respondió pero no pude extraer los comparables. Respuesta:<br><pre style="font-size:11px;max-height:120px;overflow:auto;background:#fff;padding:6px;border-radius:3px;">'+esc(fullText.slice(0,1000))+'</pre>', true);
+      return;
+    }
+
+    if(comps.length===0){
+      iaStatus('La IA no encontró comparables para esta zona/tipo. Intenta con una dirección más específica o agrega manualmente.', true);
+      return;
+    }
+
+    var added = 0;
+    comps.forEach(function(c){
+      if(!c) return;
+      var link = c.link || c.url || '';
+      var precio = parseFloat(c.precio || c.price || 0);
+      var area = parseFloat(c.area || c.superficie || 0);
+      var det = c.detalle || c.detail || c.descripcion || '';
+      if(precio>0 || link){ addComp(link, precio||'', area||'', det); added++; }
+    });
+
+    if(added>0){
+      update();
+      iaStatus('Se encontraron <b>'+added+' comparables</b> y se agregaron a la tabla. Revisa los datos y desmarca los que no apliquen.');
+    } else {
+      iaStatus('La IA devolvió datos pero no se pudieron agregar comparables válidos.', true);
+    }
+
+  } catch(err){
+    var msg = err.message || String(err);
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')){
+      msg = 'No se pudo conectar al API. Verifica tu conexión a internet.';
+    }
+    iaStatus(msg, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
