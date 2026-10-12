@@ -123,6 +123,36 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
 .ia-results { margin-top:12px; padding:12px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; font-size:12px; color:#166534; }
 .ia-results.warn { background:#fef9c3; border-color:#fde047; color:#854d0e; }
 
+/* ══ ADMIN ZONAS ══ */
+.admin-btn { background:var(--r); color:#fff; border:1px solid var(--r); }
+.admin-btn:hover { background:var(--rd); }
+#admin-overlay { display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.55); align-items:center; justify-content:center; }
+#admin-overlay.show { display:flex; }
+.admin-modal { background:#fff; border-radius:12px; width:95vw; max-width:900px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.admin-header { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.admin-header h2 { font-family:'Playfair Display',serif; font-size:16px; margin:0; }
+.admin-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--t2); padding:4px 8px; }
+.admin-close:hover { color:var(--t1); }
+.admin-toolbar { padding:12px 22px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex-shrink:0; }
+.admin-toolbar input, .admin-toolbar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:'DM Sans',sans-serif; }
+.admin-toolbar input[type="text"] { width:200px; }
+.admin-toolbar input[type="number"] { width:90px; }
+.admin-body { overflow-y:auto; flex:1; padding:0; }
+.admin-body table { width:100%; border-collapse:collapse; font-size:12.5px; }
+.admin-body th { background:var(--s2); padding:8px 10px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--t2); position:sticky; top:0; z-index:1; border-bottom:1px solid var(--border); }
+.admin-body td { padding:7px 10px; border-bottom:1px solid var(--s3); color:var(--t1); }
+.admin-body tr:hover { background:var(--rl); }
+.admin-body .td-actions { display:flex; gap:6px; }
+.admin-body .abtn { background:none; border:1px solid var(--border); border-radius:4px; padding:3px 8px; font-size:11px; cursor:pointer; color:var(--t2); font-family:'DM Sans',sans-serif; }
+.admin-body .abtn:hover { border-color:var(--t2); color:var(--t1); }
+.admin-body .abtn.del { color:#c0392b; border-color:rgba(192,57,43,.3); }
+.admin-body .abtn.del:hover { background:rgba(192,57,43,.08); }
+.admin-footer { padding:12px 22px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.admin-footer .info { font-size:11px; color:var(--t3); }
+.admin-search { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; width:220px; font-family:'DM Sans',sans-serif; }
+/* inline edit */
+.admin-body td.editing input { width:100%; padding:4px 6px; border:1px solid var(--r); border-radius:4px; font-size:12px; font-family:'DM Sans',sans-serif; }
+
 /* ══ PRINT ══ */
 @media print {
   @page { size:A4; margin:14mm; }
@@ -183,6 +213,7 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   <div class="topbar-title">Calculadora de Valorización</div>
   <div class="topbar-right">
     <span class="topbar-user" id="topbar-user"></span>
+    <button class="topbar-btn admin-btn" id="btn-admin-zonas" style="display:none" onclick="abrirAdminZonas()">📐 Tabla de Precios</button>
     <button class="topbar-btn" onclick="window.location.href='index.html'">Sistema Principal</button>
     <button class="topbar-btn" onclick="cerrarSesion()">Salir</button>
   </div>
@@ -383,6 +414,48 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   </div>
 </div>
 </main>
+
+<!-- ════════ MODAL ADMIN ZONAS ════════ -->
+<div id="admin-overlay">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <h2>Administrar Tabla de Precios por Zona</h2>
+      <button class="admin-close" onclick="cerrarAdminZonas()">&times;</button>
+    </div>
+    <div class="admin-toolbar">
+      <input type="text" class="admin-search" id="admin-search" placeholder="Buscar zona o distrito…" oninput="filtrarTablaAdmin()">
+      <select id="admin-filtro-dist" onchange="filtrarTablaAdmin()" style="min-width:160px">
+        <option value="">Todos los distritos</option>
+      </select>
+      <div style="flex:1"></div>
+      <button class="btn primary" onclick="mostrarFormNuevo()" style="font-size:12px;padding:7px 14px;">+ Agregar zona</button>
+    </div>
+    <div id="admin-form-nuevo" style="display:none;padding:12px 22px;background:var(--s2);border-bottom:1px solid var(--border);">
+      <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+        <div class="field" style="margin:0;flex:1;min-width:140px;"><label style="font-size:10px;">Distrito</label><input id="nz_dist" list="dl_distritos" style="padding:6px 8px;font-size:12px;"></div>
+        <datalist id="dl_distritos"></datalist>
+        <div class="field" style="margin:0;flex:1;min-width:140px;"><label style="font-size:10px;">Zona</label><input id="nz_zona" style="padding:6px 8px;font-size:12px;"></div>
+        <div class="field" style="margin:0;flex:1;min-width:120px;"><label style="font-size:10px;">Detalle</label><input id="nz_det" style="padding:6px 8px;font-size:12px;"></div>
+        <div class="field" style="margin:0;width:90px;"><label style="font-size:10px;">Desde (US$)</label><input type="number" id="nz_min" step="any" style="padding:6px 8px;font-size:12px;"></div>
+        <div class="field" style="margin:0;width:90px;"><label style="font-size:10px;">Hasta (US$)</label><input type="number" id="nz_max" step="any" style="padding:6px 8px;font-size:12px;"></div>
+        <button class="btn primary" onclick="guardarNuevaZona()" style="font-size:11px;padding:7px 14px;">Guardar</button>
+        <button class="btn" onclick="document.getElementById('admin-form-nuevo').style.display='none'" style="font-size:11px;padding:7px 14px;">Cancelar</button>
+      </div>
+      <div id="nz_error" style="display:none;color:#c0392b;font-size:11px;margin-top:6px;"></div>
+    </div>
+    <div class="admin-body">
+      <table>
+        <thead><tr><th>Distrito</th><th>Zona</th><th>Detalle</th><th>Desde (US$/m²)</th><th>Hasta (US$/m²)</th><th>Acciones</th></tr></thead>
+        <tbody id="admin-tbody"></tbody>
+      </table>
+    </div>
+    <div class="admin-footer">
+      <span class="info" id="admin-count">Cargando…</span>
+      <span class="info" id="admin-status"></span>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main-app -->
 
 <script>
@@ -509,7 +582,7 @@ function mostrarErrorLogin(msg) {
   errDiv.style.display = 'block';
 }
 
-function activarApp() {
+async function activarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
 
@@ -518,7 +591,13 @@ function activarApp() {
   document.getElementById('p_agente').value = agente ? agente.nombre : (currentUser.email || '—');
   document.getElementById('topbar-user').textContent = agente ? agente.nombre : currentUser.email;
 
+  // Mostrar botón admin solo para editores
+  if (esEditorZonas()) {
+    document.getElementById('btn-admin-zonas').style.display = '';
+  }
+
   cargarApiKey();
+  await cargarZonasDesdeSupabase();
   onTipoChange();
 }
 
@@ -545,21 +624,228 @@ window.addEventListener('load', async () => {
 
 // ══════════════════════════════════════════
 // TABLA EMPRESARIOS (US$/m², Desde–Hasta)
+// Cargada dinámicamente desde Supabase (ei_zonas_precios)
 // ══════════════════════════════════════════
-var DAVID = {
- "Cerro Colorado":[["Av Aviación","Por Paris - Sodimac",860,920],["Av. Aviación","Por Zamacola",450,500],["Alto Libertad","Pachacútec",350,380],["Semi Rural Pachacútec","",320,350],["Variante de Uchumayo","Rural (agrícola)",50,80],["Variante de Uchumayo","Comercial",480,580],["Av Circunvalación","Por Camal Don Goyo",380,420],["José Luis B. y Rivero I y II","",180,220],["Ciudad Municipal","",180,220],["Ciudad de Dios","",90,120],["Apipa","",160,180],["Av. 54","",280,360],["Villa Las Canteras","",220,260],["Las Flores","",220,280],["Villa Magisterial","",90,120],["La Alborada","",120,180],["Virgen de Chapi","",60,90],["Río Seco","",280,320],["Peruarbo","",260,320],["Campo Verde","",760,820],["Zamacola","",420,480],["Alto Cural","Terreno eriazo",8,15],["Cural","Rústico",15,60],["Cural","Residencial",120,220],["Monte Bello","",720,800],["Urb Hacienda","",480,520],["Quinta Siena","",760,820],["La Alquería","S/ cambio de uso",640,700],["Aduca","",860,980],["Urb Sta Sofía","",680,720],["Urb. La Planicie de Challapampa","",800,920],["Challapampa","",990,1350],["Urb Colegio de Ingenieros","",820,980],["Urb. Las Buganvillas","",580,680],["Valle Blanco","",520,780],["Av Manuel Forga","",750,800],["El Cortijo","",720,780],["Cerro Viejo","",480,520],["Plaza las Américas","",840,990],["La Fonda","",820,920],["Michell","",800,880],["La Tejada","",780,820],["La Molina","",760,820]],
- "Cayma":[["Urb La Campiña","",1200,1350],["Valle Escondido","",920,1100],["Puerta del Sol","",820,960],["Los Delfines","",940,1000],["Urb San Antonio","",890,1000],["Urb Bello Horizonte","",890,960],["Av Bolognesi","Antes de la Plaza",1000,1150],["Los Ángeles","",920,1000],["La Encalada","",820,940],["Lari Lari","Urb. cerrada",760,890],["Av Lari Lari","Rural",30,45],["Los Portales","",780,860],["Calle Ramón Castilla","",780,820],["Calle Melgar","",820,890],["El Rosario","Por Asilo Lira",720,780],["Los Arces","En urb. privada",780,890],["Los Arces Boulevard","En urb. privada",960,1100],["Calle Los Arces","",800,980],["Santa Elisa","",920,1000],["Los Andenes del Valle de Cayma","",480,520],["Radio Azul","",230,250],["Av Chachani","Parte baja",220,280],["Av Chachani","Parte alta",120,180],["Fundo Cabrerías","",80,120],["La Catacora","",220,280],["Av. 54","",280,360],["Av. 54","Cercanos",120,280],["Alto Cayma","Parte baja",120,180],["Alto Cayma","Parte alta H M Z K",45,90],["Embajada de Japón","",45,90],["Asoc. Mujeres con Esperanza","",60,90],["11 de Mayo","",60,90],["El Nazareno","",120,160],["Villa Magisterial","",60,100],["Villa Cerrillos","",40,80],["Asoc. Virgen de Chapi","",160,220],["Asoc. 1ro de Junio","",180,220],["Urb. Las Malvinas","",220,280],["La Tomilla","",380,420],["Carmen Alto","",580,720],["Acequialta","",420,580],["Dean Valdivia","",220,280],["Casimiro Cuadros","",260,320]],
- "Yanahuara":[["Valle Chilina","Rural",90,140],["Asoc. La Gruta","Por Magnopata",680,790],["Res. Villa Yanahuara","",820,890],["Urb. San José","",920,990],["Yanahuara Tradicional","Patrimonio histórico",780,890],["Misti","",950,1100],["Quezada","",960,1000],["Víctor Andrés Belaúnde","",820,950],["Trinidad Morán","",850,1100],["Señor de la Caña","",580,650],["Ricardo Palma","",820,890],["Enmel","",850,950],["Av Ejército","",1100,1800],["Santa Cecilia","",790,880],["Primavera","",820,890],["Coop Víctor Andrés Belaúnde","",720,780],["Estadio de Umacollo","",720,780],["La Herrería","",680,720],["Parque del Avión","",780,820],["Piedra Santa","",780,820],["Pampita Zeballos","",680,780],["Urb Jardín","",890,950],["San Rafael","",920,990],["La Estancia","",860,920],["Primavera (2)","",780,820],["Magisterial","",800,880],["Taboada","",680,720],["Tahuaycani","",690,780],["Av. Francisco Bolognesi","",820,890],["León Velarde","",720,790]],
- "José Luis Bustamante y Rivero":[["Quinta Lourdes","",600,640],["Cerro Juli","",420,550],["La Pampilla","",650,680],["Dolores","Comercial",950,1200],["Bancarios","",780,820],["Quinta Tristán","",800,850],["Club Huracán","",600,650],["Daniel Alcides Carreón","",780,820],["Av Andrés Avelino Cáceres","Comercial",860,920],["Av Estados Unidos","Comercial",820,890],["Colegio de Arquitectos","",680,720],["Satélite","",680,720],["Tasahuayo","",480,520],["Tasahuayo","Rural",45,60]],
- "Hunter":[["UPIS por Mansión del Fundador","",320,380],["Jacobo Hunter","Residencial",380,420],["Villa Ponderosa","Con servicios",220,260],["Av. Paisajista","",180,210],["Alto Alianza / Sta Mónica","",160,210],["Pampas del Cuzco","",180,210],["Tingo Grande","",260,320]],
- "Mollebaya":[["Los Molles","Residencial",55,70],["Pueblo - Estadio","Residencial",80,90],["Rústico","Con servicios",15,30],["Rural - Agrícola","",20,45],["Terreno eriazo","",7,12]],
- "Paucarpata":[["Calle Colón","Residencial",390,420],["Manuel Prado","Residencial",640,680],["Alas Peruanas","Residencial",660,710],["Villa Porongoche","Residencial",480,520],["Rural - Agrícola","",20,45],["Terreno eriazo","",7,12]],
- "Sachaca":[["Av. Fernandini","Residencial",520,560],["Arrayanes","Residencial",790,890],["Alto de Amados","Residencial",360,390],["El Dorado","Residencial",790,890],["Pampa de Camarones","",380,420],["Tahuaycani","",820,890],["Huaranguillo","",420,520],["Urb. San Agustín","",320,380],["Urb. El Palacio I","",940,1000],["Urb. El Palacio II","",860,920],["Urb. Los Sauces","",840,900]],
- "Islay / Mollendo":[["Corredor Mollendo–Matarani (rústico/industrial)","Referencia indicada por David",10,15]],
- "Genérico por sector (respaldo)":[["Sector A","Más cercano al centro",900,1200],["Sector B","",680,890],["Sector C","",480,660],["Sector D","",280,460],["Sector E","Más alejado",120,260]]
-};
-var ZONAS = [];
-Object.keys(DAVID).forEach(function(d){ DAVID[d].forEach(function(r){ ZONAS.push({dist:d,zona:r[0],det:r[1],lo:r[2],hi:r[3]}); }); });
+var ZONAS = [];        // [{id, dist, zona, det, lo, hi}, ...]
+var ZONAS_RAW = [];    // copia completa de la BD
+var ZONAS_LOADED = false;
+
+// Usuarios con permiso de editar la tabla
+var EDITORS_ZONAS = ['zulema@ei.com', 'david@ei.com'];
+
+function esEditorZonas() {
+  return currentUser && EDITORS_ZONAS.indexOf(currentUser.email) >= 0;
+}
+
+async function cargarZonasDesdeSupabase() {
+  try {
+    var resp = await fetch(SB_URL + '/rest/v1/ei_zonas_precios?select=id,distrito,zona,detalle,precio_min,precio_max&order=distrito,zona', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
+    ZONAS_RAW = data;
+    ZONAS = data.map(function(r) {
+      return { id: r.id, dist: r.distrito, zona: r.zona, det: r.detalle || '', lo: Number(r.precio_min), hi: Number(r.precio_max) };
+    });
+    ZONAS_LOADED = true;
+    poblarSelectZonas();
+    console.log('[EI] ' + ZONAS.length + ' zonas cargadas desde Supabase');
+  } catch (err) {
+    console.error('[EI] Error cargando zonas:', err);
+    // Fallback: dejar ZONAS vacío, el agente puede escribir valores a mano
+    ZONAS = [];
+    ZONAS_LOADED = false;
+  }
+}
+
+function poblarSelectZonas() {
+  var sel = $('p_zona');
+  var html = '<option value="">— Zona no está en la tabla —</option>';
+  var cur = '';
+  ZONAS.forEach(function(z, idx) {
+    if (z.dist !== cur) { if (cur) html += '</optgroup>'; html += '<optgroup label="' + esc(z.dist) + '">'; cur = z.dist; }
+    html += '<option value="' + idx + '">' + esc(z.zona + (z.det ? ' — ' + z.det : '')) + ' ($' + z.lo + '–' + z.hi + ')</option>';
+  });
+  if (cur) html += '</optgroup>';
+  sel.innerHTML = html;
+}
+
+// ── Admin: CRUD de zonas ──
+function abrirAdminZonas() {
+  if (!esEditorZonas()) return;
+  document.getElementById('admin-overlay').classList.add('show');
+  renderTablaAdmin();
+  // Llenar datalist de distritos
+  var dists = []; ZONAS.forEach(function(z) { if (dists.indexOf(z.dist) < 0) dists.push(z.dist); });
+  var dlHtml = ''; dists.forEach(function(d) { dlHtml += '<option value="' + esc(d) + '">'; });
+  document.getElementById('dl_distritos').innerHTML = dlHtml;
+  // Filtro de distrito
+  var filtro = document.getElementById('admin-filtro-dist');
+  var fHtml = '<option value="">Todos los distritos</option>';
+  dists.forEach(function(d) { fHtml += '<option value="' + esc(d) + '">' + esc(d) + '</option>'; });
+  filtro.innerHTML = fHtml;
+}
+
+function cerrarAdminZonas() {
+  document.getElementById('admin-overlay').classList.remove('show');
+  document.getElementById('admin-form-nuevo').style.display = 'none';
+}
+
+function filtrarTablaAdmin() {
+  var q = document.getElementById('admin-search').value.toLowerCase().trim();
+  var dist = document.getElementById('admin-filtro-dist').value;
+  renderTablaAdmin(q, dist);
+}
+
+function renderTablaAdmin(q, distFiltro) {
+  var tbody = document.getElementById('admin-tbody');
+  var filtered = ZONAS.filter(function(z) {
+    if (distFiltro && z.dist !== distFiltro) return false;
+    if (q) {
+      var txt = (z.dist + ' ' + z.zona + ' ' + z.det).toLowerCase();
+      if (txt.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+  var html = '';
+  filtered.forEach(function(z, i) {
+    var idx = ZONAS.indexOf(z);
+    html += '<tr id="arow_' + z.id + '">';
+    html += '<td>' + esc(z.dist) + '</td>';
+    html += '<td>' + esc(z.zona) + '</td>';
+    html += '<td>' + esc(z.det) + '</td>';
+    html += '<td>$' + z.lo + '</td>';
+    html += '<td>$' + z.hi + '</td>';
+    html += '<td class="td-actions">';
+    html += '<button class="abtn" onclick="editarZonaInline(' + z.id + ')">Editar</button>';
+    html += '<button class="abtn del" onclick="eliminarZona(' + z.id + ')">Eliminar</button>';
+    html += '</td></tr>';
+  });
+  if (!filtered.length) html = '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px;">Sin resultados</td></tr>';
+  tbody.innerHTML = html;
+  document.getElementById('admin-count').textContent = filtered.length + ' de ' + ZONAS.length + ' zonas';
+}
+
+function mostrarFormNuevo() {
+  var form = document.getElementById('admin-form-nuevo');
+  form.style.display = 'block';
+  document.getElementById('nz_dist').value = '';
+  document.getElementById('nz_zona').value = '';
+  document.getElementById('nz_det').value = '';
+  document.getElementById('nz_min').value = '';
+  document.getElementById('nz_max').value = '';
+  document.getElementById('nz_error').style.display = 'none';
+  document.getElementById('nz_dist').focus();
+}
+
+async function guardarNuevaZona() {
+  var dist = document.getElementById('nz_dist').value.trim();
+  var zona = document.getElementById('nz_zona').value.trim();
+  var det = document.getElementById('nz_det').value.trim();
+  var min = parseFloat(document.getElementById('nz_min').value);
+  var max = parseFloat(document.getElementById('nz_max').value);
+  var errEl = document.getElementById('nz_error');
+
+  if (!dist || !zona || isNaN(min) || isNaN(max)) {
+    errEl.textContent = 'Distrito, zona y precios son obligatorios.';
+    errEl.style.display = 'block'; return;
+  }
+  if (min > max) {
+    errEl.textContent = '"Desde" no puede ser mayor que "Hasta".';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  adminStatus('Guardando…');
+
+  try {
+    var resp = await fetch(SB_URL + '/rest/v1/ei_zonas_precios', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ distrito: dist, zona: zona, detalle: det, precio_min: min, precio_max: max })
+    });
+    if (!resp.ok) throw new Error('Error ' + resp.status);
+    document.getElementById('admin-form-nuevo').style.display = 'none';
+    adminStatus('Zona agregada ✓');
+    await cargarZonasDesdeSupabase();
+    renderTablaAdmin();
+  } catch (err) {
+    errEl.textContent = 'Error al guardar: ' + err.message;
+    errEl.style.display = 'block';
+    adminStatus('');
+  }
+}
+
+function editarZonaInline(id) {
+  var z = ZONAS.find(function(x) { return x.id === id; });
+  if (!z) return;
+  var tr = document.getElementById('arow_' + id);
+  if (!tr) return;
+  tr.innerHTML =
+    '<td class="editing"><input id="ez_dist_' + id + '" value="' + esc(z.dist) + '" list="dl_distritos"></td>' +
+    '<td class="editing"><input id="ez_zona_' + id + '" value="' + esc(z.zona) + '"></td>' +
+    '<td class="editing"><input id="ez_det_' + id + '" value="' + esc(z.det) + '"></td>' +
+    '<td class="editing"><input type="number" id="ez_min_' + id + '" value="' + z.lo + '" step="any"></td>' +
+    '<td class="editing"><input type="number" id="ez_max_' + id + '" value="' + z.hi + '" step="any"></td>' +
+    '<td class="td-actions">' +
+      '<button class="abtn" onclick="guardarEdicion(' + id + ')">Guardar</button>' +
+      '<button class="abtn" onclick="renderTablaAdmin()">Cancelar</button>' +
+    '</td>';
+  document.getElementById('ez_dist_' + id).focus();
+}
+
+async function guardarEdicion(id) {
+  var dist = document.getElementById('ez_dist_' + id).value.trim();
+  var zona = document.getElementById('ez_zona_' + id).value.trim();
+  var det = document.getElementById('ez_det_' + id).value.trim();
+  var min = parseFloat(document.getElementById('ez_min_' + id).value);
+  var max = parseFloat(document.getElementById('ez_max_' + id).value);
+
+  if (!dist || !zona || isNaN(min) || isNaN(max)) { alert('Distrito, zona y precios son obligatorios.'); return; }
+  if (min > max) { alert('"Desde" no puede ser mayor que "Hasta".'); return; }
+  adminStatus('Actualizando…');
+
+  try {
+    var resp = await fetch(SB_URL + '/rest/v1/ei_zonas_precios?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ distrito: dist, zona: zona, detalle: det, precio_min: min, precio_max: max })
+    });
+    if (!resp.ok) throw new Error('Error ' + resp.status);
+    adminStatus('Actualizado ✓');
+    await cargarZonasDesdeSupabase();
+    renderTablaAdmin(document.getElementById('admin-search').value.toLowerCase().trim(), document.getElementById('admin-filtro-dist').value);
+  } catch (err) {
+    alert('Error al actualizar: ' + err.message);
+    adminStatus('');
+  }
+}
+
+async function eliminarZona(id) {
+  var z = ZONAS.find(function(x) { return x.id === id; });
+  if (!z) return;
+  if (!confirm('¿Eliminar "' + z.zona + ' — ' + z.dist + '"?\nEsta acción no se puede deshacer.')) return;
+  adminStatus('Eliminando…');
+
+  try {
+    var resp = await fetch(SB_URL + '/rest/v1/ei_zonas_precios?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!resp.ok) throw new Error('Error ' + resp.status);
+    adminStatus('Eliminado ✓');
+    await cargarZonasDesdeSupabase();
+    renderTablaAdmin(document.getElementById('admin-search').value.toLowerCase().trim(), document.getElementById('admin-filtro-dist').value);
+  } catch (err) {
+    alert('Error al eliminar: ' + err.message);
+    adminStatus('');
+  }
+}
+
+function adminStatus(msg) {
+  document.getElementById('admin-status').textContent = msg;
+  if (msg) setTimeout(function() { var el = document.getElementById('admin-status'); if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
 
 // ══════════════════════════════════════════
 // TABLA RNT (R.M. 172-2016-VIVIENDA)
@@ -678,15 +964,7 @@ function fmt(n){ if(n==null||!isFinite(n)) return '—'; return 'US$ '+n.toLocal
 function fmt0(n){ if(n==null||!isFinite(n)) return '—'; return 'US$ '+n.toLocaleString('en-US',{maximumFractionDigits:0}); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
-/* zonas */
-(function(){
-  var sel=$('p_zona'); var html='<option value="">— Zona no está en la tabla —</option>';
-  var cur=''; ZONAS.forEach(function(z,idx){
-    if(z.dist!==cur){ if(cur) html+='</optgroup>'; html+='<optgroup label="'+esc(z.dist)+'">'; cur=z.dist; }
-    html+='<option value="'+idx+'">'+esc(z.zona+(z.det?' — '+z.det:''))+' ($'+z.lo+'–'+z.hi+')</option>';
-  });
-  html+='</optgroup>'; sel.innerHTML=html;
-})();
+/* zonas — se cargan en activarApp() desde Supabase */
 
 /* comparables */
 var compN=0;
@@ -899,7 +1177,7 @@ document.querySelectorAll('.card input,.card select,.card textarea').forEach(fun
   if(!el.id || ['p_tipo','p_zona','p_piso','p_asc'].indexOf(el.id)>-1) return;
   el.addEventListener('input',update); el.addEventListener('change',update);
 });
-addComp(); addComp(); addComp();
+addComp(); addComp(); addComp(); addComp(); addComp();
 
 // ══════════════════════════════════════════
 // BÚSQUEDA AUTOMÁTICA CON IA (Claude API + Web Search)
@@ -930,13 +1208,14 @@ async function buscarComparables(){
   if(zona) ubicacion += (ubicacion ? ', zona ' : '') + zona;
   ubicacion += ', Arequipa, Perú';
 
-  var prompt = 'Busca 5 propiedades comparables ('+tipoTxt+'s'+areaHint+') actualmente en venta en '+ubicacion+'. '+
-    'Busca en los portales peruanos Urbania (urbania.pe) y Nexo Inmobiliario (nexoinmobiliario.pe). También puedes buscar en adondevivir.com y olx.com.pe si no encuentras suficientes.\n\n'+
+  var prompt = 'Busca entre 5 y 10 propiedades comparables ('+tipoTxt+'s'+areaHint+') actualmente en venta en '+ubicacion+'. '+
+    'Busca en TODOS estos portales peruanos, uno por uno: Urbania (urbania.pe), Nexo Inmobiliario (nexoinmobiliario.pe), adondevivir.com y olx.com.pe. Haz múltiples búsquedas en cada portal para maximizar resultados.\n\n'+
+    'OBJETIVO: Encontrar mínimo 5, idealmente 10 comparables. Mientras más, mejor. Si en una zona no hay suficientes, amplía a zonas aledañas.\n\n'+
     'Para cada propiedad encontrada devuelve:\n'+
     '- link: URL completa del anuncio\n'+
     '- precio: precio en US$ (si está en soles, convierte a USD usando TC 3.70)\n'+
     '- area: área en m² (usa el área '+( tipo==='terreno'?'del terreno':'construida o techada')+')\n'+
-    '- detalle: una nota breve (ej. "3er piso, 2 dorm", "semi-nuevo", "esquina", etc.)\n\n'+
+    '- detalle: una nota breve (ej. "3er piso, 2 dorm", "semi-nuevo", "esquina", "zona aledaña: X", etc.)\n\n'+
     'IMPORTANTE: Responde EXCLUSIVAMENTE con un JSON array, sin texto adicional, sin markdown, sin explicaciones. Formato exacto:\n'+
     '[{"link":"https://...","precio":85000,"area":120,"detalle":"..."}]\n\n'+
     'Si no encuentras suficientes resultados exactos, incluye propiedades similares de la misma zona o zonas aledañas, indicándolo en el detalle. Si un precio está en soles, conviértelo. Si no encuentras ninguno, devuelve un array vacío [].';
@@ -949,7 +1228,7 @@ async function buscarComparables(){
     var body = {
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 4096,
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 10 }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 20 }],
       messages: [{ role: "user", content: prompt }]
     };
 
