@@ -319,14 +319,9 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   <!-- 3. M2 -->
   <div class="card">
     <h2>3. Reposición <span class="tag" id="tag_m2">MÉTODO 2</span></h2>
-    <p class="desc">El agente selecciona la zona y nivel de acabado; la calculadora aplica las fórmulas automáticamente. Depto: terreno al 80%. Casa/Local: 100%. Cochera y depósito se valoran como terreno, sin depreciar.</p>
+    <p class="desc">Costo de reposición: terreno (valor del m² desde comparables) + edificación (CAPECO) − depreciación. Depto: terreno al 80%.</p>
     <div class="grid3">
-      <div class="field">
-        <label>Zona (Tabla Empresarios)</label>
-        <select id="p_zona"></select>
-        <div class="hint">Si la zona no está (ej. Tacna, Camaná), déjala vacía y escribe el valor de terreno a mano.</div>
-      </div>
-      <div class="field"><label>Valor terreno US$/m² (Método 2)</label><input type="number" id="p_vut" step="any"><div class="hint">Se autocompleta con el punto medio de la zona; editable.</div></div>
+      <div class="field"><label>Valor terreno US$/m²</label><input type="number" id="p_vut" step="any"><div class="hint" id="hint_vut">Se toma del promedio de comparables (M1). Editable.</div></div>
       <div class="field" data-for="depto casa">
         <label>Depreciación</label>
         <select id="p_depModo">
@@ -335,6 +330,7 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
           <option value="manual">Porcentaje manual</option>
         </select>
       </div>
+      <div class="field" data-for="depto"><label>Castigo piso sin ascensor (%)</label><input type="number" id="p_castigo" step="any" value="0"><div class="hint">Auto: 3er piso = 5%, 4to o más = 10% (editable).</div></div>
     </div>
     <div class="grid3 hidden" id="wrap_rnt">
       <div class="field"><label>Material estructural</label>
@@ -346,11 +342,6 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
       <div class="field"></div>
     </div>
     <div class="field hidden" id="wrap_depManual"><label>Depreciación manual (%)</label><input type="number" id="p_depManual" step="any"></div>
-    <div class="grid3" data-for="depto casa">
-      <div class="field" data-for="depto"><label>Castigo piso sin ascensor (%)</label><input type="number" id="p_castigo" step="any" value="0"><div class="hint">Auto: 3er piso = 5%, 4to o más = 10% (editable).</div></div>
-      <div class="field"><label>Otro ajuste a la baja (%)</label><input type="number" id="p_otro" step="any" value="0"></div>
-      <div class="field"></div>
-    </div>
     <div id="det_m2"></div>
     <div class="sub-line"><span><b>Valor Comercial (Método 2)</b></span><b class="v" id="o_m2">—</b></div>
   </div>
@@ -358,12 +349,21 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   <!-- 4. M3 -->
   <div class="card">
     <h2>4. Tabla Empresarios <span class="tag" id="tag_m3">MÉTODO 3</span></h2>
-    <p class="desc">Terreno según la zona de la tabla EI + construcción por nivel de acabado, sin depreciar. Solo se calcula si elegiste una zona de la tabla.</p>
+    <p class="desc">Terreno según la tabla de precios EI + construcción por nivel de acabado, sin depreciar. Solo se calcula si elegiste una zona.</p>
     <div class="grid3">
-      <div class="field"><label>Valor de terreno a tomar</label>
-        <select id="p_vutSel"><option value="lo">Desde (piso)</option><option value="mid" selected>Punto medio</option><option value="hi">Hasta (techo)</option></select>
+      <div class="field">
+        <label>Zona / Urbanización</label>
+        <select id="p_zona"></select>
+        <div class="hint">Si la zona no está (ej. Tacna, Camaná), déjala vacía.</div>
       </div>
-      <div class="field"><label>Rango de la zona</label><input id="o_rango" readonly placeholder="—"></div>
+      <div class="field"><label>Valor del m² a usar</label>
+        <select id="p_vutSel"><option value="lo">Mínimo de la zona</option><option value="mid" selected>Promedio de la zona</option><option value="hi">Máximo de la zona</option></select>
+      </div>
+      <div class="field"><label>Rango de la zona</label><input id="o_rango" readonly placeholder="—"><div class="hint" id="hint_vut3"></div></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Otro ajuste a la baja (%)</label><input type="number" id="p_otro" step="any" value="0"><div class="hint">Ajuste manual sobre el valor final del Método 3.</div></div>
+      <div class="field"></div>
       <div class="field"></div>
     </div>
     <div class="sub-line"><span><b>Valor Método 3</b></span><b class="v" id="o_m3">—</b></div>
@@ -665,7 +665,7 @@ function poblarSelectZonas() {
   var cur = '';
   ZONAS.forEach(function(z, idx) {
     if (z.dist !== cur) { if (cur) html += '</optgroup>'; html += '<optgroup label="' + esc(z.dist) + '">'; cur = z.dist; }
-    html += '<option value="' + idx + '">' + esc(z.zona + (z.det ? ' — ' + z.det : '')) + ' ($' + z.lo + '–' + z.hi + ')</option>';
+    html += '<option value="' + idx + '">' + esc(z.zona + (z.det ? ' — ' + z.det : '')) + '</option>';
   });
   if (cur) html += '</optgroup>';
   sel.innerHTML = html;
@@ -915,21 +915,22 @@ function calcular(i){
       var vLibre = aL*i.vut2*f, vCoch = i.aCo*i.vut2*f, vDep = i.aD*i.vut2*f;
       var pre = edif + vLibre + vCoch + vDep;
       var cast = depto ? (i.castigo||0) : 0;
-      var vc1 = pre*(1-cast/100);
-      var vc = vc1*(1-(i.otro||0)/100);
+      var vc = pre*(1-cast/100);
       r.m2 = vc;
-      r.d2 = {f:f,valConstr:valConstr,depPct:depPct,depMonto:depMonto,edif:edif,vLibre:vLibre,vCoch:vCoch,vDep:vDep,pre:pre,cast:cast,castMonto:pre-vc1,otro:(i.otro||0),otroMonto:vc1-vc,vc:vc};
+      r.d2 = {f:f,valConstr:valConstr,depPct:depPct,depMonto:depMonto,edif:edif,vLibre:vLibre,vCoch:vCoch,vDep:vDep,pre:pre,cast:cast,castMonto:pre-vc,vc:vc};
     }
   }
 
   /* Método 3 */
   r.m3 = null;
   if(i.vut3>0){
-    if(terr){ if(i.aT>0) r.m3 = i.aT*i.vut3; }
+    var m3raw = null;
+    if(terr){ if(i.aT>0) m3raw = i.aT*i.vut3; }
     else if(i.aC>0 && i.c>0){
       var tEq = depto ? (i.aC+aL+i.aCo+i.aD) : (i.aT>0 ? i.aT : (i.aC+(aL||0)+i.aCo+i.aD));
-      r.m3 = tEq*i.vut3*f + i.aC*i.c;
+      m3raw = tEq*i.vut3*f + i.aC*i.c;
     }
+    if(m3raw!=null) r.m3 = m3raw*(1-(i.otro3||0)/100);
   }
 
   /* Rango */
@@ -1001,14 +1002,16 @@ function readInput(){
     piso:nz($('p_piso').value), asc:$('p_asc').value, antig:nz($('p_antig').value),
     c:acabadoValor(), vut2:nz($('p_vut').value), vut3:vut3,
     depModo:$('p_depModo').value, mat:$('p_mat').value, est:parseInt($('p_est').value,10), depManual:nz($('p_depManual').value),
-    castigo:nz($('p_castigo').value), otro:nz($('p_otro').value),
+    castigo:nz($('p_castigo').value), otro3:nz($('p_otro').value),
     comps:readComps(), baseComp:$('p_baseComp').value
   };
 }
 
 var LAST=null;
 function update(){
-  var i=readInput(); var tipo=i.tipo;
+  var tipo=$('p_tipo').value;
+
+  // Visibilidad de campos según tipo
   document.querySelectorAll('[data-for]').forEach(function(el){
     var ok=el.getAttribute('data-for').split(' ').indexOf(tipo)>-1;
     el.classList.toggle('hidden',!ok);
@@ -1017,9 +1020,35 @@ function update(){
   $('wrap_acabadoCustom').classList.toggle('hidden', $('p_acabado').value!=='custom' || tipo==='terreno');
   $('wrap_rnt').classList.toggle('hidden', $('p_depModo').value!=='rnt' || tipo==='terreno');
   $('wrap_depManual').classList.toggle('hidden', $('p_depModo').value==='lineal' || tipo==='terreno');
+
+  // M3: mostrar rango y valor seleccionado
   var z=zonaSel();
   $('o_rango').value = z ? ('US$ '+z.lo+' – '+z.hi+' /m²') : '';
+  if(z){
+    var sel=$('p_vutSel').value;
+    var v3 = sel==='lo'?z.lo : sel==='hi'?z.hi : mid(z);
+    $('hint_vut3').textContent = 'Valor seleccionado: US$ '+v3.toFixed(0)+' /m²';
+  } else { $('hint_vut3').textContent = ''; }
 
+  // Auto-llenar M2 terreno desde promedio de comparables (ANTES de readInput)
+  var vutField = $('p_vut');
+  var tempComps = readComps();
+  var cs=0,cn=0;
+  tempComps.forEach(function(c){ if(c.usar && c.precio>0 && c.area>0){ cs+=c.precio/c.area; cn++; } });
+  var compAvg = cn ? cs/cn : null;
+  if(compAvg!=null){
+    var autoVal = Math.round(compAvg*100)/100;
+    if(!nz(vutField.value) || vutField.dataset.autoFrom==='comp'){
+      vutField.value = autoVal;
+      vutField.dataset.autoFrom = 'comp';
+    }
+    $('hint_vut').textContent = 'Promedio de comparables: US$ '+compAvg.toFixed(2)+'/m². Editable.';
+  } else {
+    $('hint_vut').textContent = 'Ingresa manualmente o busca comparables (M1).';
+  }
+
+  // Leer inputs y calcular
+  var i=readInput();
   var r=calcular(i); LAST={i:i,r:r};
   i.comps.forEach(function(c){ $('cm2_'+c.id).textContent = (c.precio>0&&c.area>0)? ('$'+Math.round(c.precio/c.area)) : '—'; });
   $('o_m1m2').textContent = r.m1m2!=null ? fmt(r.m1m2)+' /m²' : '—';
@@ -1040,7 +1069,6 @@ function update(){
     if(d.vCoch) rows.push(['Valor cochera',d.vCoch]);
     if(d.vDep) rows.push(['Valor depósito',d.vDep]);
     if(d.cast) rows.push(['Castigo piso sin ascensor ('+d.cast+'%)',-d.castMonto]);
-    if(d.otro) rows.push(['Otro ajuste ('+d.otro+'%)',-d.otroMonto]);
     rows.forEach(function(x){ dh+='<div class="sub-line"><span>'+x[0]+'</span><span>'+fmt(x[1])+'</span></div>'; });
   }
   $('det_m2').innerHTML=dh;
@@ -1061,7 +1089,6 @@ function onPisoChange(){
   $('p_castigo').value=c; update();
 }
 function onZonaChange(){
-  var z=zonaSel(); if(z) $('p_vut').value=Math.round(mid(z)*100)/100;
   update();
 }
 function onTipoChange(){
@@ -1151,8 +1178,7 @@ function copiarInterno(){
     L.push(pad('Método 2 · Reposición',fmt(r.m2)));
     L.push('   Valor de construcción: '+fmt(d.valConstr)); L.push('   Depreciación ('+d.depPct.toFixed(1)+'%): '+fmt(d.depMonto)); L.push('   Edificación depreciada: '+fmt(d.edif));
     if(d.vLibre) L.push('   Área libre: '+fmt(d.vLibre)); if(d.vCoch) L.push('   Cochera: '+fmt(d.vCoch)); if(d.vDep) L.push('   Depósito: '+fmt(d.vDep));
-    if(d.cast) L.push('   Castigo piso s/ascensor ('+d.cast+'%): -'+fmt(d.castMonto));
-    if(d.otro) L.push('   Otro ajuste ('+d.otro+'%): -'+fmt(d.otroMonto)); }
+    if(d.cast) L.push('   Castigo piso s/ascensor ('+d.cast+'%): -'+fmt(d.castMonto)); }
   if(r.m3!=null) L.push(pad('Método 3 · Tabla Empresarios',fmt(r.m3)));
   else L.push(pad('Método 3 · Tabla Empresarios','pendiente (zona sin dato)'));
   L.push('------------------------------------------------');
@@ -1172,6 +1198,8 @@ function copiarInterno(){
 $('p_tipo').addEventListener('change',onTipoChange);
 $('p_subTerreno').addEventListener('change',update);
 $('p_zona').addEventListener('change',onZonaChange);
+$('p_vutSel').addEventListener('change',update);
+$('p_vut').addEventListener('input',function(){ this.dataset.autoFrom=''; });
 ['p_piso','p_asc'].forEach(function(id){ $(id).addEventListener('input',onPisoChange); $(id).addEventListener('change',onPisoChange); });
 document.querySelectorAll('.card input,.card select,.card textarea').forEach(function(el){
   if(!el.id || ['p_tipo','p_zona','p_piso','p_asc'].indexOf(el.id)>-1) return;
