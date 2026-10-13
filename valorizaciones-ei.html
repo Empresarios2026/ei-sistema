@@ -229,7 +229,15 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
     <div class="grid3">
       <div class="field"><label>Propietario</label><input id="p_prop" placeholder="(en blanco si no se tiene)"></div>
       <div class="field"><label>Agente</label><input id="p_agente" readonly></div>
-      <div class="field"><label>Dirección / ubicación</label><input id="p_dir" placeholder="Ej. Av. Pumacahua, Cerro Colorado"></div>
+      <div class="field"><label>Dirección</label><input id="p_dir" placeholder="Av. Pumacahua 301, Urb. Los Álamos"></div>
+    </div>
+    <div class="grid3">
+      <div class="field">
+        <label>Distrito</label>
+        <select id="p_distrito"><option value="">— Seleccionar —</option></select>
+      </div>
+      <div class="field"><label>Provincia</label><input id="p_provincia" value="Arequipa"></div>
+      <div class="field"><label>Departamento</label><input id="p_depto_ubi" value="Arequipa"></div>
     </div>
     <div class="grid3">
       <div class="field">
@@ -660,15 +668,34 @@ async function cargarZonasDesdeSupabase() {
 }
 
 function poblarSelectZonas() {
+  // Poblar dropdown de distritos en Datos de Propiedad
+  var dists = []; ZONAS.forEach(function(z){ if(dists.indexOf(z.dist)<0) dists.push(z.dist); });
+  var dSel = $('p_distrito');
+  var dHtml = '<option value="">— Seleccionar —</option>';
+  dists.forEach(function(d){ dHtml += '<option value="'+esc(d)+'">'+esc(d)+'</option>'; });
+  dSel.innerHTML = dHtml;
+
+  // Poblar zonas en M3 (filtrado por distrito seleccionado)
+  filtrarZonasPorDistrito();
+}
+
+function filtrarZonasPorDistrito(){
+  var distSel = $('p_distrito').value;
   var sel = $('p_zona');
+  var prev = sel.value;
   var html = '<option value="">— Zona no está en la tabla —</option>';
   var cur = '';
   ZONAS.forEach(function(z, idx) {
+    if(distSel && z.dist !== distSel) return; // filtrar si hay distrito
     if (z.dist !== cur) { if (cur) html += '</optgroup>'; html += '<optgroup label="' + esc(z.dist) + '">'; cur = z.dist; }
     html += '<option value="' + idx + '">' + esc(z.zona + (z.det ? ' — ' + z.det : '')) + '</option>';
   });
   if (cur) html += '</optgroup>';
   sel.innerHTML = html;
+  // Restaurar selección si sigue visible
+  if(prev) sel.value = prev;
+  if(sel.value !== prev) sel.value = '';
+  update();
 }
 
 // ── Admin: CRUD de zonas ──
@@ -1104,7 +1131,8 @@ function generarInforme(){
   update(); var i=LAST.i, r=LAST.r;
   if(r.prop==null){ alert('Aún no hay ningún método con resultado. Completa áreas y datos de al menos un método.'); return; }
   var tipoTxt={depto:'Departamento',casa:'Casa',local:'Local comercial',terreno:'Terreno'}[i.tipo];
-  var dir=$('p_dir').value||'—';
+  var dirParts = [$('p_dir').value, $('p_distrito').value, $('p_provincia').value, $('p_depto_ubi').value].filter(function(v){return v&&v.trim();});
+  var dir = dirParts.join(', ') || '—';
   var desc=$('p_desc').value.trim();
   if(!desc) desc = tipoTxt+' ubicado en '+dir+'.';
   var kv=[];
@@ -1170,7 +1198,8 @@ function copiarInterno(){
   if(r.prop==null){ alert('Aún no hay resultados para copiar.'); return; }
   var L=[]; var pad=function(a,b){ a=a+':'; while(a.length<30) a+=' '; return a+b; };
   L.push('VALORIZACIÓN COMERCIAL — RESUMEN INTERNO');
-  L.push('Predio: '+({depto:'Departamento',casa:'Casa',local:'Local comercial',terreno:'Terreno'}[i.tipo])+' — '+($('p_dir').value||'—'));
+  var dirCopy = [$('p_dir').value, $('p_distrito').value, $('p_provincia').value, $('p_depto_ubi').value].filter(function(v){return v&&v.trim();}).join(', ') || '—';
+  L.push('Predio: '+({depto:'Departamento',casa:'Casa',local:'Local comercial',terreno:'Terreno'}[i.tipo])+' — '+dirCopy);
   L.push('Agente: '+($('p_agente').value||'—'));
   L.push('------------------------------------------------');
   if(r.m1!=null) L.push(pad('Método 1 · Comparables',fmt(r.m1)));
@@ -1197,6 +1226,7 @@ function copiarInterno(){
 // ══════════════════════════════════════════
 $('p_tipo').addEventListener('change',onTipoChange);
 $('p_subTerreno').addEventListener('change',update);
+$('p_distrito').addEventListener('change',filtrarZonasPorDistrito);
 $('p_zona').addEventListener('change',onZonaChange);
 $('p_vutSel').addEventListener('change',update);
 $('p_vut').addEventListener('input',function(){ this.dataset.autoFrom=''; });
@@ -1221,10 +1251,13 @@ async function buscarComparables(){
 
   var tipo = $('p_tipo').value;
   var dir = $('p_dir').value.trim();
+  var distrito = $('p_distrito').value;
+  var provincia = $('p_provincia').value.trim() || 'Arequipa';
+  var departamento = $('p_depto_ubi').value.trim() || 'Arequipa';
   var z = zonaSel();
   var zona = z ? (z.zona + (z.det ? ' — '+z.det : '') + ', ' + z.dist) : '';
 
-  if(!dir && !zona){ iaStatus('Ingresa una dirección o selecciona una zona para que la IA sepa dónde buscar.', true); return; }
+  if(!dir && !distrito && !zona){ iaStatus('Ingresa una dirección o selecciona un distrito para que la IA sepa dónde buscar.', true); return; }
 
   var tipoTxt = {depto:'departamento',casa:'casa',local:'local comercial',terreno:'terreno'}[tipo];
   var aC = nz($('p_aConstr').value);
@@ -1232,9 +1265,14 @@ async function buscarComparables(){
   var areaRef = aC || aT;
   var areaHint = areaRef ? ' de aproximadamente '+areaRef+' m²' : '';
 
-  var ubicacion = dir || '';
-  if(zona) ubicacion += (ubicacion ? ', zona ' : '') + zona;
-  ubicacion += ', Arequipa, Perú';
+  var partes = [];
+  if(dir) partes.push(dir);
+  if(distrito) partes.push(distrito);
+  else if(zona) partes.push('zona ' + zona);
+  partes.push(provincia);
+  if(departamento !== provincia) partes.push(departamento);
+  partes.push('Perú');
+  var ubicacion = partes.join(', ');
 
   var prompt = 'Busca entre 5 y 10 propiedades comparables ('+tipoTxt+'s'+areaHint+') actualmente en venta en '+ubicacion+'. '+
     'Busca en TODOS estos portales peruanos, uno por uno: Urbania (urbania.pe), Nexo Inmobiliario (nexoinmobiliario.pe), adondevivir.com y olx.com.pe. Haz múltiples búsquedas en cada portal para maximizar resultados.\n\n'+
