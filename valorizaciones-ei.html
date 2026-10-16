@@ -1235,7 +1235,7 @@ document.querySelectorAll('.card input,.card select,.card textarea').forEach(fun
   if(!el.id || ['p_tipo','p_zona','p_piso','p_asc'].indexOf(el.id)>-1) return;
   el.addEventListener('input',update); el.addEventListener('change',update);
 });
-addComp(); addComp(); addComp(); addComp(); addComp();
+addComp(); addComp(); addComp();
 
 // ══════════════════════════════════════════
 // BÚSQUEDA AUTOMÁTICA CON IA (Claude API + Web Search)
@@ -1343,6 +1343,16 @@ async function buscarComparables(){
       return;
     }
 
+    /* Limpiar filas vacías existentes antes de insertar resultados */
+    var existentes = readComps();
+    var filasConDato = [];
+    existentes.forEach(function(c){
+      if(c.ref || c.precio>0 || c.area>0 || c.det) filasConDato.push(c);
+    });
+    /* Limpiar toda la tabla y reconstruir */
+    $('comparables').innerHTML = '';
+    compN = 0;
+    /* Primero: resultados de IA */
     var added = 0;
     comps.forEach(function(c){
       if(!c) return;
@@ -1352,6 +1362,12 @@ async function buscarComparables(){
       var det = c.detalle || c.detail || c.descripcion || '';
       if(precio>0 || link){ addComp(link, precio||'', area||'', det); added++; }
     });
+    /* Segundo: filas que ya tenían datos manuales */
+    filasConDato.forEach(function(c){
+      addComp(c.ref, c.precio||'', c.area||'', c.det);
+    });
+    /* Tercero: 3 filas vacías al final para agregar manualmente */
+    addComp(); addComp(); addComp();
 
     if(added>0){
       update();
