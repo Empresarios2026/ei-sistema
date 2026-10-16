@@ -418,46 +418,31 @@ td:first-child { color:var(--t1); font-weight:500; }
 
   <div class="nav-scroll">
   <div class="nav-section">
-    <div class="nav-label">Principal</div>
     <div class="nav-item active" onclick="showPage('dashboard', this)">
       <div class="icon">📊</div> Dashboard
     </div>
     <div class="nav-item" onclick="showPage('captacion', this)">
-      <div class="icon">🏠</div> Captación
-    </div>
-
-    <div class="nav-item" onclick="showPage('equipo', this)">
-      <div class="icon">👥</div> Equipo
-    </div>
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-label">Contenido</div>
-    <div class="nav-item" onclick="showPage('redes', this)" style="display:none;">
-      <div class="icon">📱</div> Redes Sociales
+      <div class="icon">🏠</div> Captación de Propiedades
     </div>
     <div class="nav-item" onclick="showPage('requerimientos', this)">
       <div class="icon">📢</div> Requerimientos
     </div>
-
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-label">CRM</div>
-    <div class="nav-item" onclick="showPage('crm', this); crmRender()">
-      <div class="icon">🎯</div> Contactos
+    <div class="nav-item" onclick="window.location.href='valorizaciones-ei.html'">
+      <div class="icon">📐</div> Valorizaciones
     </div>
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-label">Datos</div>
-    <!-- Base de Datos: se inserta dinámicamente solo para admin -->
-    <div id="nav-base-datos-placeholder"></div>
     <div class="nav-item" onclick="showPage('contratos', this); initContratos()">
       <div class="icon">📋</div> Contratos
     </div>
-    <div class="nav-item" onclick="window.location.href='valorizaciones-ei.html'">
-      <div class="icon">📐</div> Valorizaciones
+    <div class="nav-item" onclick="showPage('crm', this); crmRender()">
+      <div class="icon">🎯</div> CRM
+    </div>
+    <div class="nav-item" onclick="showPage('equipo', this)">
+      <div class="icon">👥</div> Gestión del Equipo
+    </div>
+    <!-- Base de Datos: se inserta dinámicamente solo para Zulema -->
+    <div id="nav-base-datos-placeholder"></div>
+    <div class="nav-item" onclick="showPage('redes', this)" style="display:none;">
+      <div class="icon">📱</div> Redes Sociales
     </div>
   </div>
   </div><!-- /nav-scroll -->
@@ -626,7 +611,7 @@ td:first-child { color:var(--t1); font-weight:500; }
               <div class="step-tool">🏠 Genera ficha en segundos</div>
             </div>
           </div>
-          <div class="step" onclick="showPage('requerimientos', document.querySelectorAll('.nav-item')[2])" style="cursor:pointer">
+          <div class="step" onclick="showPage('requerimientos', document.querySelectorAll('.nav-item')[2]); closeMobileMenu()" style="cursor:pointer">
             <div class="step-num">02</div>
             <div class="step-content">
               <div class="step-title">Requerimientos</div>
@@ -642,7 +627,7 @@ td:first-child { color:var(--t1); font-weight:500; }
               <div class="step-tool">📐 3 métodos de valorización</div>
             </div>
           </div>
-          <div class="step" onclick="showPage('equipo', document.querySelectorAll('.nav-item')[3])" style="cursor:pointer">
+          <div class="step" onclick="showPage('equipo', document.querySelectorAll('.nav-item')[6])" style="cursor:pointer">
             <div class="step-num">04</div>
             <div class="step-content">
               <div class="step-title">Gestión del Equipo</div>
