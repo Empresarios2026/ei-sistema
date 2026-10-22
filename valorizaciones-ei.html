@@ -327,9 +327,9 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   <!-- 3. M2 -->
   <div class="card">
     <h2>3. Reposición <span class="tag" id="tag_m2">MÉTODO 2</span></h2>
-    <p class="desc">Costo de reposición: terreno (valor del m² desde comparables) + edificación (CAPECO) − depreciación. Depto: terreno al 80%.</p>
+    <p class="desc">Costo de reposición: terreno (valor del m² de terreno en la zona) + edificación (CAPECO) − depreciación. Depto: terreno al 80%.</p>
     <div class="grid3">
-      <div class="field"><label>Valor terreno US$/m²</label><input type="number" id="p_vut" step="any"><div class="hint" id="hint_vut">Se toma del promedio de comparables (M1). Editable.</div></div>
+      <div class="field"><label>Valor terreno US$/m²</label><input type="number" id="p_vut" step="any"><div class="hint" id="hint_vut">Para terrenos: se toma de comparables. Para depto/casa: se toma de la tabla de zonas. Editable.</div></div>
       <div class="field" data-for="depto casa">
         <label>Depreciación</label>
         <select id="p_depModo">
@@ -1057,21 +1057,44 @@ function update(){
     $('hint_vut3').textContent = 'Valor seleccionado: US$ '+v3.toFixed(0)+' /m²';
   } else { $('hint_vut3').textContent = ''; }
 
-  // Auto-llenar M2 terreno desde promedio de comparables (ANTES de readInput)
+  // Auto-llenar M2 terreno: solo desde comparables si el tipo es TERRENO.
+  // Para depto/casa/local, el valor de terreno viene de la tabla de zonas (M3) o se ingresa manual.
   var vutField = $('p_vut');
   var tempComps = readComps();
   var cs=0,cn=0;
   tempComps.forEach(function(c){ if(c.usar && c.precio>0 && c.area>0){ cs+=c.precio/c.area; cn++; } });
   var compAvg = cn ? cs/cn : null;
-  if(compAvg!=null){
-    var autoVal = Math.round(compAvg*100)/100;
-    if(!nz(vutField.value) || vutField.dataset.autoFrom==='comp'){
-      vutField.value = autoVal;
-      vutField.dataset.autoFrom = 'comp';
+
+  if(tipo==='terreno'){
+    // Para terrenos: los comparables SÍ reflejan valor de terreno
+    if(compAvg!=null){
+      var autoVal = Math.round(compAvg*100)/100;
+      if(!nz(vutField.value) || vutField.dataset.autoFrom==='comp'){
+        vutField.value = autoVal;
+        vutField.dataset.autoFrom = 'comp';
+      }
+      $('hint_vut').textContent = 'Promedio de comparables (terrenos): US$ '+compAvg.toFixed(2)+'/m². Editable.';
+    } else {
+      $('hint_vut').textContent = 'Ingresa manualmente o busca comparables (M1).';
     }
-    $('hint_vut').textContent = 'Promedio de comparables: US$ '+compAvg.toFixed(2)+'/m². Editable.';
   } else {
-    $('hint_vut').textContent = 'Ingresa manualmente o busca comparables (M1).';
+    // Para depto/casa/local: los comparables NO son valor de terreno.
+    // Usar valor de la tabla de zonas como referencia si está disponible.
+    var z2 = zonaSel();
+    if(z2 && (!nz(vutField.value) || vutField.dataset.autoFrom==='comp' || vutField.dataset.autoFrom==='zona') && vutField.dataset.autoFrom!=='ia_terreno'){
+      var sel2 = $('p_vutSel') ? $('p_vutSel').value : 'mid';
+      var vZona = sel2==='lo'?z2.lo : sel2==='hi'?z2.hi : mid(z2);
+      vutField.value = Math.round(vZona*100)/100;
+      vutField.dataset.autoFrom = 'zona';
+      $('hint_vut').textContent = 'Tomado de tabla de zonas (terreno): US$ '+vZona.toFixed(0)+'/m². Editable.';
+    } else if(!nz(vutField.value)){
+      $('hint_vut').textContent = 'Ingresa el valor del TERRENO en esta zona (no el del '+tipoTxt+'). Puedes referirte a la tabla de zonas (M3).';
+    } else {
+      $('hint_vut').textContent = 'Valor de terreno ingresado manualmente. Editable.';
+    }
+    // Limpiar auto-from de comparables si estaba seteado incorrectamente
+    // Pero respetar si vino de búsqueda de terrenos (ia_terreno)
+    if(vutField.dataset.autoFrom==='comp'){ vutField.value=''; vutField.dataset.autoFrom=''; }
   }
 
   // Leer inputs y calcular
@@ -1274,17 +1297,24 @@ async function buscarComparables(){
   partes.push('Perú');
   var ubicacion = partes.join(', ');
 
-  var prompt = 'Busca entre 5 y 10 propiedades comparables ('+tipoTxt+'s'+areaHint+') actualmente en venta en '+ubicacion+'. '+
-    'Busca en TODOS estos portales peruanos, uno por uno: Urbania (urbania.pe), Nexo Inmobiliario (nexoinmobiliario.pe), adondevivir.com y olx.com.pe. Haz múltiples búsquedas en cada portal para maximizar resultados.\n\n'+
-    'OBJETIVO: Encontrar mínimo 5, idealmente 10 comparables. Mientras más, mejor. Si en una zona no hay suficientes, amplía a zonas aledañas.\n\n'+
+  var filtroTipo = '';
+  if(tipo==='terreno') filtroTipo = 'SOLO terrenos (lotes, parcelas, terrenos urbanos o rústicos). NO incluyas casas, departamentos ni locales comerciales. Filtra en los portales por categoría "terreno" o "lote".';
+  else if(tipo==='depto') filtroTipo = 'SOLO departamentos (flats, pisos). NO incluyas casas, terrenos ni locales comerciales. Filtra en los portales por categoría "departamento".';
+  else if(tipo==='casa') filtroTipo = 'SOLO casas. NO incluyas departamentos, terrenos ni locales comerciales. Filtra en los portales por categoría "casa".';
+  else if(tipo==='local') filtroTipo = 'SOLO locales comerciales (oficinas, tiendas). NO incluyas casas, departamentos ni terrenos. Filtra en los portales por categoría "local" o "comercial".';
+
+  var prompt = 'Busca entre 5 y 10 propiedades comparables de tipo '+tipoTxt+areaHint+' actualmente en venta en '+ubicacion+'.\n\n'+
+    'FILTRO OBLIGATORIO: '+filtroTipo+'\n\n'+
+    'Busca en TODOS estos portales peruanos, uno por uno: Urbania (urbania.pe), Nexo Inmobiliario (nexoinmobiliario.pe), adondevivir.com y olx.com.pe. Haz múltiples búsquedas en cada portal para maximizar resultados. Usa palabras clave que incluyan "'+tipoTxt+'" junto con la ubicación.\n\n'+
+    'OBJETIVO: Encontrar mínimo 5, idealmente 10 comparables del MISMO tipo ('+tipoTxt+'). Mientras más, mejor. Si en una zona no hay suficientes, amplía a zonas aledañas pero NUNCA cambies el tipo de propiedad.\n\n'+
     'Para cada propiedad encontrada devuelve:\n'+
     '- link: URL completa del anuncio\n'+
     '- precio: precio en US$ (si está en soles, convierte a USD usando TC 3.70)\n'+
     '- area: área en m² (usa el área '+( tipo==='terreno'?'del terreno':'construida o techada')+')\n'+
-    '- detalle: una nota breve (ej. "3er piso, 2 dorm", "semi-nuevo", "esquina", "zona aledaña: X", etc.)\n\n'+
+    '- detalle: una nota breve (ej. '+(tipo==='terreno'?'"esquina", "habilitación urbana", "con servicios"':'"3er piso, 2 dorm", "semi-nuevo", "esquina"')+', "zona aledaña: X", etc.)\n\n'+
     'IMPORTANTE: Responde EXCLUSIVAMENTE con un JSON array, sin texto adicional, sin markdown, sin explicaciones. Formato exacto:\n'+
     '[{"link":"https://...","precio":85000,"area":120,"detalle":"..."}]\n\n'+
-    'Si no encuentras suficientes resultados exactos, incluye propiedades similares de la misma zona o zonas aledañas, indicándolo en el detalle. Si un precio está en soles, conviértelo. Si no encuentras ninguno, devuelve un array vacío [].';
+    'Descarta cualquier resultado que NO sea '+tipoTxt+'. Si no encuentras suficientes resultados exactos, incluye propiedades similares (mismo tipo) de zonas aledañas, indicándolo en el detalle. Si un precio está en soles, conviértelo. Si no encuentras ninguno, devuelve un array vacío [].';
 
   var btn = $('btn_ia');
   btn.disabled = true;
@@ -1371,9 +1401,78 @@ async function buscarComparables(){
 
     if(added>0){
       update();
-      iaStatus('Se encontraron <b>'+added+' comparables</b> y se agregaron a la tabla. Revisa los datos y desmarca los que no apliquen.');
+      iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). Revisa los datos y desmarca los que no apliquen.'+(tipo!=='terreno'?' Buscando valor de terreno para M2…':''));
     } else {
       iaStatus('La IA devolvió datos pero no se pudieron agregar comparables válidos.', true);
+    }
+
+    /* === BÚSQUEDA ADICIONAL: valor de terreno para M2 (solo si NO es terreno) === */
+    if(tipo!=='terreno'){
+      try {
+        var promptTerr = 'Busca entre 3 y 5 TERRENOS (lotes) actualmente en venta en '+ubicacion+'.\n\n'+
+          'FILTRO OBLIGATORIO: SOLO terrenos, lotes o parcelas. NO incluyas casas, departamentos ni locales.\n\n'+
+          'Busca en: Urbania (urbania.pe), Nexo Inmobiliario (nexoinmobiliario.pe), adondevivir.com. Usa palabras clave "terreno" o "lote" junto con la ubicación.\n\n'+
+          'OBJETIVO: Obtener el precio promedio del m² de TERRENO en esta zona para usarlo como referencia en el método de reposición.\n\n'+
+          'Para cada terreno encontrado devuelve:\n'+
+          '- precio: precio en US$ (si está en soles, convierte usando TC 3.70)\n'+
+          '- area: área del terreno en m²\n\n'+
+          'IMPORTANTE: Responde EXCLUSIVAMENTE con un JSON array, sin texto adicional:\n'+
+          '[{"precio":85000,"area":120}]\n\n'+
+          'Descarta cualquier resultado que NO sea terreno. Si no encuentras, devuelve [].';
+
+        var bodyTerr = {
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 2048,
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 10 }],
+          messages: [{ role: "user", content: promptTerr }]
+        };
+
+        var respTerr = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_KEY,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify(bodyTerr)
+        });
+
+        if(respTerr.ok){
+          var dataTerr = await respTerr.json();
+          var txtTerr = '';
+          (dataTerr.content||[]).forEach(function(b){ if(b.type==='text') txtTerr += b.text; });
+          var terrComps = null;
+          var jm2 = txtTerr.match(/\[[\s\S]*\]/);
+          if(jm2){ try { terrComps = JSON.parse(jm2[0]); } catch(e){} }
+          if(!terrComps){ try { terrComps = JSON.parse(txtTerr.trim()); } catch(e){} }
+
+          if(terrComps && Array.isArray(terrComps) && terrComps.length>0){
+            var st=0, nt=0;
+            terrComps.forEach(function(t){
+              var p = parseFloat(t.precio||t.price||0);
+              var a = parseFloat(t.area||t.superficie||0);
+              if(p>0 && a>0){ st += p/a; nt++; }
+            });
+            if(nt>0){
+              var avgTerr = Math.round(st/nt*100)/100;
+              var vutField2 = $('p_vut');
+              vutField2.value = avgTerr;
+              vutField2.dataset.autoFrom = 'ia_terreno';
+              $('hint_vut').textContent = 'Valor de terreno estimado por IA: US$ '+avgTerr.toFixed(0)+'/m² (promedio de '+nt+' terrenos encontrados). Editable.';
+              update();
+              iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s) + valor de terreno para M2: <b>US$ '+avgTerr.toFixed(0)+'/m²</b> (de '+nt+' terrenos en la zona).');
+            } else {
+              iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). No se pudo estimar valor de terreno — se usará la tabla de zonas si está disponible.');
+            }
+          } else {
+            iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). No se encontraron terrenos en la zona para M2 — usa la tabla de zonas o ingresa manualmente.');
+          }
+        }
+      } catch(e2){
+        // Si falla la búsqueda de terrenos, no afecta la búsqueda principal
+        console.log('Búsqueda de terrenos para M2 falló:', e2);
+      }
     }
 
   } catch(err){
