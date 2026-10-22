@@ -927,6 +927,9 @@ function calcular(i){
   /* Método 2 */
   r.m2 = null; r.d2 = null;
   if(!terr){
+    if(!(i.aC>0)) r.warns.push('Método 2: falta el área construida para calcular reposición.');
+    if(!(i.vut2>0)) r.warns.push('Método 2: falta el valor de terreno US$/m² para calcular reposición.');
+    if(!(i.c>0)) r.warns.push('Método 2: falta seleccionar el nivel de acabados (CAPECO) para calcular reposición.');
     if(i.aC>0 && i.vut2>0 && i.c>0){
       var valConstr = i.aC*i.vut2*f + i.aC*i.c;
       var depPct = 0;
@@ -1260,6 +1263,23 @@ document.querySelectorAll('.card input,.card select,.card textarea').forEach(fun
 });
 addComp(); addComp(); addComp();
 
+// Fallback: si la búsqueda de terrenos no da resultado, usar tabla de zonas para M2
+function usarZonaComoFallbackM2(added, tipoTxt){
+  var z2 = zonaSel();
+  if(z2){
+    var sel2 = $('p_vutSel') ? $('p_vutSel').value : 'mid';
+    var vZona = sel2==='lo'?z2.lo : sel2==='hi'?z2.hi : mid(z2);
+    var vutField2 = $('p_vut');
+    vutField2.value = Math.round(vZona*100)/100;
+    vutField2.dataset.autoFrom = 'zona';
+    $('hint_vut').textContent = 'Valor de terreno (tabla de zonas): US$ '+vZona.toFixed(0)+'/m². Editable.';
+    update();
+    iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). Valor de terreno para M2 tomado de la tabla de zonas: <b>US$ '+vZona.toFixed(0)+'/m²</b>.');
+  } else {
+    iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). No se encontró valor de terreno — ingresa manualmente el US$/m² de terreno para M2.');
+  }
+}
+
 // ══════════════════════════════════════════
 // BÚSQUEDA AUTOMÁTICA CON IA (Claude API + Web Search)
 // ══════════════════════════════════════════
@@ -1463,10 +1483,12 @@ async function buscarComparables(){
               update();
               iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s) + valor de terreno para M2: <b>US$ '+avgTerr.toFixed(0)+'/m²</b> (de '+nt+' terrenos en la zona).');
             } else {
-              iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). No se pudo estimar valor de terreno — se usará la tabla de zonas si está disponible.');
+              // Fallback: usar tabla de zonas
+              usarZonaComoFallbackM2(added, tipoTxt);
             }
           } else {
-            iaStatus('Se encontraron <b>'+added+' comparables</b> ('+tipoTxt+'s). No se encontraron terrenos en la zona para M2 — usa la tabla de zonas o ingresa manualmente.');
+            // Fallback: usar tabla de zonas
+            usarZonaComoFallbackM2(added, tipoTxt);
           }
         }
       } catch(e2){
