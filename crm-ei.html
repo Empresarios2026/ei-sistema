@@ -282,7 +282,12 @@ table.tbl tr.row:hover { background:var(--rl); }
   <div class="modal-bg" id="m-nuevo">
     <div class="modal">
       <div class="m-head"><div class="m-title">+ Nuevo contacto</div><button class="m-x" onclick="cerrarModal('m-nuevo')">✕</button></div>
-      <div class="field"><label>Nombre completo</label><input id="n-nombre" placeholder="Ej: María Zegarra"></div>
+      <div class="field"><label>Nombres</label><input id="n-nombres" placeholder="Ej: Michell" oninput="hintNuevo()"></div>
+      <div class="grid2">
+        <div class="field"><label>Apellido paterno</label><input id="n-paterno" placeholder="Ej: Corrales" oninput="hintNuevo()"></div>
+        <div class="field"><label>Apellido materno</label><input id="n-materno" placeholder="Ej: Valdivia" oninput="hintNuevo()"></div>
+      </div>
+      <div class="hint" id="n-dtd2hint" style="margin:-6px 0 12px;"></div>
       <div class="field"><label>Contacto (WhatsApp / email)</label><input id="n-contacto" placeholder="Ej: 999 123 456"></div>
       <div class="grid2">
         <div class="field"><label>Operación</label><select id="n-operacion"></select></div>
@@ -303,6 +308,14 @@ table.tbl tr.row:hover { background:var(--rl); }
           <option value="7">En 1 semana</option><option value="14">En 2 semanas</option>
         </select>
       </div>
+      <div class="field"><label>Etiquetas</label>
+        <div id="nt-lista"></div>
+        <div class="tag-add">
+          <select id="nt-cat" onchange="poblarNuevoTagValores()" style="flex:1;"></select>
+          <select id="nt-val" style="flex:1;"></select>
+          <button class="btn small" type="button" onclick="agregarNuevoTag()">+</button>
+        </div>
+      </div>
       <div class="field"><label>Notas iniciales</label><textarea id="n-notas" placeholder="Qué busca, observaciones…"></textarea></div>
       <div style="display:flex;gap:10px;margin-top:6px;">
         <button class="btn primary" style="flex:1" id="n-guardar" onclick="guardarNuevo()">Guardar contacto</button>
@@ -321,7 +334,12 @@ table.tbl tr.row:hover { background:var(--rl); }
       <div class="det-grid">
         <div>
           <div class="sec-t">Datos del contacto</div>
-          <div class="field"><label>Nombre</label><input id="d-nombre"></div>
+          <div class="field"><label>Nombres</label><input id="d-nombres"></div>
+          <div class="grid2">
+            <div class="field"><label>Apellido paterno</label><input id="d-paterno" oninput="hintDetalle()"></div>
+            <div class="field"><label>Apellido materno</label><input id="d-materno" oninput="hintDetalle()"></div>
+          </div>
+          <div class="hint" id="d-dtd2hint" style="margin:-6px 0 12px;"></div>
           <div class="grid2">
             <div class="field"><label>Contacto</label><input id="d-contacto"></div>
             <div class="field"><label>Presupuesto</label><input id="d-presupuesto"></div>
@@ -481,10 +499,32 @@ function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').t
 function esAdmin(){ return !!(currentUser && ADMINS.includes(currentUser.email)); }
 function nombreAgente(email){ return (AGENTES_DATA[email] && AGENTES_DATA[email].nombre) || (email ? email.split('@')[0] : '—'); }
 function iniciales(n){ return String(n||'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'; }
-function calcularDTD2(nombre){
-  const partes = String(nombre||'').trim().split(/\s+/);
-  const letra = norm(partes[partes.length-1]).charAt(0).toUpperCase();
+// DTD2 según la inicial del APELLIDO PATERNO
+function calcularDTD2(apellidoPaterno){
+  const letra = norm(apellidoPaterno).replace(/[^a-z]/g,'').charAt(0).toUpperCase();
   return LETRA_DTD2[letra] || '';
+}
+function nombreCompleto(nombres, paterno, materno){
+  return [nombres, paterno, materno].map(s=>String(s||'').trim()).filter(Boolean).join(' ');
+}
+// Para contactos antiguos que solo tienen el nombre en un campo (sugerencia; se puede corregir)
+function separarNombre(full){
+  const w = String(full||'').trim().split(/\s+/).filter(Boolean);
+  if(w.length<=1) return { nombres:w[0]||'', paterno:'', materno:'' };
+  if(w.length===2) return { nombres:w[0], paterno:w[1], materno:'' };
+  if(w.length===3) return { nombres:w[0], paterno:w[1], materno:w[2] };
+  return { nombres:w.slice(0,-2).join(' '), paterno:w[w.length-2], materno:w[w.length-1] };
+}
+function textoHintDTD2(paterno){
+  const d = calcularDTD2(paterno);
+  return d ? 'DTD2 según apellido paterno «'+String(paterno).trim()+'»: '+d : '';
+}
+function hintNuevo(){ $('n-dtd2hint').textContent = textoHintDTD2($('n-paterno').value); }
+function hintDetalle(){
+  const l = leadPorId(detalleId); const nuevo = calcularDTD2($('d-paterno').value);
+  let t = textoHintDTD2($('d-paterno').value);
+  if(l && nuevo && l.dtd2 !== nuevo) t += ' · se actualizará al guardar datos';
+  $('d-dtd2hint').textContent = t;
 }
 function pad2(n){ return String(n).padStart(2,'0'); }
 function isoDe(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
@@ -567,7 +607,7 @@ async function sb(method, path, body){
   });
   if(!res.ok){
     const t = await res.text();
-    const falta = /proximo_seguimiento|seguimiento_nota|origen|agente|dtd2|tags|historial/.test(t) ? ' · Falta ejecutar el SQL de columnas nuevas en Supabase.' : '';
+    const falta = /proximo_seguimiento|seguimiento_nota|origen|agente|dtd2|tags|historial|apellido_paterno|apellido_materno|nombres/.test(t) ? ' · Falta ejecutar el SQL de columnas nuevas en Supabase.' : '';
     throw new Error('Error '+res.status+falta);
   }
   if(method==='GET' || method==='POST'){ const t = await res.text(); return t ? JSON.parse(t) : []; }
@@ -703,7 +743,8 @@ function poblarCatalogos(){
   $('n-origen').innerHTML = $('d-origen').innerHTML = opts(Object.keys(ORIGENES), o=>'<option value="'+o+'">'+ORIGENES[o]+' '+o+'</option>');
   $('dl-zonas').innerHTML = opts(TAGS['Zona'], z=>'<option value="'+z+'">');
   $('tag-cat').innerHTML = opts(Object.keys(TAGS), c=>'<option>'+c+'</option>');
-  poblarTagValores();
+  $('nt-cat').innerHTML = $('tag-cat').innerHTML;
+  poblarTagValores(); poblarNuevoTagValores();
 }
 function renderBarra(){
   const fill = (id, html, val) => { const el=$(id); el.innerHTML=html; el.value=val; el.classList.toggle('activo', !!val); };
@@ -835,16 +876,32 @@ function poblarAgentes(sel, valor, bloquear){
   sel.value = valor || '';
   sel.disabled = !!bloquear;
 }
+let NUEVO_TAGS = [];
+function poblarNuevoTagValores(){ const c = $('nt-cat').value; $('nt-val').innerHTML = (TAGS[c]||[]).map(v=>'<option>'+esc(v)+'</option>').join(''); }
+function renderNuevoTags(){
+  $('nt-lista').innerHTML = NUEVO_TAGS.length
+    ? NUEVO_TAGS.map((t,i)=>'<span class="tag-chip"><span class="cat">'+esc(t.cat)+':</span> '+esc(t.val)+'<span class="x" onclick="quitarNuevoTag('+i+')">✕</span></span>').join('')
+    : '<div class="t-sub" style="margin-bottom:6px;font-style:italic;">Sin etiquetas (opcional)</div>';
+}
+function agregarNuevoTag(){
+  const cat = $('nt-cat').value, val = $('nt-val').value;
+  if(NUEVO_TAGS.some(t=>t.cat===cat && t.val===val)){ toast('Esa etiqueta ya está agregada'); return; }
+  NUEVO_TAGS.push({ cat, val }); renderNuevoTags();
+}
+function quitarNuevoTag(i){ NUEVO_TAGS.splice(i,1); renderNuevoTags(); }
 function abrirNuevo(){
-  ['n-nombre','n-contacto','n-presupuesto','n-zona','n-notas'].forEach(i => $(i).value = '');
+  NUEVO_TAGS = []; renderNuevoTags();
+  ['n-nombres','n-paterno','n-materno','n-contacto','n-presupuesto','n-zona','n-notas'].forEach(i => $(i).value = ''); hintNuevo();
   $('n-operacion').selectedIndex = 0; $('n-estado').value = 'Nuevo'; $('n-origen').selectedIndex = 0; $('n-seg').value = '3';
   poblarAgentes($('n-agente'), currentUser.email, !esAdmin());
   $('n-guardar').disabled = false;
-  $('m-nuevo').classList.add('open'); $('n-nombre').focus();
+  $('m-nuevo').classList.add('open'); $('n-nombres').focus();
 }
 async function guardarNuevo(){
-  const nombre = $('n-nombre').value.trim(), contacto = $('n-contacto').value.trim();
-  if(!nombre || !contacto){ toast('⚠️ Nombre y contacto son obligatorios'); return; }
+  const nombres = $('n-nombres').value.trim(), paterno = $('n-paterno').value.trim(), materno = $('n-materno').value.trim();
+  const contacto = $('n-contacto').value.trim();
+  if(!nombres || !paterno || !contacto){ toast('⚠️ Nombres, apellido paterno y contacto son obligatorios'); return; }
+  const nombre = nombreCompleto(nombres, paterno, materno);
   const hist = [];
   const notas = $('n-notas').value.trim();
   hist.push({ tipo:'sistema', texto:'Contacto creado por '+nombreAgente(currentUser.email), fecha:Date.now() });
@@ -852,12 +909,12 @@ async function guardarNuevo(){
   const segDias = $('n-seg').value;
   const fila = {
     fecha: new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'}),
-    nombre, contacto,
+    nombre, nombres, apellido_paterno:paterno, apellido_materno:materno, contacto,
     operacion:$('n-operacion').value, presupuesto:$('n-presupuesto').value.trim(), zona:$('n-zona').value.trim(),
     notas:notas, estado:$('n-estado').value, origen:$('n-origen').value,
     agente: esAdmin() ? $('n-agente').value : currentUser.email,
-    dtd2: calcularDTD2(nombre),
-    tags: JSON.stringify([]), historial: JSON.stringify(hist)
+    dtd2: calcularDTD2(paterno),
+    tags: JSON.stringify(NUEVO_TAGS), historial: JSON.stringify(hist)
   };
   if(segDias){ fila.proximo_seguimiento = masDias(+segDias); fila.seguimiento_nota = 'Primer contacto'; }
   $('n-guardar').disabled = true;
@@ -875,9 +932,13 @@ function abrirDetalle(id){
   const l = leadPorId(id); if(!l) return;
   detalleId = id;
   $('d-titulo').textContent = l.nombre;
-  const d2 = l.dtd2 || calcularDTD2(l.nombre);
+  const d2 = l.dtd2 || '';
   const b = $('d-dtd2'); b.style.display = d2 ? 'inline-block' : 'none'; b.textContent = '🔁 DTD2 '+d2;
-  $('d-nombre').value = l.nombre||''; $('d-contacto').value = l.contacto||''; $('d-presupuesto').value = l.presupuesto||'';
+  let nom = l.nombres, pat = l.apellido_paterno, mat = l.apellido_materno;
+  if(!pat){ const s = separarNombre(l.nombre); nom = s.nombres; pat = s.paterno; mat = s.materno; }
+  $('d-nombres').value = nom||''; $('d-paterno').value = pat||''; $('d-materno').value = mat||'';
+  hintDetalle();
+  $('d-contacto').value = l.contacto||''; $('d-presupuesto').value = l.presupuesto||'';
   $('d-operacion').value = OPERACIONES.includes(l.operacion) ? l.operacion : OPERACIONES[0];
   $('d-zona').value = l.zona||''; $('d-estado').value = estadoDe(l);
   $('d-origen').value = ORIGENES[l.origen] ? l.origen : 'Otro';
@@ -898,17 +959,19 @@ function renderHistorial(l){
 }
 async function guardarDatos(){
   const l = leadPorId(detalleId); if(!l) return;
-  const nombre = $('d-nombre').value.trim(), contacto = $('d-contacto').value.trim();
-  if(!nombre || !contacto){ toast('⚠️ Nombre y contacto son obligatorios'); return; }
+  const nombres = $('d-nombres').value.trim(), paterno = $('d-paterno').value.trim(), materno = $('d-materno').value.trim();
+  const contacto = $('d-contacto').value.trim();
+  if(!nombres || !paterno || !contacto){ toast('⚠️ Nombres, apellido paterno y contacto son obligatorios'); return; }
+  const nombre = nombreCompleto(nombres, paterno, materno);
   const hist = (l.historial||[]).slice();
   const nuevoEstado = $('d-estado').value;
   const nuevoAgente = esAdmin() ? $('d-agente').value : l.agente;
   if(nuevoEstado !== estadoDe(l)) hist.push({ tipo:'etapa', texto:'Etapa cambiada a '+nuevoEstado, fecha:Date.now(), por:nombreAgente(currentUser.email) });
   if(nuevoAgente !== l.agente) hist.push({ tipo:'sistema', texto:'Reasignado a '+nombreAgente(nuevoAgente), fecha:Date.now(), por:nombreAgente(currentUser.email) });
   const cambios = {
-    nombre, contacto, presupuesto:$('d-presupuesto').value.trim(), operacion:$('d-operacion').value,
+    nombre, nombres, apellido_paterno:paterno, apellido_materno:materno, contacto, presupuesto:$('d-presupuesto').value.trim(), operacion:$('d-operacion').value,
     zona:$('d-zona').value.trim(), estado:nuevoEstado, origen:$('d-origen').value, agente:nuevoAgente,
-    dtd2:calcularDTD2(nombre), historial:hist
+    dtd2:calcularDTD2(paterno), historial:hist
   };
   try { await patchLead(l.id, cambios); toast('✓ Datos guardados'); abrirDetalle(l.id); renderAll(); }
   catch(e){ toast('⚠️ '+e.message, 5000); }
