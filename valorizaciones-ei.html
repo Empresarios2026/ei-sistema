@@ -1040,6 +1040,7 @@ function readInput(){
 var LAST=null;
 function update(){
   var tipo=$('p_tipo').value;
+  var tipoTxt={depto:'departamento',casa:'casa',local:'local comercial',terreno:'terreno'}[tipo];
 
   // Visibilidad de campos según tipo
   document.querySelectorAll('[data-for]').forEach(function(el){
