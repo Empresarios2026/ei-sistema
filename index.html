@@ -7473,14 +7473,9 @@ async function generarPostRedes(id) {
     ctx.fillStyle = '#CE011F';
     ctx.fillRect(60, infoY + 100, 120, 4);
 
-    // Precio grande
-    ctx.font = 'bold 56px Arial, sans-serif';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(precio, 60, infoY + 170);
-
     // Stats (área, dorms, baños)
     let statsX = 60;
-    const statsY = infoY + 220;
+    const statsY = infoY + 160;
     ctx.font = '26px Arial, sans-serif';
     const statsItems = [];
     if (area) statsItems.push(area + ' m²');
@@ -7577,7 +7572,7 @@ async function generarPostRedes(id) {
   const imgUrl = URL.createObjectURL(imgBlob);
 
   // Datos base para prompts
-  const base = `${r.tipo||'Propiedad'} en ${r.ubicacion||'Arequipa'} | ${operacion} | Precio: ${precio} | Área: ${area||'N/D'} m² | ${dorms ? dorms+' dormitorios' : ''} ${banos ? banos+' baños' : ''} | ${r.caract&&r.caract!=='—'?'Características: '+r.caract:''}`;
+  const base = `${r.tipo||'Propiedad'} en ${r.ubicacion||'Arequipa'} | ${operacion} | Área: ${area||'N/D'} m² | ${dorms ? dorms+' dormitorios' : ''} ${banos ? banos+' baños' : ''} | ${r.caract&&r.caract!=='—'?'Características: '+r.caract:''}`;
 
   // Generar ambos captions en paralelo
   const igPromise = llamarClaude(
@@ -7588,6 +7583,7 @@ async function generarPostRedes(id) {
 4. CTA: "Escríbenos al 📲 ${asesorTel}"
 5. Firma: ${asesorNombre} — Empresarios Inmobiliarios
 6. Al final 20-25 hashtags relevantes en español para Arequipa e inmobiliario
+IMPORTANTE: NO incluyas precio en el post.
 DATOS: ${base}
 Escribe en español, sin asteriscos ni markdown. Máximo 300 palabras.`, 800
   ).catch(() => null);
@@ -7597,10 +7593,10 @@ Escribe en español, sin asteriscos ni markdown. Máximo 300 palabras.`, 800
 1. Gancho poderoso en la primera línea con emoji
 2. Descripción detallada de la propiedad en 4-5 oraciones, resaltando puntos de valor
 3. Bullets con características principales y beneficios (usa emojis con moderación)
-4. Precio destacado
-5. CTA claro: "📲 Escríbenos al ${asesorTel}"
+4. CTA claro: "📲 Escríbenos al ${asesorTel}"
 6. Firma: ${asesorNombre} — Empresarios Inmobiliarios
-7. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces + 10 más relevantes
+6. Hashtags al final: #EmpresariosInmobiliarios #Arequipa #BienesRaíces + 10 más relevantes
+IMPORTANTE: NO incluyas precio en el post.
 DATOS: ${base}
 Escribe en español, sin asteriscos ni markdown. 200-250 palabras.`, 800
   ).catch(() => null);
