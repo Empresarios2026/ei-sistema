@@ -154,6 +154,30 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
 .admin-body td.editing input { width:100%; padding:4px 6px; border:1px solid var(--r); border-radius:4px; font-size:12px; font-family:'DM Sans',sans-serif; }
 
 /* ══ PRINT ══ */
+/* ── Pestañas Ventas / Alquileres ── */
+.tabs-bar { display:flex; gap:0; background:var(--s2); border-bottom:2px solid var(--border); padding:0 20px; }
+.tab-btn { padding:10px 24px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:var(--t3); background:none; border:none; cursor:pointer; position:relative; transition:color .2s; letter-spacing:.3px; }
+.tab-btn:hover { color:var(--t1); }
+.tab-btn.active { color:var(--r); }
+.tab-btn.active::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:var(--r); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ── Módulo Alquileres ── */
+.alq-grid { display:grid; grid-template-columns:1fr 330px; gap:18px; }
+@media(max-width:900px){ .alq-grid { grid-template-columns:1fr; } }
+.alq-result { background:linear-gradient(135deg,var(--r),var(--rd)); color:#fff; border-radius:10px; padding:22px; text-align:center; margin-top:12px; }
+.alq-result .lbl { font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:.85; margin-bottom:4px; }
+.alq-result .num { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; }
+.alq-result .sub { font-size:11px; opacity:.75; margin-top:6px; }
+.alq-summary-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px; }
+.alq-summary-card h3 { font-family:'Playfair Display',serif; font-size:15px; margin:0 0 14px; color:var(--t1); }
+.alq-line { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--s2); font-size:12.5px; color:var(--t2); }
+.alq-line b { color:var(--t1); }
+.alq-final { text-align:center; margin-top:16px; padding-top:14px; border-top:2px solid var(--r); }
+.alq-final .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--t3); }
+.alq-final .num { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--r); margin-top:2px; }
+
 @media print {
   @page { size:A4; margin:14mm; }
   body { background:#fff; }
@@ -219,6 +243,14 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   </div>
 </div>
 
+<!-- ════════ PESTAÑAS ════════ -->
+<div class="tabs-bar">
+  <button class="tab-btn active" id="tabBtn-ventas" onclick="switchTab('ventas')">Ventas</button>
+  <button class="tab-btn" id="tabBtn-alquileres" onclick="switchTab('alquileres')">Alquileres</button>
+</div>
+
+<!-- ════════ TAB: VENTAS ════════ -->
+<div id="tab-ventas" class="tab-content active">
 <main>
 <div>
 
@@ -422,6 +454,206 @@ table.grid tr.hl td { background:var(--rl); color:var(--r); font-weight:700; }
   </div>
 </div>
 </main>
+
+</div><!-- /tab-ventas -->
+
+<!-- ════════ TAB: ALQUILERES ════════ -->
+<div id="tab-alquileres" class="tab-content">
+<div class="alq-grid">
+<div>
+
+  <!-- DATOS DEL INMUEBLE (ALQUILER) -->
+  <div class="card">
+    <h2>Datos del Inmueble para Alquiler</h2>
+    <div class="grid2">
+      <div class="field"><label>Propietario</label><input id="a_prop" placeholder="Nombre del propietario"></div>
+      <div class="field"><label>Agente</label><input id="a_agente" readonly></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Dirección</label><input id="a_dir" placeholder="Av. / Calle / Urb."></div>
+      <div class="field">
+        <label>Distrito</label>
+        <select id="a_distrito">
+          <option value="">— Seleccionar —</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="field">
+        <label>Tipo de propiedad</label>
+        <select id="a_tipo">
+          <option value="depto">Departamento</option>
+          <option value="casa">Casa</option>
+          <option value="local">Local comercial</option>
+          <option value="habitacion">Habitación</option>
+        </select>
+      </div>
+      <div class="field"><label>Área (m²)</label><input type="number" id="a_area" step="any"></div>
+      <div class="field">
+        <label>Amoblado</label>
+        <select id="a_amoblado">
+          <option value="no">No amoblado</option>
+          <option value="semi">Semi-amoblado</option>
+          <option value="si">Amoblado</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Dormitorios</label><input type="number" id="a_dorms" value="2" min="0" max="20"></div>
+      <div class="field"><label>Baños</label><input type="number" id="a_banos" value="1" min="0" max="10" step="0.5"></div>
+      <div class="field"><label>Estacionamiento</label>
+        <select id="a_estac">
+          <option value="no">No</option>
+          <option value="si">Sí</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Antigüedad (años)</label><input type="number" id="a_antig" value="5" min="0"></div>
+      <div class="field">
+        <label>Estado de conservación</label>
+        <select id="a_estado">
+          <option value="excelente">Excelente</option>
+          <option value="bueno" selected>Bueno</option>
+          <option value="regular">Regular</option>
+          <option value="malo">Malo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Piso</label>
+        <input type="number" id="a_piso" min="1" value="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- MÉTODO DE CÁLCULO -->
+  <div class="card">
+    <h2>Método de Valorización de Alquiler</h2>
+    <p class="desc">Se calcula el alquiler mensual estimado como un porcentaje del valor comercial del inmueble (rentabilidad bruta anual). La tasa varía según tipo, ubicación y características.</p>
+    <div class="grid2">
+      <div class="field">
+        <label>Zona / Urbanización</label>
+        <select id="a_zona"></select>
+        <div class="hint">Selecciona una zona para usar el valor de la tabla EI.</div>
+      </div>
+      <div class="field">
+        <label>Valor del m² a usar</label>
+        <select id="a_vutSel">
+          <option value="lo">Mínimo de la zona</option>
+          <option value="mid" selected>Promedio de la zona</option>
+          <option value="hi">Máximo de la zona</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Rango de la zona</label><input id="a_rango" readonly placeholder="—"></div>
+      <div class="field">
+        <label>Valor comercial estimado US$</label>
+        <input type="number" id="a_valorComercial" step="any" placeholder="Se calcula o ingresa manual">
+        <div class="hint" id="a_hint_vc">Si seleccionas zona + área, se estima automáticamente. Editable.</div>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="field">
+        <label>Tasa de rentabilidad anual (%)</label>
+        <input type="number" id="a_tasa" step="0.1" value="5.0">
+        <div class="hint" id="a_hint_tasa">Referencia: Deptos 4-6%, Casas 4-5%, Locales 6-8%, Habitaciones 7-10%.</div>
+      </div>
+      <div class="field">
+        <label>Ajuste por amoblado (%)</label>
+        <input type="number" id="a_ajusteAmob" step="any" value="0" readonly>
+        <div class="hint">Auto: Semi +10%, Amoblado +20%.</div>
+      </div>
+      <div class="field">
+        <label>Ajuste manual (%)</label>
+        <input type="number" id="a_ajusteManual" step="any" value="0">
+        <div class="hint">Ajuste adicional (+/-) sobre el alquiler calculado.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÉTODO 2: TABLA EI POR ÁREAS -->
+  <div class="card">
+    <h2>Tabla EI por Áreas <span class="tag" id="a_tag_m2">MÉTODO 2</span></h2>
+    <p class="desc">Valores referenciales de alquiler por m² según el tamaño del local/inmueble. Principalmente para locales comerciales. Valores en soles; el tipo de cambio convierte a dólares.</p>
+    <div class="grid3">
+      <div class="field">
+        <label>Tipo de cambio (S/. por US$)</label>
+        <input type="number" id="a_tc" step="0.01" value="3.70">
+        <div class="hint">Ingresa el TC del día para la conversión.</div>
+      </div>
+      <div class="field">
+        <label>Rango detectado</label>
+        <input id="a_rangoTabla" readonly placeholder="Ingresa el área arriba">
+      </div>
+      <div class="field">
+        <label>Valor por m² (S/.)</label>
+        <input id="a_valorM2Soles" readonly placeholder="—">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Alquiler Tabla EI (S/.)</label>
+        <input id="a_alqTabla_soles" readonly placeholder="—">
+      </div>
+      <div class="field">
+        <label>Alquiler Tabla EI (US$)</label>
+        <input id="a_alqTabla_usd" readonly placeholder="—">
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--t3);line-height:1.6;" id="a_tablaRef">
+      <b>Tabla de referencia (US$/m²):</b><br>
+      6–10 m²: $17–22 &nbsp;|&nbsp; 11–20 m²: $13–16 &nbsp;|&nbsp; 21–50 m²: $11–12 &nbsp;|&nbsp; 51–100 m²: $9–10<br>
+      101–200 m²: $6–8 &nbsp;|&nbsp; 201–500 m²: $4–5 &nbsp;|&nbsp; 501–1000 m²: $2–3 &nbsp;|&nbsp; 1001–2000 m²: $1.25–1.75 &nbsp;|&nbsp; 2001–5000 m²: $0.75–1
+    </div>
+    <div class="sub-line" style="margin-top:12px;"><span><b>Alquiler Método 2 (Tabla EI)</b></span><b class="v" id="a_o_m2">—</b></div>
+  </div>
+
+  <!-- RESULTADO ALQUILER -->
+  <div class="card">
+    <h2>Resultado</h2>
+    <div id="a_warns"></div>
+    <div class="alq-result" id="a_resultado" style="display:none;">
+      <div class="lbl">Alquiler Mensual Estimado</div>
+      <div class="num" id="a_alquiler">—</div>
+      <div class="sub" id="a_detalle_result"></div>
+    </div>
+    <div class="actions no-print" style="margin-top:14px;">
+      <button class="btn primary" onclick="copiarAlquiler()">Copiar resumen de alquiler</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- PANEL LATERAL ALQUILERES -->
+<div class="summary no-print">
+  <div class="bar"></div>
+  <div class="alq-summary-card">
+    <h3>Resumen Alquiler (interno)</h3>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px;">Método 1 · Rentabilidad</div>
+    <div class="alq-line"><span>Valor comercial estimado</span><b id="as_vc">—</b></div>
+    <div class="alq-line"><span>Tasa anual</span><b id="as_tasa">—</b></div>
+    <div class="alq-line"><span>Alquiler base (mensual)</span><b id="as_base">—</b></div>
+    <div class="alq-line"><span>Ajuste amoblado</span><b id="as_amob">—</b></div>
+    <div class="alq-line"><span>Ajuste manual</span><b id="as_manual">—</b></div>
+    <div class="alq-line" style="font-weight:600;"><span>M1 Alquiler US$</span><b id="as_m1">—</b></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin:12px 0 6px;border-top:1px solid var(--border);padding-top:10px;">Método 2 · Tabla EI</div>
+    <div class="alq-line"><span>Rango US$/m²</span><b id="as_m2rango">—</b></div>
+    <div class="alq-line"><span>Alquiler S/.</span><b id="as_m2soles">—</b></div>
+    <div class="alq-line" style="font-weight:600;"><span>M2 Alquiler US$</span><b id="as_m2usd">—</b></div>
+    <div class="alq-final">
+      <div class="lbl">Alquiler Propuesto</div>
+      <div class="num" id="as_final">—</div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="alq-line"><span>Rango sugerido</span><b id="as_rango">—</b></div>
+      <div class="alq-line"><span>Alquiler en S/.</span><b id="as_soles">—</b></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /alq-grid -->
+</div><!-- /tab-alquileres -->
 
 <!-- ════════ MODAL ADMIN ZONAS ════════ -->
 <div id="admin-overlay">
@@ -1507,6 +1739,302 @@ async function buscarComparables(){
   } finally {
     btn.disabled = false;
   }
+}
+
+// ══════════════════════════════════════════
+// PESTAÑAS (VENTAS / ALQUILERES)
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+  document.getElementById('tabBtn-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='alquileres') initAlquileres();
+}
+
+// ══════════════════════════════════════════
+// MÓDULO DE ALQUILERES
+// ══════════════════════════════════════════
+var alqInited = false;
+
+function initAlquileres() {
+  if(alqInited) return;
+  alqInited = true;
+
+  // Cargar nombre del agente
+  var agente = getAgenteActual();
+  $('a_agente').value = agente ? agente.nombre : (currentUser ? currentUser.email : '—');
+
+  // Poblar distritos desde ZONAS
+  poblarAlqDistritos();
+
+  // Tasas de referencia según tipo
+  $('a_tipo').addEventListener('change', function(){
+    var tasas = {depto:5.0, casa:4.5, local:7.0, habitacion:8.0};
+    $('a_tasa').value = tasas[this.value] || 5.0;
+    updateAlquiler();
+  });
+
+  // Amoblado → ajuste automático
+  $('a_amoblado').addEventListener('change', function(){
+    var aj = {no:0, semi:10, si:20};
+    $('a_ajusteAmob').value = aj[this.value] || 0;
+    updateAlquiler();
+  });
+
+  // Distrito → filtrar zonas
+  $('a_distrito').addEventListener('change', function(){
+    filtrarAlqZonas();
+    updateAlquiler();
+  });
+
+  // Eventos de cálculo
+  ['a_zona','a_vutSel','a_area','a_tasa','a_ajusteManual','a_valorComercial','a_antig','a_estado','a_dorms','a_banos','a_estac','a_piso','a_tc'].forEach(function(id){
+    var el = $(id);
+    if(el){ el.addEventListener('input', updateAlquiler); el.addEventListener('change', updateAlquiler); }
+  });
+
+  updateAlquiler();
+}
+
+function poblarAlqDistritos() {
+  var dists = [];
+  ZONAS.forEach(function(z){ if(dists.indexOf(z.dist)<0) dists.push(z.dist); });
+  var html = '<option value="">— Seleccionar —</option>';
+  dists.forEach(function(d){ html += '<option value="'+esc(d)+'">'+esc(d)+'</option>'; });
+  $('a_distrito').innerHTML = html;
+  filtrarAlqZonas();
+}
+
+function filtrarAlqZonas() {
+  var distSel = $('a_distrito').value;
+  var sel = $('a_zona');
+  var html = '<option value="">— Sin zona —</option>';
+  var cur = '';
+  ZONAS.forEach(function(z, idx) {
+    if(distSel && z.dist !== distSel) return;
+    if (z.dist !== cur) { if (cur) html += '</optgroup>'; html += '<optgroup label="' + esc(z.dist) + '">'; cur = z.dist; }
+    html += '<option value="' + idx + '">' + esc(z.zona + (z.det ? ' — ' + z.det : '')) + '</option>';
+  });
+  if (cur) html += '</optgroup>';
+  sel.innerHTML = html;
+}
+
+// Tabla EI de alquileres por rango de área (US$/m²)
+var TABLA_ALQ = [
+  {min:6, max:10, lo:17, hi:22},
+  {min:11, max:20, lo:13, hi:16},
+  {min:21, max:50, lo:11, hi:12},
+  {min:51, max:100, lo:9, hi:10},
+  {min:101, max:200, lo:6, hi:8},
+  {min:201, max:500, lo:4, hi:5},
+  {min:501, max:1000, lo:2, hi:3},
+  {min:1001, max:2000, lo:1.25, hi:1.75},
+  {min:2001, max:5000, lo:0.75, hi:1}
+];
+
+function buscarRangoAlq(area) {
+  for(var i=0; i<TABLA_ALQ.length; i++){
+    if(area >= TABLA_ALQ[i].min && area <= TABLA_ALQ[i].max) return TABLA_ALQ[i];
+  }
+  return null;
+}
+
+function updateAlquiler() {
+  // Zona seleccionada
+  var zIdx = $('a_zona').value;
+  var z = zIdx !== '' ? ZONAS[parseInt(zIdx,10)] : null;
+
+  // Mostrar rango
+  $('a_rango').value = z ? ('US$ '+z.lo+' – '+z.hi+' /m²') : '';
+
+  // Valor comercial: auto-calcular si hay zona + área
+  var area = nz($('a_area').value);
+  var vcField = $('a_valorComercial');
+  if(z && area > 0) {
+    var selV = $('a_vutSel').value;
+    var vut = selV==='lo' ? z.lo : selV==='hi' ? z.hi : mid(z);
+    var acabado = 525; // estándar por defecto para alquileres
+    var tipo = $('a_tipo').value;
+    var vc;
+    if(tipo==='habitacion'){
+      vc = area * vut * 0.7; // habitación: fracción del valor
+    } else {
+      vc = area * vut + area * acabado; // terreno + construcción
+    }
+    // Depreciar
+    var antig = nz($('a_antig').value);
+    var depPct = Math.min(antig * 1, 50); // máx 50% para alquiler
+    vc = vc * (1 - depPct/100);
+    // Estado
+    var estados = {excelente:1.05, bueno:1.0, regular:0.90, malo:0.75};
+    vc = vc * (estados[$('a_estado').value] || 1.0);
+
+    if(!vcField.dataset.manual) {
+      vcField.value = Math.round(vc);
+      $('a_hint_vc').textContent = 'Estimado: terreno ('+vut+' US$/m²) + construcción, ajustado por antigüedad y estado. Editable.';
+    }
+  }
+
+  // Permitir edición manual
+  vcField.addEventListener('input', function(){
+    this.dataset.manual = 'true';
+    $('a_hint_vc').textContent = 'Valor ingresado manualmente.';
+  });
+
+  // Cálculo del alquiler
+  var valorComercial = nz(vcField.value);
+  var tasa = nz($('a_tasa').value);
+  var ajAmob = nz($('a_ajusteAmob').value);
+  var ajManual = nz($('a_ajusteManual').value);
+
+  var warns = [];
+  if(!valorComercial) warns.push('Ingresa el valor comercial o selecciona zona + área para estimarlo.');
+  if(!tasa) warns.push('Ingresa la tasa de rentabilidad anual.');
+
+  $('a_warns').innerHTML = warns.map(function(w){ return '<div class="warn">'+esc(w)+'</div>'; }).join('');
+
+  // === MÉTODO 1: Rentabilidad ===
+  var m1ok = (valorComercial > 0 && tasa > 0);
+  var alqFinalM1 = 0;
+  if(m1ok) {
+    var alqBase = valorComercial * (tasa/100) / 12;
+    var alqAmob = alqBase * (1 + ajAmob/100);
+    alqFinalM1 = alqAmob * (1 + ajManual/100);
+
+    $('as_vc').textContent = fmt0(valorComercial);
+    $('as_tasa').textContent = tasa.toFixed(1) + '%';
+    $('as_base').textContent = 'US$ ' + Math.round(alqBase).toLocaleString('en-US');
+    $('as_amob').textContent = ajAmob ? '+'+ajAmob+'%' : '—';
+    $('as_manual').textContent = ajManual ? (ajManual>0?'+':'')+ajManual+'%' : '—';
+    $('as_m1').textContent = 'US$ ' + Math.round(alqFinalM1).toLocaleString('en-US');
+  } else {
+    $('as_vc').textContent = '—'; $('as_tasa').textContent = '—'; $('as_base').textContent = '—';
+    $('as_amob').textContent = '—'; $('as_manual').textContent = '—'; $('as_m1').textContent = '—';
+  }
+
+  // === MÉTODO 2: Tabla EI por Áreas ===
+  var tc = nz($('a_tc').value) || 3.70;
+  var rango = buscarRangoAlq(area);
+  var m2ok = (rango !== null && area > 0);
+  var alqFinalM2usd = 0;
+  if(m2ok) {
+    var midUsd = (rango.lo + rango.hi) / 2;
+    var totalUsd = midUsd * area;
+    var midSoles = midUsd * tc;
+    var totalSoles = totalUsd * tc;
+    alqFinalM2usd = totalUsd;
+
+    $('a_rangoTabla').value = rango.min + '–' + rango.max + ' m² → US$ ' + rango.lo + '–' + rango.hi + '/m²';
+    $('a_valorM2Soles').value = 'S/. ' + midSoles.toFixed(2) + ' /m²';
+    $('a_alqTabla_soles').value = 'S/. ' + Math.round(totalSoles).toLocaleString('en-US');
+    $('a_alqTabla_usd').value = 'US$ ' + Math.round(totalUsd).toLocaleString('en-US');
+
+    // Panel lateral M2
+    $('as_m2rango').textContent = 'US$ ' + rango.lo + '–' + rango.hi + '/m²';
+    $('as_m2soles').textContent = 'S/. ' + Math.round(totalSoles).toLocaleString('en-US');
+    $('as_m2usd').textContent = 'US$ ' + Math.round(totalUsd).toLocaleString('en-US');
+  } else {
+    $('a_rangoTabla').value = area > 0 ? 'Fuera de rango (6–5000 m²)' : '';
+    $('a_valorM2Soles').value = '';
+    $('a_alqTabla_soles').value = '';
+    $('a_alqTabla_usd').value = '';
+    $('as_m2rango').textContent = '—';
+    $('as_m2soles').textContent = '—';
+    $('as_m2usd').textContent = '—';
+  }
+
+  // === RESULTADO COMBINADO ===
+  if(m1ok || m2ok) {
+    $('a_resultado').style.display = '';
+    if(m1ok && m2ok) {
+      var prom = (alqFinalM1 + alqFinalM2usd) / 2;
+      $('a_alquiler').textContent = 'US$ ' + Math.round(prom).toLocaleString('en-US');
+      $('a_detalle_result').textContent = 'Promedio M1 (US$ '+Math.round(alqFinalM1)+') + M2 (US$ '+Math.round(alqFinalM2usd)+')';
+      $('as_final').textContent = 'US$ ' + Math.round(prom).toLocaleString('en-US');
+      $('as_rango').textContent = 'US$ ' + Math.round(Math.min(alqFinalM1,alqFinalM2usd)).toLocaleString('en-US') + ' – ' + Math.round(Math.max(alqFinalM1,alqFinalM2usd)).toLocaleString('en-US');
+      $('as_soles').textContent = 'S/. ' + Math.round(prom*tc).toLocaleString('en-US');
+    } else if(m1ok) {
+      $('a_alquiler').textContent = 'US$ ' + Math.round(alqFinalM1).toLocaleString('en-US');
+      $('a_detalle_result').textContent = 'M1: Renta mensual sobre valor de ' + fmt0(valorComercial) + ' al ' + tasa.toFixed(1) + '% anual';
+      $('as_final').textContent = 'US$ ' + Math.round(alqFinalM1).toLocaleString('en-US');
+      $('as_rango').textContent = 'US$ ' + Math.round(alqFinalM1*0.90).toLocaleString('en-US') + ' – ' + Math.round(alqFinalM1*1.10).toLocaleString('en-US');
+      $('as_soles').textContent = 'S/. ' + Math.round(alqFinalM1*tc).toLocaleString('en-US');
+    } else {
+      $('a_alquiler').textContent = 'US$ ' + Math.round(alqFinalM2usd).toLocaleString('en-US');
+      $('a_detalle_result').textContent = 'M2: Tabla EI (' + area + ' m², US$ ' + ((rango.lo+rango.hi)/2).toFixed(2) + '/m²)';
+      $('as_final').textContent = 'US$ ' + Math.round(alqFinalM2usd).toLocaleString('en-US');
+      $('as_rango').textContent = 'US$ ' + Math.round(alqFinalM2usd*0.90).toLocaleString('en-US') + ' – ' + Math.round(alqFinalM2usd*1.10).toLocaleString('en-US');
+      $('as_soles').textContent = 'S/. ' + Math.round(alqFinalM2usd*tc).toLocaleString('en-US');
+    }
+  } else {
+    $('a_resultado').style.display = 'none';
+    $('as_final').textContent = '—'; $('as_rango').textContent = '—'; $('as_soles').textContent = '—';
+  }
+}
+
+function copiarAlquiler() {
+  var vc = nz($('a_valorComercial').value);
+  var tasa = nz($('a_tasa').value);
+  var area = nz($('a_area').value);
+  var tc = nz($('a_tc').value) || 3.70;
+  var rango = buscarRangoAlq(area);
+
+  var m1ok = (vc > 0 && tasa > 0);
+  var m2ok = (rango !== null && area > 0);
+  if(!m1ok && !m2ok){ alert('Aún no hay resultados para copiar.'); return; }
+
+  var ajAmob = nz($('a_ajusteAmob').value);
+  var ajManual = nz($('a_ajusteManual').value);
+  var alqFinalM1 = 0;
+  if(m1ok) {
+    var alqBase = vc * (tasa/100) / 12;
+    alqFinalM1 = alqBase * (1 + ajAmob/100) * (1 + ajManual/100);
+  }
+  var alqFinalM2 = 0;
+  if(m2ok) alqFinalM2 = ((rango.lo+rango.hi)/2) * area;
+
+  var tipo = {depto:'Departamento',casa:'Casa',local:'Local comercial',habitacion:'Habitación'}[$('a_tipo').value];
+  var dirParts = [$('a_dir').value, $('a_distrito').value].filter(function(v){return v&&v.trim();});
+  var dir = dirParts.join(', ') || '—';
+
+  var L = [];
+  L.push('VALORIZACIÓN DE ALQUILER — RESUMEN');
+  L.push('Predio: '+tipo+' — '+dir);
+  L.push('Propietario: '+($('a_prop').value||'—'));
+  L.push('Agente: '+($('a_agente').value||'—'));
+  L.push('————————————————————————');
+  L.push('Área: '+(area||'—')+' m²');
+  L.push('Amoblado: '+$('a_amoblado').options[$('a_amoblado').selectedIndex].text);
+  L.push('Dorms: '+$('a_dorms').value+' | Baños: '+$('a_banos').value);
+  if(m1ok) {
+    L.push('————————————————————————');
+    L.push('MÉTODO 1 — RENTABILIDAD');
+    L.push('Valor comercial estimado: '+fmt0(vc));
+    L.push('Tasa de rentabilidad: '+tasa.toFixed(1)+'% anual');
+    L.push('Alquiler base mensual: US$ '+Math.round(vc*(tasa/100)/12));
+    if(ajAmob) L.push('Ajuste amoblado: +'+ajAmob+'%');
+    if(ajManual) L.push('Ajuste manual: '+(ajManual>0?'+':'')+ajManual+'%');
+    L.push('Alquiler M1: US$ '+Math.round(alqFinalM1));
+  }
+  if(m2ok) {
+    L.push('————————————————————————');
+    L.push('MÉTODO 2 — TABLA EI POR ÁREAS');
+    L.push('Rango: '+rango.min+'–'+rango.max+' m²');
+    L.push('Valor referencia: US$ '+rango.lo+'–'+rango.hi+'/m²');
+    L.push('Alquiler M2: US$ '+Math.round(alqFinalM2)+' (S/. '+Math.round(alqFinalM2*tc)+')');
+    L.push('TC usado: S/. '+tc.toFixed(2));
+  }
+  L.push('————————————————————————');
+  var propuesto = (m1ok && m2ok) ? Math.round((alqFinalM1+alqFinalM2)/2) : Math.round(m1ok ? alqFinalM1 : alqFinalM2);
+  L.push('ALQUILER PROPUESTO: US$ '+propuesto);
+  L.push('En soles (TC '+tc.toFixed(2)+'): S/. '+Math.round(propuesto*tc));
+  if(m1ok && m2ok) L.push('Rango: US$ '+Math.round(Math.min(alqFinalM1,alqFinalM2))+' – US$ '+Math.round(Math.max(alqFinalM1,alqFinalM2)));
+  else L.push('Rango sugerido: US$ '+Math.round(propuesto*0.90)+' – US$ '+Math.round(propuesto*1.10));
+
+  var t = L.join('\n');
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ alert('Resumen de alquiler copiado.'); }, function(){ prompt('Copia el texto:',t); });
+  else prompt('Copia el texto:',t);
 }
 </script>
 </body>
